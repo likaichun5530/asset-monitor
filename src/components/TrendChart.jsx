@@ -86,7 +86,7 @@ export default function TrendChart({ refreshKey = 0 }) {
       </div>
       <div className="w-full h-[180px] lg:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 24, right: 36, bottom: 0, left: 0 }}>
+          <AreaChart data={data} margin={{ top: 24, right: 12, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
@@ -142,7 +142,7 @@ export default function TrendChart({ refreshKey = 0 }) {
                 stroke="#fff"
                 strokeWidth={2}
                 label={{
-                  value: `高点 ${toWanNum(peak.value)}`,
+                  value: toWanNum(peak.value),
                   position: 'top',
                   fill: '#1f2937',
                   fontSize: 11,

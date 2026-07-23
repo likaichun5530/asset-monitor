@@ -67,6 +67,9 @@ async function apiPost(endpoint, body) {
 // ===== Holdings =====
 
 export async function fetchHoldings() {
+  const demoMode = readLocal('youshu-demo-mode', false)
+  let result
+
   if (API_BASE) {
     try {
       const data = await apiGet('holdings')
@@ -74,18 +77,34 @@ export async function fetchHoldings() {
       if (holdings.length) {
         writeLocal(KEYS.holdings, { holdings, syncedAt: data.syncedAt })
         writeLocal(KEYS.lastSync, new Date().toISOString())
-        return { holdings, source: 'online', syncedAt: data.syncedAt }
+        result = { holdings, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 holdings 失败', e)
     }
   }
 
-  const cached = readLocal(KEYS.holdings, null)
-  if (cached?.holdings?.length) {
-    return { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
+  if (!result) {
+    const cached = readLocal(KEYS.holdings, null)
+    if (cached?.holdings?.length) {
+      result = { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
+    } else {
+      result = { holdings: staticHoldings, source: 'static', syncedAt: null }
+    }
   }
-  return { holdings: staticHoldings, source: 'static', syncedAt: null }
+
+  // 演示模式：所有持仓缩为 1/10
+  if (demoMode) {
+    result.holdings = result.holdings.map((h) => ({
+      ...h,
+      marketValue: h.marketValue != null ? h.marketValue / 10 : null,
+      marketValueCNY: (h.marketValueCNY || 0) / 10,
+      price: h.price != null ? h.price / 10 : null,
+      quantity: h.quantity != null ? h.quantity / 10 : null,
+    }))
+  }
+
+  return result
 }
 
 function normalizeHoldings(arr) {
@@ -218,11 +237,18 @@ export async function fetchTarget() {
     try {
       const data = await apiGet('target')
       if (data.target?.length) {
+        writeLocal('asset-monitor:target', { target: data.target, syncedAt: data.syncedAt })
         return { target: data.target, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 target 失败', e)
     }
+  }
+
+  // 优先读缓存
+  const cachedTarget = readLocal('asset-monitor:target', null)
+  if (cachedTarget?.target?.length) {
+    return { target: cachedTarget.target, source: 'cache', syncedAt: cachedTarget.syncedAt }
   }
 
   // 回退：从已加载的 holdings 本地计算

@@ -30,6 +30,7 @@ export default function App() {
         <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
         <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
         <Route path="future" element={<AssetDetail refreshKey={refreshKey} assetType="future" />} />
+        <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
         <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
         <Route path="*" element={<Home loading={loading} refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
       </Route>

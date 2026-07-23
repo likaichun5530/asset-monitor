@@ -144,7 +144,7 @@ function RefreshIcon({ className, spinning }) {
 
 const sourceLabels = {
   online: '在线',
-  cache: '离线缓存',
+  cache: '离线',
   static: '示例数据',
 }
 

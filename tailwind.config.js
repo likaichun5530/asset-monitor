@@ -12,6 +12,15 @@ export default {
         s: ['0.6875rem', { lineHeight: '0.875rem' }],  // 11px
         '7px': ['0.4375rem', { lineHeight: '0.625rem' }], // 7px
       },
+      keyframes: {
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(-1deg)' },
+          '50%': { transform: 'rotate(1deg)' },
+        },
+      },
+      animation: {
+        wiggle: 'wiggle 0.3s ease-in-out infinite',
+      },
       colors: {
         brand: {
           50: '#eff6ff',
