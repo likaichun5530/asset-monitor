@@ -4,14 +4,6 @@ import { formatNumber } from '../utils/format.js'
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 const GROUP_ORDER = ['汇率', 'A股', '期货', '境外', '数字货币']
-const GROUP_COLOR = {
-  '汇率':    { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800' },
-  'A股':    { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800' },
-  '期货':    { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-800' },
-  '境外':    { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' },
-  '数字货币': { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800' },
-  '其他':    { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700' },
-}
 
 export default function Market({ refreshKey = 0 }) {
   const [data, setData] = useState([])
@@ -46,44 +38,50 @@ export default function Market({ refreshKey = 0 }) {
     return ordered
   }, [data])
 
-  return (
-    <div className="space-y-2">
-      <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-4">自选行情</h3>
-        {loading ? (
-          <div className="text-sm text-gray-400 py-4 text-center">加载中...</div>
-        ) : groups.length > 0 ? (
-          <div className="space-y-4">
-            {groups.map((group, gi) => {
-              const c = GROUP_COLOR[group.name] || GROUP_COLOR['其他']
-              return (
-                <div key={gi}>
-                  <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 ${c.bg} ${c.text}`}>
-                    {group.name}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                    {group.items.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`${c.bg} ${c.border} border rounded-xl aspect-square flex flex-col items-center justify-center p-3`}
-                      >
-                        <div className="text-xs text-gray-500 text-center leading-tight line-clamp-2">{item.name}</div>
-                        <div className="text-base font-extrabold text-gray-900 mt-2 tabular-nums">
-                          {item.price ? formatNumber(item.price, item.price < 1 ? 4 : 2) : '—'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-400 py-4 text-center">
-            暂无数据，请在 Google Sheets 的 Market 工作表中添加标的
-          </div>
-        )}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-gray-400">
+        <svg className="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+        加载中...
       </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 px-1 sm:px-0">
+      {groups.map((group, gi) => (
+        <section key={gi}>
+          <h2 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider px-4 sm:px-0 mb-2">
+            {group.name}
+          </h2>
+          <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
+            {group.items.map((item, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center justify-between px-5 py-4 ${
+                  idx < group.items.length - 1 ? 'border-b border-gray-100' : ''
+                }`}
+              >
+                <span className="text-[15px] text-gray-900 font-medium tracking-[-0.01em]">
+                  {item.name}
+                </span>
+                <span className="text-[15px] text-gray-900 font-semibold tabular-nums tracking-[-0.01em]">
+                  {item.price ? formatNumber(item.price, adaptPrecision(item.price)) : '—'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   )
+}
+
+function adaptPrecision(val) {
+  if (val >= 1000) return 2
+  if (val >= 1) return 4
+  return 4
 }
