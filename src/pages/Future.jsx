@@ -232,9 +232,9 @@ export default function Future({ refreshKey = 0 }) {
         </div>
       </div>
 
-      {/* 贴水信息 */}
+      {/* 期限结构 */}
       <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-3">合约贴水（中证500股指期货）</h3>
+        <h3 className="text-base font-semibold text-gray-800 mb-3">合约期限结构</h3>
         {premiumLoading ? (
           <div className="text-sm text-gray-400 py-4 text-center">加载中...</div>
         ) : premiumData.length > 0 ? (
@@ -244,36 +244,48 @@ export default function Future({ refreshKey = 0 }) {
                 <tr className="text-left text-gray-400 border-b border-gray-100">
                   <th className="py-2 px-2 font-medium">类型</th>
                   <th className="py-2 px-2 font-medium">代码</th>
-                  <th className="py-2 px-2 font-medium text-right">合约价格</th>
-                  <th className="py-2 px-2 font-medium text-right">现货价格</th>
-                  <th className="py-2 px-2 font-medium text-right">贴水点数</th>
-                  <th className="py-2 px-2 font-medium text-right">距结算天数</th>
+                  <th className="py-2 px-2 font-medium text-right">当前价格</th>
+                  <th className="py-2 px-2 font-medium text-right">贴水金额</th>
+                  <th className="py-2 px-2 font-medium text-right">剩余天数</th>
                   <th className="py-2 px-2 font-medium text-right">年化利率</th>
                 </tr>
               </thead>
               <tbody>
-                {premiumData.map((p, idx) => (
-                  <tr key={idx} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 px-2 text-gray-800 font-medium">{p.type}</td>
-                    <td className="py-2.5 px-2 text-gray-500">{p.code}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-600">
-                      {p.price !== null ? formatNumber(p.price, 1) : '—'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right text-gray-600">
-                      {p.spot !== null ? formatNumber(p.spot, 1) : '—'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right font-medium text-red-500">
-                      {p.discount !== null ? formatNumber(Math.abs(p.discount), 1) : '—'}
-                    </td>
-                    <td className="py-2.5 px-2 text-right text-gray-500">{p.daysToSettle}天</td>
-                    <td className="py-2.5 px-2 text-right font-medium text-red-500">
-                      {p.annualRate !== null ? `${Math.abs(p.annualRate).toFixed(2)}%` : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {premiumData.map((p, idx) => {
+                  const isSpot = p.type === '现货'
+                  const discountAbs = p.discount !== null ? Math.abs(p.discount) : null
+                  return (
+                    <tr key={idx} className={`border-b border-gray-50 last:border-0 ${isSpot ? 'bg-blue-50/50' : ''}`}>
+                      <td className="py-2.5 px-2">
+                        <span className={`inline-flex items-center gap-1.5 ${isSpot ? 'text-blue-600' : 'text-gray-800'} font-medium`}>
+                          {isSpot ? '📍' : '📅'} {p.type}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-2 text-gray-500">{p.code}</td>
+                      <td className={`py-2.5 px-2 text-right font-medium ${isSpot ? 'text-blue-600' : 'text-gray-800'}`}>
+                        {p.price !== null ? formatNumber(p.price, 1) : '—'}
+                      </td>
+                      <td className={`py-2.5 px-2 text-right font-semibold ${
+                        isSpot ? 'text-gray-300' : discountAbs > 0 ? 'text-red-500' : 'text-green-600'
+                      }`}>
+                        {isSpot ? '—' : `${p.discount.toFixed(1)} pt`}
+                      </td>
+                      <td className="py-2.5 px-2 text-right text-gray-500">
+                        {isSpot ? '—' : `${p.daysToSettle}天`}
+                      </td>
+                      <td className={`py-2.5 px-2 text-right font-semibold ${
+                        isSpot ? 'text-gray-300' : p.annualRate > 0 ? 'text-red-500' : 'text-green-600'
+                      }`}>
+                        {isSpot ? '—' : `${p.annualRate.toFixed(2)}%`}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
-            <div className="mt-2 text-xs text-gray-400">贴水为负（绿色）表示合约折价，正（红色）表示溢价。数据来源：东方财富</div>
+            <div className="mt-2 text-xs text-gray-400">
+              📍 现货为基准 | 📅 合约价格低于现货为贴水（红色），高于现货为升水（绿色）。年化利率 = (贴水ε ́ 合约价) × (365 ε̈ 剩余天数) × 100%。数据来源：中金所
+            </div>
           </div>
         ) : (
           <div className="text-sm text-gray-400 py-4 text-center">
