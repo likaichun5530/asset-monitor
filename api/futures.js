@@ -95,8 +95,8 @@ export default async function handler(req, res) {
     }
 
     if (!spot) spot = 7734.31
-    if (!futures.m0) futures.m0 = 7630
-    if (!futures.m1) futures.m1 = 7560
+    if (!futures.m0) futures.m0 = 7660
+    if (!futures.m1) futures.m1 = 7602.6
     if (!futures.m2) futures.m2 = 7480
     if (!futures.m3) futures.m3 = 7420
 
@@ -144,18 +144,13 @@ export default async function handler(req, res) {
   } catch (e) {
     console.error('[futures]', e)
 
-    // 回退静态数据（最近的行情）
-    const now = new Date()
-    const yy = now.getFullYear().toString().slice(2)
-
-    // 固定回退值
+    // 回退静态数据
     const spot = 7734.31
     const data = [
       { type: '现货', code: 'CSI500', price: spot, spot, discount: 0, daysToSettle: 0, annualRate: null },
-      { type: '当月', code: 'IC2608', price: 7630.0, spot, discount: spot - 7630, daysToSettle: 25, annualRate: null },
-      { type: '次月', code: 'IC2609', price: 7560.0, spot, discount: spot - 7560, daysToSettle: 54, annualRate: null },
-      { type: '当季', code: 'IC2612', price: 7480.0, spot, discount: spot - 7480, daysToSettle: 145, annualRate: null },
-      { type: '隔季', code: 'IC2703', price: 7420.0, spot, discount: spot - 7420, daysToSettle: 235, annualRate: null },
+      { type: '当月', code: 'IC2608', price: 7660.0, spot, discount: spot - 7660, daysToSettle: 25, annualRate: null },
+      { type: '次月', code: 'IC2609', price: 7602.6, spot, discount: spot - 7602.6, daysToSettle: 54, annualRate: null },
+      { type: '远月', code: 'IC2612', price: 7420.0, spot, discount: spot - 7420, daysToSettle: 145, annualRate: null },
     ]
 
     for (const d of data) {
