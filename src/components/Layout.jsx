@@ -155,7 +155,7 @@ function RefreshIcon({ className, spinning }) {
 const sourceLabels = {
   online: '在线',
   cache: '离线',
-  static: '示例数据',
+  static: '刷新中',
 }
 
 function isDemoMode() {
