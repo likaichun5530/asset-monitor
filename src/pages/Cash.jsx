@@ -160,17 +160,17 @@ export default function Cash({ refreshKey = 0 }) {
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-gray-400 border-b border-gray-100">
-                    <th className="py-2 px-2 font-medium">资产类别</th>
-                    <th className="py-2 px-2 font-medium text-right">当前占比</th>
-                    <th className="py-2 px-2 font-medium text-right">目标占比</th>
-                    <th className="py-2 px-2 font-medium text-right">建议配置</th>
-                    <th className="py-2 px-2 font-medium text-right">缺口金额</th>
+                  <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
+                    <th className="py-2 px-2 font-medium">类别</th>
+                    <th className="py-2 px-2 font-medium text-right">占比</th>
+                    <th className="py-2 px-2 font-medium text-right">目标</th>
+                    <th className="py-2 px-2 font-medium text-right">建议</th>
+                    <th className="py-2 px-2 font-medium text-right">缺口</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allocations.map((r, idx) => (
-                    <tr key={idx} className="border-b border-gray-50 last:border-0">
+                    <tr key={idx} className="border-b border-gray-50 last:border-0 whitespace-nowrap">
                       <td className="py-2.5 px-2 text-gray-800 font-medium">{r.category}</td>
                       <td className="py-2.5 px-2 text-right text-gray-600">{(r.currentRatio * 100).toFixed(1)}%</td>
                       <td className="py-2.5 px-2 text-right text-gray-600">{(r.targetRatio * 100).toFixed(1)}%</td>

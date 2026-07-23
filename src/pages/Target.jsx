@@ -1,14 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { categoryColors, marketColors } from '../data/holdings.js'
+import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget } from '../utils/dataStore.js'
 
 const colorMap = {
-  ...categoryColors,
-  美股: marketColors.US,
-  A股: marketColors.CN,
-  港股: marketColors.HK,
-  日股: marketColors.JP,
+  美股: assetColors.美股,
+  A股: assetColors.A股,
+  港股: assetColors.港股,
+  日股: assetColors.日股,
+  数字货币: assetColors.数字货币,
+  黄金: assetColors.黄金,
+  债券: assetColors.债基,
+  期货: assetColors.期货,
+  现金: assetColors.现金,
 }
 
 export default function Target({ refreshKey = 0 }) {
