@@ -266,17 +266,17 @@ export default function Future({ refreshKey = 0 }) {
                         {p.price !== null ? formatNumber(p.price, 1) : '—'}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
-                        isSpot ? 'text-gray-300' : discountAbs > 0 ? 'text-red-500' : 'text-green-600'
+                        isSpot ? 'text-gray-300' : 'text-red-500'
                       }`}>
-                        {isSpot ? '—' : `${p.discount.toFixed(1)} pt`}
+                        {isSpot ? '—' : `${Math.abs(p.discount).toFixed(1)} pt`}
                       </td>
                       <td className="py-2.5 px-2 text-right text-gray-500">
                         {isSpot ? '—' : `${p.daysToSettle}天`}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
-                        isSpot ? 'text-gray-300' : p.annualRate > 0 ? 'text-red-500' : 'text-green-600'
+                        isSpot ? 'text-gray-300' : 'text-red-500'
                       }`}>
-                        {isSpot ? '—' : `${p.annualRate.toFixed(2)}%`}
+                        {isSpot ? '—' : `${Math.abs(p.annualRate).toFixed(2)}%`}
                       </td>
                     </tr>
                   )
