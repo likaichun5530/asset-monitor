@@ -4,13 +4,13 @@ import { formatNumber } from '../utils/format.js'
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 const GROUP_ORDER = ['汇率', 'A股', '期货', '境外', '数字货币']
-const GROUP_STYLE = {
-  '汇率':    { bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', icon: '💱' },
-  'A股':    { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', icon: '📈' },
-  '期货':    { bg: 'bg-cyan-50', border: 'border-cyan-300', text: 'text-cyan-700', icon: '📊' },
-  '境外':    { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', icon: '🌍' },
-  '数字货币': { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-700', icon: '₿' },
-  '其他':    { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-600', icon: '📌' },
+const GROUP_DOT = {
+  '汇率': 'bg-yellow-500',
+  'A股': 'bg-red-500',
+  '期货': 'bg-cyan-500',
+  '境外': 'bg-blue-500',
+  '数字货币': 'bg-orange-500',
+  '其他': 'bg-gray-400',
 }
 
 export default function Market({ refreshKey = 0 }) {
@@ -55,25 +55,23 @@ export default function Market({ refreshKey = 0 }) {
         ) : groups.length > 0 ? (
           <div className="space-y-4">
             {groups.map((group, gi) => {
-              const style = GROUP_STYLE[group.name] || GROUP_STYLE['其他']
+              const dot = GROUP_DOT[group.name] || 'bg-gray-400'
               return (
                 <div key={gi}>
-                  {/* 分组标题 */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm">{style.icon}</span>
-                    <span className={`text-xs font-semibold uppercase tracking-wider ${style.text}`}>{group.name}</span>
+                    <span className={`inline-block w-2 h-2 rounded-full ${dot}`} />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{group.name}</span>
                   </div>
-                  {/* 卡片网格 */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  <div className="space-y-1">
                     {group.items.map((item, idx) => (
                       <div
                         key={idx}
-                        className={`${style.bg} ${style.border} border rounded-xl px-3 py-3 flex flex-col items-center justify-center min-h-[76px]`}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white border border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <div className="text-xs text-gray-500 text-center leading-tight">{item.name}</div>
-                        <div className="text-base font-extrabold text-gray-900 mt-1.5">
+                        <span className="text-sm text-gray-700">{item.name}</span>
+                        <span className="text-sm font-semibold text-gray-900 tabular-nums">
                           {item.price ? formatNumber(item.price, item.price < 1 ? 4 : 2) : '—'}
-                        </div>
+                        </span>
                       </div>
                     ))}
                   </div>
