@@ -47,18 +47,42 @@ export default function Settings() {
     <div className="space-y-2">
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-4">数据模式</h3>
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <div className="text-sm font-medium text-gray-800">{demoMode ? '演示模式' : '实盘模式'}</div>
-            <div className="text-xs text-gray-400 mt-0.5">
-              {demoMode ? '资产持仓缩至 1/10，仅调用示例数据' : '使用真实持仓数据'}
-            </div>
-          </div>
+        <div className="space-y-2">
           <button
-            onClick={handleDemoToggle}
-            className={`relative w-11 h-6 rounded-full transition-colors ${demoMode ? 'bg-brand-600' : 'bg-gray-300'}`}
+            onClick={() => { if (demoMode) handleDemoToggle() }}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+              !demoMode
+                ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400'
+                : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
+            }`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${demoMode ? 'translate-x-5' : ''}`} />
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📊</span>
+              <span className="text-sm font-medium text-gray-800">实盘模式</span>
+            </div>
+            {!demoMode && (
+              <svg className="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={() => { if (!demoMode) handleDemoToggle() }}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+              demoMode
+                ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400'
+                : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🎮</span>
+              <span className="text-sm font-medium text-gray-800">演示模式</span>
+            </div>
+            {demoMode && (
+              <svg className="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
