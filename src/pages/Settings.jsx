@@ -44,7 +44,7 @@ export default function Settings() {
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-4">数据模式</h3>
         <div className="flex items-center justify-between px-1">

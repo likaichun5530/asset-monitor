@@ -61,7 +61,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
   }, [rows, showToggle])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* 移动端返回按钮 */}
       <button
         onClick={() => navigate('/my')}

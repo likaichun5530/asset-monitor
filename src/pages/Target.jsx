@@ -77,7 +77,7 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">

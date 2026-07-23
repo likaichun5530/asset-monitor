@@ -31,7 +31,7 @@ export default function Future({ refreshKey = 0 }) {
   }, [refreshKey])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* 概要 */}
       <div className="card py-3 px-4 flex items-center justify-between">
         <div>

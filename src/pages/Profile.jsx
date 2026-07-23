@@ -37,7 +37,7 @@ export default function Profile({ refreshKey = 0 }) {
   const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* 移动端总资产卡片 */}
       <div className="card py-5 px-6 sm:hidden">
         <div className="text-xs text-gray-500">总资产（人民币）</div>
