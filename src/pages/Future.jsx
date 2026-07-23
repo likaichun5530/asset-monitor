@@ -159,9 +159,8 @@ export default function Future({ refreshKey = 0 }) {
                 // 合约面值 = 点数 × 乘数 / 手 × 手数
                 const contractValue = (livePrice || 0) * (h.quantity || 0) * multiplier
                 // 所需保证金 = 合约价值 × 保证金率（中证500 IC 为 12%）
-                const marginRate = 0.12
+                const marginRate = 0.14
                 const requiredMargin = contractValue * marginRate
-                // 已用保证金 = 合约价值 × 数量 × 乘数 × 保证金率（实际被占用的保证金）
                 const usedMargin = contractValue * marginRate
                 // 账户实际存入资金（marketValueCNY）
                 const depositMargin = holdingMarketValue(h)
@@ -202,7 +201,7 @@ export default function Future({ refreshKey = 0 }) {
             }
             const multiplier = getMultiplier(h.symbol)
             const contractValue = (livePrice || 0) * (h.quantity || 0) * multiplier
-            const requiredMargin = contractValue * 0.12
+            const requiredMargin = contractValue * 0.14
             const depositMargin = holdingMarketValue(h)
             const usageRate = depositMargin ? (requiredMargin / depositMargin) * 100 : 0
             return (
@@ -228,7 +227,7 @@ export default function Future({ refreshKey = 0 }) {
         </div>
 
         <div className="mt-2 text-xs text-gray-400">
-          ℹ️ 所需保证金 = 合约价值 × 12%（中金所标准）。使用率 = 所需保证金 ÷ 账户资金，超过 75% 表示保证金紧张。
+          ℹ️ 所需保证金 = 合约价值 × 14%（平安期货标准）。使用率 = 所需保证金 ÷ 账户资金，超过 75% 表示保证金紧张。
         </div>
       </div>
 
@@ -254,11 +253,11 @@ export default function Future({ refreshKey = 0 }) {
                   const isSpot = p.type === '现货'
                   const discountAbs = p.discount !== null ? Math.abs(p.discount) : null
                   return (
-                    <tr key={idx} className={`border-b border-gray-50 last:border-0 whitespace-nowrap ${isSpot ? 'bg-blue-50/50' : ''}`}>
-                      <td className="py-2.5 px-2 text-gray-500">
-                        {isSpot ? <span className="inline-flex items-center gap-1.5 text-blue-600 font-medium">📍 {p.code}</span> : p.code}
+                    <tr key={idx} className={`border-b border-gray-50 last:border-0 whitespace-nowrap ${isSpot ? 'bg-blue-100 border-blue-200' : ''}`}>
+                      <td className="py-2.5 px-2 text-gray-800 font-semibold">
+                        {isSpot ? <span className="inline-flex items-center gap-1.5 text-blue-700 font-bold">📍 {p.code}</span> : p.code}
                       </td>
-                      <td className={`py-2.5 px-2 text-right font-medium ${isSpot ? 'text-blue-600' : 'text-gray-800'}`}>
+                      <td className={`py-2.5 px-2 text-right font-medium ${isSpot ? 'text-blue-700 font-bold' : 'text-gray-800'}`}>
                         {p.price !== null ? formatNumber(p.price, 1) : '—'}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
