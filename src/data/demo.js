@@ -44,3 +44,17 @@ export const demoHistory = [
 
 export const demoPeakValue = 225100.2
 export const demoPeakDate = '2026-01-01'
+
+// 演示模式配置目标（固定，与实盘逻辑一致）
+export const demoTarget = [
+  { category: '债基', marketValue: 46496.3, currentRatio: 0.1352, targetRatio: 0.15, diff: -0.0148, isTotal: false },
+  { category: '现金', marketValue: 74259.43, currentRatio: 0.2159, targetRatio: 0.05, diff: 0.1659, isTotal: false },
+  { category: '美股', marketValue: 93032.42, currentRatio: 0.2704, targetRatio: 0.25, diff: 0.0204, isTotal: false },
+  { category: 'A股', marketValue: 23448.7, currentRatio: 0.0682, targetRatio: 0.10, diff: -0.0318, isTotal: false },
+  { category: '港股', marketValue: 6961.08, currentRatio: 0.0202, targetRatio: 0.05, diff: -0.0298, isTotal: false },
+  { category: '日股', marketValue: 8986.88, currentRatio: 0.0261, targetRatio: 0.05, diff: -0.0239, isTotal: false },
+  { category: '数字货币', marketValue: 49919.73, currentRatio: 0.1451, targetRatio: 0.15, diff: -0.0049, isTotal: false },
+  { category: '黄金', marketValue: 19317.7, currentRatio: 0.0561, targetRatio: 0.10, diff: -0.0439, isTotal: false },
+  { category: '期货', marketValue: 21468, currentRatio: 0.0624, targetRatio: 0.10, diff: -0.0376, isTotal: false },
+  { category: '合计', marketValue: 343890.24, currentRatio: 1, targetRatio: 1, diff: null, isTotal: true },
+]

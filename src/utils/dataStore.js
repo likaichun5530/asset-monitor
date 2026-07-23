@@ -9,7 +9,7 @@
 
 import { holdings as staticHoldings } from '../data/holdings.js'
 import { history as staticHistory, peakValue as staticPeakValue, peakDate as staticPeakDate } from '../data/history.js'
-import { demoHoldings, demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
+import { demoHoldings, demoHistory, demoPeakValue, demoPeakDate, demoTarget } from '../data/demo.js'
 
 // Vercel 部署时自动使用当前域名，本地开发时使用完整 URL
 const cfgBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '')
@@ -224,12 +224,7 @@ export async function retryPendingSync() {
 
 export async function fetchTarget() {
   if (readLocal('youshu-demo-mode', false)) {
-    try {
-      const holdings = await fetchHoldings()
-      return { target: computeTargetLocal(holdings.holdings), source: 'demo', syncedAt: null }
-    } catch {
-      return { target: [], source: 'demo', syncedAt: null }
-    }
+    return { target: demoTarget, source: 'demo', syncedAt: null }
   }
 
   if (API_BASE) {
