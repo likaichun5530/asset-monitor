@@ -174,7 +174,7 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
       {/* 桌面端侧边栏 */}
       <aside className="hidden sm:flex flex-col w-52 shrink-0 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto">
         <div className="px-4 py-4 flex items-center gap-2 border-b border-gray-50 dark:border-gray-700">
-          <img src="/favicon.svg" alt="logo" className="w-7 h-7" />
+          <img src="/icon.png" alt="logo" className="w-9 h-9 rounded-lg" />
           <span className="font-semibold text-gray-800 dark:text-gray-200">有数</span>
         </div>
 
@@ -249,7 +249,7 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           <div className="px-4 h-12 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src="/favicon.svg" alt="logo" className="w-6 h-6" />
+              <img src="/icon.png" alt="logo" className="w-8 h-8 rounded-lg" />
               <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{pageTitle}</span>
             </div>
             <div className="flex items-center gap-1">
