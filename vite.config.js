@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['icon.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],
         runtimeCaching: [
@@ -22,7 +22,7 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: '有数 · 资产配置',
+        name: '有数',
         short_name: '有数',
         description: '资产配置，心里有数',
         theme_color: '#2563eb',
@@ -32,7 +32,7 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         icons: [
-          { src: '/favicon.svg', sizes: '192x192 512x512', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/icon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),
