@@ -1,15 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64">
-      <stop offset="0%" stop-color="#1d4ed8"/>
-      <stop offset="100%" stop-color="#3b82f6"/>
+    <linearGradient id="blueGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
     </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#2DD4BF"/>
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.06"/>
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
-  <!-- 上升趋势折线 -->
-  <polyline points="12,44 24,32 36,36 52,16" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- 箭头头部 -->
-  <polyline points="44,16 52,16 52,24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- 右下小点 -->
-  <circle cx="52" cy="16" r="3" fill="#fff"/>
+
+  <!-- 白色圆角方形背景 -->
+  <rect width="512" height="512" rx="112" fill="#FFFFFF"/>
+
+  <!-- 主体图形组 -->
+  <g filter="url(#softShadow)">
+
+    <!-- 1. 蓝色渐变半圆弧 (270°) -->
+    <path d="M 157 355 A 140 140 0 1 1 355 355"
+          fill="none"
+          stroke="url(#blueGrad)"
+          stroke-width="26"
+          stroke-linecap="round"/>
+
+    <!-- 2. 蓝色折线箭头 -->
+    <polyline points="128,390 224,290 328,308 420,188"
+              fill="none"
+              stroke="url(#blueGrad)"
+              stroke-width="22"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+    <!-- 箭头头部 -->
+    <polyline points="400,208 420,188 408,172"
+              fill="none"
+              stroke="url(#blueGrad)"
+              stroke-width="20"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+
+    <!-- 3. 青绿色渐变柱状图（底部） -->
+    <rect x="208" y="376" width="24" height="30" rx="5" fill="url(#greenGrad)"/>
+    <rect x="244" y="358" width="24" height="48" rx="5" fill="url(#greenGrad)"/>
+    <rect x="280" y="340" width="24" height="66" rx="5" fill="url(#greenGrad)"/>
+
+  </g>
 </svg>
