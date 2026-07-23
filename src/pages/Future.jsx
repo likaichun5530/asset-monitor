@@ -226,7 +226,7 @@ export default function Future({ refreshKey = 0 }) {
           })}
         </div>
 
-        <div className="mt-2 text-xs text-gray-400">
+        <div className="mt-2 text-xs text-gray-800 font-semibold">
           保证金比例：14%
         </div>
       </div>
@@ -261,7 +261,7 @@ export default function Future({ refreshKey = 0 }) {
                         {p.price !== null ? formatNumber(p.price, 1) : '—'}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
-                        isSpot ? 'text-gray-300' : 'text-red-500'
+                        isSpot ? 'text-gray-500' : 'text-red-500'
                       }`}>
                         {isSpot ? '—' : Math.abs(p.discount).toFixed(1)}
                       </td>
@@ -269,7 +269,7 @@ export default function Future({ refreshKey = 0 }) {
                         {isSpot ? '—' : `${p.daysToSettle}天`}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
-                        isSpot ? 'text-gray-300' : 'text-red-500'
+                        isSpot ? 'text-gray-500' : 'text-red-500'
                       }`}>
                         {isSpot ? '—' : `${Math.abs(p.annualRate).toFixed(2)}%`}
                       </td>
