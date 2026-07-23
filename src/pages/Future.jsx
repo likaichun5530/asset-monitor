@@ -241,8 +241,7 @@ export default function Future({ refreshKey = 0 }) {
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="text-left text-gray-400 border-b border-gray-100">
-                  <th className="py-2 px-2 font-medium">类型</th>
+                <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
                   <th className="py-2 px-2 font-medium">代码</th>
                   <th className="py-2 px-2 font-medium text-right">当前价格</th>
                   <th className="py-2 px-2 font-medium text-right">贴水金额</th>
@@ -255,20 +254,17 @@ export default function Future({ refreshKey = 0 }) {
                   const isSpot = p.type === '现货'
                   const discountAbs = p.discount !== null ? Math.abs(p.discount) : null
                   return (
-                    <tr key={idx} className={`border-b border-gray-50 last:border-0 ${isSpot ? 'bg-blue-50/50' : ''}`}>
-                      <td className="py-2.5 px-2">
-                        <span className={`inline-flex items-center gap-1.5 ${isSpot ? 'text-blue-600' : 'text-gray-800'} font-medium`}>
-                          {isSpot ? '📍' : '📅'} {p.type}
-                        </span>
+                    <tr key={idx} className={`border-b border-gray-50 last:border-0 whitespace-nowrap ${isSpot ? 'bg-blue-50/50' : ''}`}>
+                      <td className="py-2.5 px-2 text-gray-500">
+                        {isSpot ? <span className="inline-flex items-center gap-1.5 text-blue-600 font-medium">📍 {p.code}</span> : p.code}
                       </td>
-                      <td className="py-2.5 px-2 text-gray-500">{p.code}</td>
                       <td className={`py-2.5 px-2 text-right font-medium ${isSpot ? 'text-blue-600' : 'text-gray-800'}`}>
                         {p.price !== null ? formatNumber(p.price, 1) : '—'}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
                         isSpot ? 'text-gray-300' : 'text-red-500'
                       }`}>
-                        {isSpot ? '—' : `${Math.abs(p.discount).toFixed(1)} pt`}
+                        {isSpot ? '—' : Math.abs(p.discount).toFixed(1)}
                       </td>
                       <td className="py-2.5 px-2 text-right text-gray-500">
                         {isSpot ? '—' : `${p.daysToSettle}天`}
