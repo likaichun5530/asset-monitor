@@ -75,12 +75,12 @@ export default function Holdings({ loading, refreshKey }) {
     <div className="space-y-4">
       <div className="card">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-gray-800">持仓明细</h2>
+          <h2 className="text-base font-semibold text-gray-800">持仓</h2>
           <span className="text-xs text-gray-400">共 {rows.length} 项</span>
         </div>
 
         {/* 类别筛选 */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
           {FILTERS.map((cat) => (
             <button
               key={cat}
@@ -97,12 +97,12 @@ export default function Holdings({ loading, refreshKey }) {
         </div>
       </div>
 
-      {/* 桌面端表格 */}
-      <div className="card hidden sm:block">
+      {/* 表格（移动端可左右滚动） */}
+      <div className="card">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
                 <Th label="名称" field="name" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
                 <Th label="代码" field="symbol" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
                 <Th label="类别" field="assetType" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
@@ -120,105 +120,44 @@ export default function Holdings({ loading, refreshKey }) {
               {rows.map((h, idx) => {
                 const color = getColor(h)
                 return (
-                  <tr key={`${h.symbol}-${idx}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                    <td className="py-3 px-2 text-gray-800 font-medium">{h.name}</td>
-                    <td className="py-3 px-2 text-gray-500">{h.symbol === '-' ? '—' : h.symbol}</td>
-                    <td className="py-3 px-2">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
+                  <tr key={`${h.symbol}-${idx}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 whitespace-nowrap">
+                    <td className="py-2 px-1.5 text-gray-800 font-medium">{h.name}</td>
+                    <td className="py-2 px-1.5 text-gray-500">{h.symbol === '-' ? '—' : h.symbol}</td>
+                    <td className="py-2 px-1.5">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="inline-block w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
                         <span className="text-gray-600">{getCategory(h)}</span>
                       </span>
                     </td>
-                    <td className="py-3 px-2 text-gray-500">{marketLabels[h.market] || h.market}</td>
-                    <td className="py-3 px-2 text-gray-500">{h.account}</td>
-                    <td className="py-3 px-2 text-gray-400">{h.currency}</td>
-                    <td className="py-3 px-2 text-right text-gray-600">
+                    <td className="py-2 px-1.5 text-gray-500">{marketLabels[h.market] || h.market}</td>
+                    <td className="py-2 px-1.5 text-gray-500">{h.account}</td>
+                    <td className="py-2 px-1.5 text-gray-400">{h.currency}</td>
+                    <td className="py-2 px-1.5 text-right text-gray-600">
                       {h.quantity === null || h.quantity === undefined ? '—' : formatNumber(h.quantity, h.quantity < 1 ? 6 : 2)}
                     </td>
-                    <td className="py-3 px-2 text-right text-gray-600">
+                    <td className="py-2 px-1.5 text-right text-gray-600">
                       {h.price === null || h.price === undefined ? '—' : formatNumber(h.price, h.price < 1 ? 6 : 2)}
                     </td>
-                    <td className="py-3 px-2 text-right text-gray-500">
+                    <td className="py-2 px-1.5 text-right text-gray-500">
                       {h.marketValue === null || h.marketValue === undefined ? '—' : formatNumber(h.marketValue, 2)}
                     </td>
-                    <td className="py-3 px-2 text-right text-gray-800 font-medium">{formatCurrency(h.marketValueCNY)}</td>
-                    <td className="py-3 px-2 text-right text-gray-500">{h.ratio.toFixed(2)}%</td>
+                    <td className="py-2 px-1.5 text-right text-gray-800 font-medium">{formatCurrency(h.marketValueCNY)}</td>
+                    <td className="py-2 px-1.5 text-right text-gray-500">{h.ratio.toFixed(2)}%</td>
                   </tr>
                 )
               })}
             </tbody>
             <tfoot>
-              <tr className="font-semibold border-t-2 border-gray-100">
-                <td className="py-3 px-2 text-gray-800" colSpan={9}>合计</td>
-                <td className="py-3 px-2 text-right text-gray-800">{formatCurrency(sumMarketValue)}</td>
-                <td className="py-3 px-2 text-right text-gray-500">100%</td>
+              <tr className="font-semibold border-t-2 border-gray-100 whitespace-nowrap">
+                <td className="py-2 px-1.5 text-gray-800" colSpan={9}>合计</td>
+                <td className="py-2 px-1.5 text-right text-gray-800">{formatCurrency(sumMarketValue)}</td>
+                <td className="py-2 px-1.5 text-right text-gray-500">100%</td>
               </tr>
             </tfoot>
           </table>
         </div>
       </div>
 
-      {/* 移动端卡片列表 */}
-      <div className="sm:hidden space-y-3">
-        {rows.map((h, idx) => {
-          const color = getColor(h)
-          return (
-            <div key={`${h.symbol}-${idx}`} className="card p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-medium text-gray-800">{h.name}</div>
-                  <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1">
-                      <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
-                      {getCategory(h)}
-                    </span>
-                    <span>·</span>
-                    <span>{marketLabels[h.market] || h.market}</span>
-                    <span>·</span>
-                    <span>{h.account}</span>
-                    {h.symbol !== '-' && (
-                      <>
-                        <span>·</span>
-                        <span>{h.symbol}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-gray-800 font-semibold">{formatCurrency(h.marketValueCNY)}</div>
-                  <div className="text-xs text-gray-400">占比 {h.ratio.toFixed(2)}%</div>
-                </div>
-              </div>
-              {(h.quantity !== null && h.quantity !== undefined) && (
-                <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-50 text-sm">
-                  <div>
-                    <div className="text-xs text-gray-400">持仓</div>
-                    <div className="text-gray-600">
-                      {formatNumber(h.quantity, h.quantity < 1 ? 6 : 2)} {h.currency}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">单价</div>
-                    <div className="text-gray-600">
-                      {formatNumber(h.price, h.price < 1 ? 6 : 2)} {h.currency}
-                    </div>
-                  </div>
-                  <div className="col-span-2">
-                    <div className="text-xs text-gray-400">原币市值</div>
-                    <div className="text-gray-600">
-                      {formatNumber(h.marketValue, 2)} {h.currency}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-        <div className="card p-4 flex items-center justify-between text-sm">
-          <span className="text-gray-500">合计市值</span>
-          <span className="text-gray-800 font-semibold">{formatCurrency(sumMarketValue)}</span>
-        </div>
-      </div>
     </div>
   )
 }
@@ -226,7 +165,7 @@ export default function Holdings({ loading, refreshKey }) {
 function Th({ label, field, sortBy, sortDir, onSort, align = 'left' }) {
   const active = sortBy === field
   return (
-    <th className={`py-2 px-2 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}>
+    <th className={`py-2 px-1.5 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}>
       <button
         onClick={() => onSort(field)}
         className={`inline-flex items-center gap-1 ${active ? 'text-brand-600' : 'text-gray-400 hover:text-gray-600'}`}

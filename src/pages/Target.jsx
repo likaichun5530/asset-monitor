@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { categoryColors, marketColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
-
-const API_BASE = import.meta.env.VITE_API_BASE || ''
+import { fetchTarget } from '../utils/dataStore.js'
 
 const colorMap = {
   ...categoryColors,
@@ -20,21 +19,14 @@ export default function Target({ refreshKey = 0 }) {
   const loadData = useCallback(async () => {
     setLoading(true)
     setError(null)
-    if (API_BASE) {
-      try {
-        const resp = await fetch(`${API_BASE}/api/target`, { cache: 'no-store' })
-        if (resp.ok) {
-          const result = await resp.json()
-          setData(result.target || [])
-          setLoading(false)
-          return
-        }
-      } catch (e) {
-        setError('无法连接后端')
-      }
+    try {
+      const result = await fetchTarget()
+      setData(result.target || [])
+    } catch (e) {
+      setError('无法加载配置目标: ' + (e?.message || String(e)))
+    } finally {
+      setLoading(false)
     }
-    setError('未配置后端，无法读取配置目标')
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -114,8 +106,7 @@ export default function Target({ refreshKey = 0 }) {
 
       {/* 配置目标表格 */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-800">配置目标</h3>
+        <div className="flex items-center justify-end mb-4">
           <button
             onClick={loadData}
             className="text-xs text-gray-400 hover:text-brand-600 transition-colors"

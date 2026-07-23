@@ -183,7 +183,7 @@ export function change30d() {
 }
 
 export function drawdownFromPeak() {
-  const current = latestSnapshot() ? latestSnapshot().total : 0
+  const current = totalMarketValue()
   const peak = getCurrentPeak()
   const change = current - peak.value
   const changePct = peak.value ? (change / peak.value) * 100 : 0

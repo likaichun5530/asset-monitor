@@ -1,0 +1,9 @@
+node_modules
+server
+android
+electron
+release
+.git
+*.log
+.DS_Store
+tmp

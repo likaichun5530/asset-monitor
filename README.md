@@ -62,6 +62,8 @@ npm run build
 
 ### 后端（可选，用于「生成快照」写入 Google Sheets）
 
+**方式一：本地 Express 服务器**
+
 ```bash
 cd server
 cp .env.example .env
@@ -76,7 +78,81 @@ npm start
 VITE_API_BASE=http://localhost:8787
 ```
 
+**方式二：Vercel Serverless Functions（推荐生产环境）**
+
+无需额外运行服务器，API 路由位于 `api/` 目录下，部署到 Vercel 后自动生效。
+
 未配置后端时，「生成快照」按钮仍可用，快照会保存在浏览器 localStorage 中并实时更新趋势图。
+
+## 🚀 部署上线（通过域名访问）
+
+### 部署到 Vercel（推荐）
+
+Vercel 原生支持前端静态托管 + Serverless Functions，无需额外配置服务器。
+
+#### 1. 安装 Vercel CLI
+
+```bash
+npm i -g vercel
+```
+
+#### 2. 部署
+
+```bash
+# 在项目根目录执行
+vercel
+```
+
+首次使用会提示登录 Vercel 账号，按提示操作即可。部署完成后会得到一个预览 URL（如 `your-app.vercel.app`）。
+
+#### 3. 配置环境变量
+
+在 [Vercel Dashboard](https://vercel.com/dashboard) 进入项目 → Settings → Environment Variables，添加以下变量：
+
+| 变量名 | 说明 | 示例 |
+| --- | --- | --- |
+| `SPREADSHEET_ID` | Google Sheets 文件 ID | `1abc...` |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | 服务账号邮箱 | `xxx@xxx.iam.gserviceaccount.com` |
+| `GOOGLE_PRIVATE_KEY` | 服务账号私钥 | `-----BEGIN PRIVATE KEY-----\n...` |
+
+配置后重新部署使环境变量生效：
+
+```bash
+vercel --prod
+```
+
+#### 4. 绑定自定义域名
+
+1. 在 Vercel Dashboard 进入项目 → Settings → Domains
+2. 输入你的域名（如 `your-domain.com`）
+3. 按提示在域名 DNS 服务商处添加记录：
+   - **根域名**：添加 A 记录指向 `76.76.21.21`
+   - **www 子域名**：添加 CNAME 记录指向 `cname.vercel-dns.com`
+4. 等待 DNS 生效（通常几分钟到几小时）
+
+绑定成功后即可通过 `https://your-domain.com` 访问。
+
+#### 5. 配置生产环境前端 API 地址（可选）
+
+如果使用自定义域名，前端会自动使用同域名的 `/api/*` 路径，无需额外配置 `VITE_API_BASE`。
+
+如果前端和 API 分离部署，可在 Vercel 项目设置中添加环境变量 `VITE_API_BASE` 指向 API 地址，然后重新构建部署。
+
+### 部署到其他平台（静态托管）
+
+项目是纯前端 SPA，API 通过 Vercel Serverless Functions 提供，也可以：
+
+1. **构建生产版本**：
+   ```bash
+   npm run build
+   ```
+   产物在 `dist/` 目录。
+
+2. **部署 `dist/` 到任意静态托管**（如 Netlify、Cloudflare Pages、Nginx 等）
+
+3. **注意**：SPA 需要配置回退规则，将所有非文件请求指向 `index.html`：
+   - Vercel：已自动处理（`vercel.json` 中已配置）
+   - Nginx：`try_files $uri $uri/ /index.html;`
 
 ## 目录结构
 
@@ -87,7 +163,15 @@ Asset-Monitor/
 ├── vite.config.js
 ├── tailwind.config.js
 ├── postcss.config.js
+├── vercel.json                # Vercel 部署配置
 ├── .env.example              # 前端环境变量示例
+├── api/                       # Vercel Serverless Functions（生产环境 API）
+│   ├── _google.js             # Google Service Account JWT 认证（零外部依赖）
+│   ├── health.js              # GET  /api/health
+│   ├── holdings.js            # GET  /api/holdings
+│   ├── history.js             # GET  /api/history
+│   ├── snapshot.js            # POST /api/snapshot
+│   └── target.js              # GET  /api/target
 ├── public/
 │   └── favicon.svg
 ├── src/
@@ -95,27 +179,37 @@ Asset-Monitor/
 │   ├── App.jsx
 │   ├── index.css
 │   ├── components/
-│   │   ├── Layout.jsx           # 顶部导航 + 同步状态 + 底部 Tab
+│   │   ├── Layout.jsx           # 桌面侧边栏 + 移动端顶部栏/底部 Tab
 │   │   ├── StatCard.jsx
-│   │   ├── TrendChart.jsx       # 趋势图（含时间范围切换、高点标注）
-│   │   └── AllocationChart.jsx  # 资产配置（按类别/市场/币种切换）
+│   │   ├── TrendChart.jsx       # 趋势图（月/季/半年/年/全部 + 高点标注）
+│   │   ├── AllocationChart.jsx  # 资产配置横向条形图（按类别）
+│   │   └── HoldingsOverview.jsx # 账户分布进度条
 │   ├── pages/
-│   │   ├── Home.jsx             # 首页（含「生成快照」按钮）
-│   │   └── Holdings.jsx
+│   │   ├── Home.jsx             # 首页（总资产 + 涨跌卡片 + 生成快照）
+│   │   ├── Holdings.jsx         # 持仓明细（表格 + 移动端卡片）
+│   │   ├── Target.jsx           # 配置目标（超配/低配提醒）
+│   │   ├── AssetDetail.jsx      # 资产详情（美股/A股/港股/日股/债基/数字货币/期货/黄金）
+│   │   ├── Cash.jsx             # 现金分布
+│   │   ├── Profile.jsx          # "我的"页面
+│   │   └── Settings.jsx         # 设置（主题切换）
 │   ├── data/
 │   │   ├── holdings.js          # 持仓明细（对应 Holdings 表，静态兜底）
-│   │   └── history.js           # 历史快照（对应 history 表，静态兜底）
+│   │   └── history.js           # 历史快照（对应 History 表，静态兜底）
 │   ├── hooks/
 │   │   └── useAssetData.js      # 数据加载/刷新/自动同步 hook
 │   └── utils/
-│       ├── asset.js             # 资产计算（支持动态数据）
-│       ├── format.js            # 格式化
+│       ├── asset.js             # 资产计算（聚合/涨跌/回撤）
+│       ├── dataStore.js         # 离线优先数据存储（Google Sheets + localStorage）
 │       ├── snapshot.js          # 快照内存缓存管理
-│       └── dataStore.js         # 离线优先数据存储（Google Sheets + localStorage）
-└── server/                      # 可选后端
-    ├── index.js                 # Express API（holdings/history/snapshot）
-    ├── package.json
-    └── .env.example
+│       ├── format.js            # 数值/日期格式化
+│       └── googleSheets.js      # Google Sheets 直连（备选方案）
+├── server/                      # 本地 Express 后端（开发环境可选）
+│   ├── index.js
+│   ├── package.json
+│   └── .env.example
+├── electron/                    # Electron 桌面端
+│   └── main.cjs
+└── android/                     # Capacitor Android 原生项目
 ```
 
 ## 数据维护
@@ -187,8 +281,9 @@ Asset-Monitor/
 | --- | --- | --- |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET | 读取 Google Sheets「Holdings」表，返回 JSON 数组 |
-| `/api/history` | GET | 读取 Google Sheets「history」表，返回 JSON 数组 |
-| `/api/snapshot` | POST | 追加一条快照到「history」表，body: `{ date, total }` |
+| `/api/history` | GET | 读取 Google Sheets「History」表，返回 JSON 数组 |
+| `/api/snapshot` | POST | 追加一条快照到「History」表，body: `{ date, total }` |
+| `/api/target` | GET | 读取 target 表 + 实时持仓计算，返回目标配置对比数据 |
 
 ### Google Sheets 凭据获取
 
@@ -196,4 +291,4 @@ Asset-Monitor/
 2. 启用 Google Sheets API
 3. 创建服务账号并下载 JSON 密钥
 4. 把服务账号邮箱（形如 `xxx@xxx.iam.gserviceaccount.com`）分享给你的 Google Sheets（编辑权限）
-5. 将 `client_email` 和 `private_key` 填入 `server/.env`
+5. 将凭据填入环境变量（见上方部署章节）

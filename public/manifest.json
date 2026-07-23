@@ -1,0 +1,18 @@
+{
+  "name": "有数 · 资产配置",
+  "short_name": "有数",
+  "description": "资产配置，心里有数",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

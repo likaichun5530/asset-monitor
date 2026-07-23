@@ -2,15 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-}
+:root { color-scheme: light; }
+html.dark { color-scheme: dark; }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+html, body, #root { height: 100%; }
 
 body {
   margin: 0;
@@ -18,18 +13,51 @@ body {
     "Hiragino Sans GB", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f7fa;
-  color: #1f2937;
+  @apply bg-gray-50 text-gray-800;
+}
+
+html.dark body {
+  @apply bg-gray-900 text-gray-200;
 }
 
 @layer components {
   .card {
     @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6;
   }
-  .nav-link {
-    @apply px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-brand-600 hover:bg-brand-50 transition-colors;
-  }
-  .nav-link-active {
-    @apply text-brand-600 bg-brand-50;
+  html.dark .card {
+    @apply bg-gray-800 border-gray-700;
   }
 }
+
+/* ========== 暗夜模式全局覆盖 ========== */
+/* 所有灰色文字在暗夜下变为浅色 */
+html.dark .text-gray-900 { color: #f1f5f9; }
+html.dark .text-gray-800 { color: #e2e8f0; }
+html.dark .text-gray-700 { color: #d1d5db; }
+html.dark .text-gray-600 { color: #cbd5e1; }
+html.dark .text-gray-500 { color: #9ca3af; }
+html.dark .text-gray-400 { color: #94a3b8; }
+
+/* 暗夜下背景色 */
+html.dark .bg-white { background-color: #1e293b; }
+html.dark .bg-gray-50 { background-color: #111827; }
+html.dark .bg-gray-100 { background-color: #1e293b; }
+
+/* 暗夜下边框 */
+html.dark .border-gray-100 { border-color: #374151; }
+html.dark .border-gray-50 { border-color: #374151; }
+
+/* 暗夜下表格行 */
+html.dark .border-gray-50 { border-color: #334155; }
+
+/* 暗夜下 recharts SVG 文字 */
+html.dark .recharts-text { fill: #94a3b8 !important; }
+html.dark .recharts-cartesian-axis-line { stroke: #475569 !important; }
+html.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+/* 暗夜下按钮状态条 */
+html.dark .bg-gray-100.rounded-lg { background-color: #334155; }
+html.dark .bg-gray-100.rounded-lg button.bg-white { background-color: #475569; color: #e2e8f0; }

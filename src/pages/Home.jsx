@@ -49,14 +49,14 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
   return (
     <div className="space-y-4">
       {/* 总资产左半 + 三个卡片右半平分 */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* 左：总资产（生成快照放右上角，总金额字号变大） */}
-        <div className="card py-8 px-8 flex flex-col justify-between">
+      <section className="grid grid-cols-1 lg:grid-cols-8 gap-4">
+        {/* 左：总资产（宽度 3/8，高度~150px 自适应） */}
+        <div className="card py-5 px-6 lg:col-span-3 flex flex-col justify-center min-h-[100px] lg:min-h-[150px]">
           <div>
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-xs text-gray-500">总资产（人民币）</div>
-                <div className="text-4xl font-bold mt-1 text-gray-900">
+                <div className="text-3xl sm:text-4xl font-bold mt-1 text-gray-900">
                   {formatCurrency(total)}
                 </div>
                 <div className="mt-1 text-xs text-gray-400">
@@ -109,8 +109,8 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
           </div>
         </div>
 
-        {/* 右：三个卡片平分（近7天 / 近1月 / 最高点回撤） */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* 右：三个卡片（宽度 5/8，高度与左相同，字体增大） */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:col-span-5">
           <StatMini
             label="近 7 天"
             change={c7.change}
@@ -145,7 +145,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 }
 
 // 紧凑涨跌卡片（高度增加1/6）
-function StatMini({ label, change, changePct, sub }) {
+function StatMini({ label, change, changePct }) {
   const isUp = Number(change) > 0
   const isDown = Number(change) < 0
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
@@ -153,16 +153,15 @@ function StatMini({ label, change, changePct, sub }) {
   const arrow = isUp ? '▲' : isDown ? '▼' : '—'
 
   return (
-    <div className="card aspect-square flex flex-col justify-center items-center text-center p-3">
-      <div className="text-xs text-gray-500">{label}</div>
-      <div className={`text-base font-semibold mt-1.5 ${color}`}>{formatChange(change)}</div>
-      <div className="mt-1.5 flex items-center gap-1.5">
-        <span className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-xs ${bg} ${color}`}>
+    <div className="card flex flex-col justify-center items-center text-center p-4 min-h-[100px] lg:min-h-[150px]">
+      <div className="text-xs sm:text-sm text-gray-500">{label}</div>
+      <div className={`text-base sm:text-xl font-bold mt-2 ${color}`}>{formatChange(change)}</div>
+      <div className="mt-2 flex items-center gap-1.5">
+        <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-1 rounded text-xs sm:text-sm ${bg} ${color}`}>
           <span>{arrow}</span>
           {formatPercent(Math.abs(changePct))}
         </span>
       </div>
-      <div className="text-xs text-gray-400 truncate mt-1.5 w-full">{sub}</div>
     </div>
   )
 }

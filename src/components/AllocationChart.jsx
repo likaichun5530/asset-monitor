@@ -1,20 +1,43 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { groupByCategory } from '../utils/asset.js'
-import { categoryColors, marketColors } from '../data/holdings.js'
+import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 
 const colorMap = {
-  ...categoryColors,
-  美股: marketColors.US,
-  A股: marketColors.CN,
-  港股: marketColors.HK,
-  日股: marketColors.JP,
+  股票: '#3b82f6',
+  美股: assetColors.美股,
+  A股: assetColors.A股,
+  港股: assetColors.港股,
+  日股: assetColors.日股,
+  数字货币: assetColors.数字货币,
+  黄金: assetColors.黄金,
+  现金: assetColors.现金,
+  债券: assetColors.债基,
+  债基: assetColors.债基,
+  期货: assetColors.期货,
+  其他: '#14b8a6',
+}
+
+// 类别 -> 路由
+const categoryRoutes = {
+  美股: '/us',
+  A股: '/cn',
+  港股: '/hk',
+  日股: '/jp',
+  数字货币: '/crypto',
+  黄金: '/gold',
+  现金: '/cash',
+  债券: '/bond',
+  债基: '/bond',
+  期货: '/future',
 }
 
 export default function AllocationChart({ refreshKey = 0 }) {
   const data = useMemo(() => groupByCategory(), [refreshKey])
   const total = data.reduce((s, d) => s + d.marketValue, 0)
   const maxValue = data.length ? Math.max(...data.map((d) => d.marketValue)) : 0
+  const navigate = useNavigate()
 
   return (
     <div className="card">
@@ -22,13 +45,18 @@ export default function AllocationChart({ refreshKey = 0 }) {
         <h3 className="text-base font-semibold text-gray-800">资产配置</h3>
         <span className="text-xs text-gray-400">按类别</span>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1">
         {data.map((item) => {
           const color = colorMap[item.category] || '#94a3b8'
           const widthPct = maxValue ? (item.marketValue / maxValue) * 100 : 0
           const ratioPct = total ? (item.marketValue / total) * 100 : 0
+          const route = categoryRoutes[item.category]
           return (
-            <div key={item.category} className="flex items-center gap-2">
+            <div
+              key={item.category}
+              onClick={() => { if (route) navigate(route) }}
+              className={`flex items-center gap-1 ${route ? 'cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1 py-0.5 transition-colors' : ''}`}
+            >
               <div className="flex items-center gap-1.5 w-16 shrink-0">
                 <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
                 <span className="text-xs text-gray-600">{item.category}</span>

@@ -67,7 +67,6 @@ export default function TrendChart({ refreshKey = 0 }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
-          <p className="text-xs text-gray-400">资产快照</p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           {RANGES.map((r) => (
@@ -85,16 +84,15 @@ export default function TrendChart({ refreshKey = 0 }) {
           ))}
         </div>
       </div>
-      <div className="w-full h-72 sm:h-80">
+      <div className="w-full h-[180px] lg:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 24, right: 12, bottom: 0, left: 0 }}>
+          <AreaChart data={data} margin={{ top: 24, right: 36, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
                 <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis
               dataKey="date"
               tickFormatter={formatDateShort}
@@ -148,7 +146,8 @@ export default function TrendChart({ refreshKey = 0 }) {
                   position: 'top',
                   fill: '#1f2937',
                   fontSize: 11,
-                  offset: 8,
+                  fontWeight: 600,
+                  offset: 10,
                 }}
               />
             )}
