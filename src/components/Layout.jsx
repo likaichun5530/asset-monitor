@@ -6,6 +6,7 @@ const navItems = [
   { to: '/', label: '总览', icon: HomeIcon, end: true },
   { to: '/holdings', label: '持仓明细', icon: ListIcon },
   { to: '/target', label: '配置目标', icon: TargetIcon },
+  { to: '/market', label: '行情', icon: MarketIcon },
   { type: 'divider' },
   { to: '/us', label: '美股', icon: StockUpIcon },
   { to: '/cn', label: 'A股', icon: ChartUpIcon },
@@ -24,6 +25,7 @@ const pageTitles = {
   '/': '总览',
   '/holdings': '持仓',
   '/target': '目标',
+  '/market': '行情',
   '/my': '我的',
   '/settings': '设置',
   '/us': '美股',
@@ -48,6 +50,14 @@ function ListIcon({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+    </svg>
+  )
+}
+
+function MarketIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
     </svg>
   )
 }
