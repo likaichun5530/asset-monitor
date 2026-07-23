@@ -16,12 +16,18 @@ const colorMap = {
 }
 
 export default function Target({ refreshKey = 0 }) {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState(() => {
+    // 优先读缓存，实现即时渲染
+    try {
+      const cached = JSON.parse(localStorage.getItem('asset-monitor:target') || 'null')
+      if (cached?.target?.length) return cached.target
+    } catch { /* ignore */ }
+    return null
+  })
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const loadData = useCallback(async () => {
-    setLoading(true)
     setError(null)
     try {
       const result = await fetchTarget()
@@ -34,6 +40,8 @@ export default function Target({ refreshKey = 0 }) {
   }, [])
 
   useEffect(() => {
+    // 无缓存时显示 loading，否则后台刷新
+    if (!data || !data.length) setLoading(true)
     loadData()
   }, [loadData, refreshKey])
 
