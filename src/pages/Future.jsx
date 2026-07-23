@@ -227,13 +227,13 @@ export default function Future({ refreshKey = 0 }) {
         </div>
 
         <div className="mt-2 text-xs text-gray-400">
-          ℹ️ 所需保证金 = 合约价值 × 14%（平安期货标准）。使用率 = 所需保证金 ÷ 账户资金，超过 75% 表示保证金紧张。
+          保证金比例：14%
         </div>
       </div>
 
       {/* 期限结构 */}
       <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-3">合约期限结构</h3>
+        <h3 className="text-base font-semibold text-gray-800 mb-3">期现贴水</h3>
         {premiumLoading ? (
           <div className="text-sm text-gray-400 py-4 text-center">加载中...</div>
         ) : premiumData.length > 0 ? (
@@ -278,9 +278,6 @@ export default function Future({ refreshKey = 0 }) {
                 })}
               </tbody>
             </table>
-            <div className="mt-2 text-xs text-gray-400">
-              📍 现货为基准 | 📅 合约价格低于现货为贴水（红色），高于现货为升水（绿色）。年化利率 = (贴水ε ́ 合约价) × (365 ε̈ 剩余天数) × 100%。数据来源：中金所
-            </div>
           </div>
         ) : (
           <div className="text-sm text-gray-400 py-4 text-center">
