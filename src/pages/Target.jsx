@@ -46,8 +46,8 @@ export default function Target({ refreshKey = 0 }) {
   }, [loadData, refreshKey])
 
   // 分离数据行和合计行，数据行按金额从大到小排序
-  const rows = data.filter((r) => !r.isTotal).sort((a, b) => (b.marketValue || 0) - (a.marketValue || 0))
-  const totalRow = data.find((r) => r.isTotal)
+  const rows = (data || []).filter((r) => !r.isTotal).sort((a, b) => (b.marketValue || 0) - (a.marketValue || 0))
+  const totalRow = (data || []).find((r) => r.isTotal)
 
   // 统计超配/低配
   const overWeight = rows.filter((r) => r.targetRatio !== null && r.diff > 0.03)

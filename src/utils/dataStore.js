@@ -248,12 +248,21 @@ export async function retryPendingSync() {
 // ===== Target（配置目标） =====
 
 export async function fetchTarget() {
+  const demoMode = readLocal('youshu-demo-mode', false)
+
   if (API_BASE) {
     try {
       const data = await apiGet('target')
       if (data.target?.length) {
-        writeLocal('asset-monitor:target', { target: data.target, syncedAt: data.syncedAt })
-        return { target: data.target, source: 'online', syncedAt: data.syncedAt }
+        let target = data.target
+        if (demoMode) {
+          target = target.map((r) => ({
+            ...r,
+            marketValue: (r.marketValue || 0) / 10,
+          }))
+        }
+        writeLocal('asset-monitor:target', { target, syncedAt: data.syncedAt })
+        return { target, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 target 失败', e)
