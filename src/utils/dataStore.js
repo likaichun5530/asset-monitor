@@ -131,6 +131,9 @@ function normalizeHoldings(arr) {
 // ===== History =====
 
 export async function fetchHistory() {
+  const demoMode = readLocal('youshu-demo-mode', false)
+  let result
+
   if (API_BASE) {
     try {
       const data = await apiGet('history')
@@ -142,18 +145,30 @@ export async function fetchHistory() {
         const merged = mergeHistory(history, pending)
         writeLocal(KEYS.history, { history: merged, syncedAt: data.syncedAt })
         writeLocal(KEYS.lastSync, new Date().toISOString())
-        return { history: merged, source: 'online', syncedAt: data.syncedAt }
+        result = { history: merged, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 history 失败', e)
     }
   }
 
-  const pending = readLocal(KEYS.pending, [])
-  const cached = readLocal(KEYS.history, null)
-  const base = cached?.history?.length ? cached.history : staticHistory
-  const merged = mergeHistory(base, pending)
-  return { history: merged, source: cached?.history?.length ? 'cache' : 'static', syncedAt: cached?.syncedAt || null }
+  if (!result) {
+    const pending = readLocal(KEYS.pending, [])
+    const cached = readLocal(KEYS.history, null)
+    const base = cached?.history?.length ? cached.history : staticHistory
+    const merged = mergeHistory(base, pending)
+    result = { history: merged, source: cached?.history?.length ? 'cache' : 'static', syncedAt: cached?.syncedAt || null }
+  }
+
+  // 演示模式下：历史数据缩为 1/10
+  if (demoMode) {
+    result.history = result.history.map((h) => ({
+      ...h,
+      total: (h.total || 0) / 10,
+    }))
+  }
+
+  return result
 }
 
 function mergeHistory(base, extra) {

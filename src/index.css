@@ -17,9 +17,12 @@ body {
 }
 
 /* 数字字体：窄等宽，类似雪球 */
-.font-num, [class*="formatCurrency"] {
+.font-num,
+[class*="font-bold"],
+[class*="font-semibold"] {
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
 }
 
 html.dark body {

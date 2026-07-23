@@ -60,7 +60,7 @@ export function useAssetData() {
 
   // 自动刷新：在线 5 分钟，离线 3 分钟
   useEffect(() => {
-    const interval = hasBackend() ? 5 * 60 * 1000 : 3 * 60 * 1000
+    const interval = hasBackend() ? 3 * 60 * 1000 : 5 * 60 * 1000
     const id = setInterval(() => {
       doLoad(false)
     }, interval)
