@@ -1,97 +1,71 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- 主背景渐变 深蓝 → 亮蓝 -->
-    <linearGradient id="bgGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stop-color="#1E3A5F"/>
-      <stop offset="30%" stop-color="#1A56DB"/>
-      <stop offset="70%" stop-color="#2563EB"/>
-      <stop offset="100%" stop-color="#3B82F6"/>
+    <!-- 深色背景渐变 -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B1121"/>
+      <stop offset="100%" stop-color="#1A233A"/>
     </linearGradient>
-
-    <!-- 箭头渐变 纯白 → 浅灰白 -->
-    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#E8EEF8"/>
+    <!-- 金色渐变 -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="50%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
     </linearGradient>
-
-    <!-- 底部高光 -->
-    <radialGradient id="glowGrad" cx="50%" cy="90%" r="60%">
-      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#2563EB" stop-opacity="0"/>
-    </radialGradient>
-
-    <!-- 图表线段发光 -->
-    <filter id="arrowGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
+    <!-- 蓝色渐变 -->
+    <linearGradient id="blue" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+    <!-- 青绿渐变 -->
+    <linearGradient id="teal" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <!-- 整体阴影 -->
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000000" flood-opacity="0.30"/>
+    </filter>
+    <!-- 金色光晕 -->
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-
-    <!-- 图标阴影 -->
-    <filter id="iconShadow" x="-5%" y="-5%" width="110%" height="115%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1E3A5F" flood-opacity="0.25"/>
-    </filter>
   </defs>
 
-  <!-- 核心圆角方形容器 -->
-  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" filter="url(#iconShadow)"/>
+  <!-- 深色圆角方形背景 -->
+  <rect width="512" height="512" rx="118" fill="url(#bg)" filter="url(#shadow)"/>
 
-  <!-- 底部点状装饰光晕 -->
-  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#glowGrad)"/>
+  <!-- 内部浅色边框 -->
+  <rect x="1" y="1" width="510" height="510" rx="117" fill="none" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1"/>
 
-  <!-- 内部细微光边缘 -->
-  <rect x="26" y="26" width="460" height="460" rx="106" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
+  <!-- 中心金色核心圆点 -->
+  <circle cx="256" cy="256" r="28" fill="url(#gold)" filter="url(#glow)"/>
 
-  <!-- 浅色格栅背景 -->
-  <g stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="1">
-    <line x1="80" y1="360" x2="432" y2="360"/>
-    <line x1="80" y1="280" x2="432" y2="280"/>
-    <line x1="80" y1="200" x2="432" y2="200"/>
-    <line x1="80" y1="120" x2="432" y2="120"/>
-  </g>
+  <!-- 金色外环 -->
+  <circle cx="256" cy="256" r="44" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.30"/>
 
-  <!-- 小数据点装饰 -->
-  <circle cx="110" cy="330" r="4" fill="#FFFFFF" fill-opacity="0.15"/>
-  <circle cx="180" cy="260" r="3.5" fill="#FFFFFF" fill-opacity="0.12"/>
-  <circle cx="300" cy="180" r="3.5" fill="#FFFFFF" fill-opacity="0.12"/>
-  <circle cx="420" cy="130" r="4.5" fill="#FFFFFF" fill-opacity="0.20"/>
+  <!-- 蓝色渐变弧（左上） -->
+  <path d="M 154 332 A 120 120 0 0 1 256 136"
+        fill="none" stroke="url(#blue)" stroke-width="10" stroke-linecap="round"/>
 
-  <!-- 辅助趋势线（细线） -->
-  <polyline points="110,330 180,260 300,180 420,130"
-            fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 青色渐变弧（右下） -->
+  <path d="M 256 376 A 120 120 0 0 1 136 256"
+        fill="none" stroke="url(#teal)" stroke-width="8" stroke-linecap="round"/>
 
-  <!-- 主上升箭头（粗线） -->
-  <g filter="url(#arrowGlow)">
-    <polyline points="130,340 220,240 320,230 400,120"
-              fill="none" stroke="url(#arrowGrad)" stroke-width="16"
-              stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <!-- 蓝色弧端点圆 -->
+  <circle cx="155" cy="330" r="6" fill="url(#blue)"/>
+  <circle cx="256" cy="138" r="5" fill="url(#blue)"/>
 
-  <!-- 箭头头部 大三角 -->
-  <polygon points="400,120 360,140 380,80"
-           fill="url(#arrowGrad)" filter="url(#arrowGlow)"/>
+  <!-- 青色弧端点圆 -->
+  <circle cx="138" cy="256" r="5" fill="url(#teal)"/>
+  <circle cx="256" cy="374" r="4" fill="url(#teal)"/>
 
-  <!-- 箭头细节描边 -->
-  <polygon points="400,120 362,138 379,82"
-           fill="none" stroke="#FFFFFF" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- 起始点 大圆点 -->
-  <circle cx="130" cy="340" r="12" fill="#FFFFFF" fill-opacity="0.95" filter="url(#arrowGlow)"/>
-  <circle cx="130" cy="340" r="5" fill="#2563EB"/>
-
-  <!-- 底部小柱状装饰 -->
-  <rect x="220" y="386" width="16" height="18" rx="4" fill="#FFFFFF" fill-opacity="0.12"/>
-  <rect x="248" y="372" width="16" height="32" rx="4" fill="#FFFFFF" fill-opacity="0.15"/>
-  <rect x="276" y="358" width="16" height="46" rx="4" fill="#FFFFFF" fill-opacity="0.18"/>
-
-  <!-- 顶部光点 -->
-  <circle cx="400" cy="85" r="2.5" fill="#FFFFFF" fill-opacity="0.55"/>
-
-  <!-- 全局层次叠加层 -->
-  <rect x="24" y="24" width="464" height="464" rx="108" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1"/>
+  <!-- 装饰小星点 -->
+  <circle cx="370" cy="145" r="3.5" fill="#FFFFFF" opacity="0.15"/>
+  <circle cx="390" cy="355" r="3" fill="#FFFFFF" opacity="0.10"/>
+  <circle cx="140" cy="140" r="2.5" fill="#FFFFFF" opacity="0.10"/>
 
 </svg>
