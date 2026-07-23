@@ -9,6 +9,7 @@
 
 import { holdings as staticHoldings } from '../data/holdings.js'
 import { history as staticHistory, peakValue as staticPeakValue, peakDate as staticPeakDate } from '../data/history.js'
+import { demoHoldings, demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
 
 // Vercel 部署时自动使用当前域名，本地开发时使用完整 URL
 const cfgBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '')
@@ -67,8 +68,9 @@ async function apiPost(endpoint, body) {
 // ===== Holdings =====
 
 export async function fetchHoldings() {
-  const demoMode = readLocal('youshu-demo-mode', false)
-  let result
+  if (readLocal('youshu-demo-mode', false)) {
+    return { holdings: demoHoldings, source: 'demo', syncedAt: null }
+  }
 
   if (API_BASE) {
     try {
@@ -77,34 +79,18 @@ export async function fetchHoldings() {
       if (holdings.length) {
         writeLocal(KEYS.holdings, { holdings, syncedAt: data.syncedAt })
         writeLocal(KEYS.lastSync, new Date().toISOString())
-        result = { holdings, source: 'online', syncedAt: data.syncedAt }
+        return { holdings, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 holdings 失败', e)
     }
   }
 
-  if (!result) {
-    const cached = readLocal(KEYS.holdings, null)
-    if (cached?.holdings?.length) {
-      result = { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
-    } else {
-      result = { holdings: staticHoldings, source: 'static', syncedAt: null }
-    }
+  const cached = readLocal(KEYS.holdings, null)
+  if (cached?.holdings?.length) {
+    return { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
   }
-
-  // 演示模式：所有持仓缩为 1/10
-  if (demoMode) {
-    result.holdings = result.holdings.map((h) => ({
-      ...h,
-      marketValue: h.marketValue != null ? h.marketValue / 10 : null,
-      marketValueCNY: (h.marketValueCNY || 0) / 10,
-      price: h.price != null ? h.price / 10 : null,
-      quantity: h.quantity != null ? h.quantity / 10 : null,
-    }))
-  }
-
-  return result
+  return { holdings: staticHoldings, source: 'static', syncedAt: null }
 }
 
 function normalizeHoldings(arr) {
@@ -131,8 +117,9 @@ function normalizeHoldings(arr) {
 // ===== History =====
 
 export async function fetchHistory() {
-  const demoMode = readLocal('youshu-demo-mode', false)
-  let result
+  if (readLocal('youshu-demo-mode', false)) {
+    return { history: demoHistory, source: 'demo', syncedAt: null }
+  }
 
   if (API_BASE) {
     try {
@@ -145,30 +132,18 @@ export async function fetchHistory() {
         const merged = mergeHistory(history, pending)
         writeLocal(KEYS.history, { history: merged, syncedAt: data.syncedAt })
         writeLocal(KEYS.lastSync, new Date().toISOString())
-        result = { history: merged, source: 'online', syncedAt: data.syncedAt }
+        return { history: merged, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 history 失败', e)
     }
   }
 
-  if (!result) {
-    const pending = readLocal(KEYS.pending, [])
-    const cached = readLocal(KEYS.history, null)
-    const base = cached?.history?.length ? cached.history : staticHistory
-    const merged = mergeHistory(base, pending)
-    result = { history: merged, source: cached?.history?.length ? 'cache' : 'static', syncedAt: cached?.syncedAt || null }
-  }
-
-  // 演示模式下：历史数据缩为 1/10
-  if (demoMode) {
-    result.history = result.history.map((h) => ({
-      ...h,
-      total: (h.total || 0) / 10,
-    }))
-  }
-
-  return result
+  const pending = readLocal(KEYS.pending, [])
+  const cached = readLocal(KEYS.history, null)
+  const base = cached?.history?.length ? cached.history : staticHistory
+  const merged = mergeHistory(base, pending)
+  return { history: merged, source: cached?.history?.length ? 'cache' : 'static', syncedAt: cached?.syncedAt || null }
 }
 
 function mergeHistory(base, extra) {
@@ -248,21 +223,21 @@ export async function retryPendingSync() {
 // ===== Target（配置目标） =====
 
 export async function fetchTarget() {
-  const demoMode = readLocal('youshu-demo-mode', false)
+  if (readLocal('youshu-demo-mode', false)) {
+    try {
+      const holdings = await fetchHoldings()
+      return { target: computeTargetLocal(holdings.holdings), source: 'demo', syncedAt: null }
+    } catch {
+      return { target: [], source: 'demo', syncedAt: null }
+    }
+  }
 
   if (API_BASE) {
     try {
       const data = await apiGet('target')
       if (data.target?.length) {
-        let target = data.target
-        if (demoMode) {
-          target = target.map((r) => ({
-            ...r,
-            marketValue: (r.marketValue || 0) / 10,
-          }))
-        }
-        writeLocal('asset-monitor:target', { target, syncedAt: data.syncedAt })
-        return { target, source: 'online', syncedAt: data.syncedAt }
+        writeLocal('asset-monitor:target', { target: data.target, syncedAt: data.syncedAt })
+        return { target: data.target, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 target 失败', e)

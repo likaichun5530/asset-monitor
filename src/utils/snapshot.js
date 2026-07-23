@@ -3,6 +3,7 @@
 // 此文件保留是为了 asset.js 中 getMergedHistory/getCurrentPeak 的引用
 
 import { history as staticHistory, peakValue as staticPeakValue, peakDate as staticPeakDate } from '../data/history.js'
+import { demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
 import { fetchHistory, addSnapshot as dsAddSnapshot, hasBackend, retryPendingSync, getLastSyncAt, getPendingCount } from './dataStore.js'
 
 // 缓存最新加载的历史数据（由 loadAll 触发更新）
@@ -33,12 +34,22 @@ export function setCachedHistory(history) {
 
 // 计算当前高点
 export function getCurrentPeak() {
-  const h = getMergedHistory()
   const demoMode = (() => {
     try { return localStorage.getItem('youshu-demo-mode') === 'true' } catch { return false }
   })()
-  const initValue = demoMode ? staticPeakValue / 10 : staticPeakValue
-  let peak = { value: initValue, date: staticPeakDate }
+  if (demoMode) {
+    const h = getMergedHistory()
+    let peak = { value: demoPeakValue, date: demoPeakDate }
+    for (const item of h) {
+      if (item.total > peak.value) {
+        peak = { value: item.total, date: item.date }
+      }
+    }
+    return peak
+  }
+
+  const h = getMergedHistory()
+  let peak = { value: staticPeakValue, date: staticPeakDate }
   for (const item of h) {
     if (item.total > peak.value) {
       peak = { value: item.total, date: item.date }
