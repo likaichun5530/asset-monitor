@@ -108,7 +108,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
       )}
 
       {/* 总资产 + 统计卡片 */}
-      <section className="grid grid-cols-1 lg:grid-cols-8 gap-4">
+      <section className="grid grid-cols-1 lg:grid-cols-8 gap-2 lg:gap-4">
         <div
           className={`card py-5 px-6 lg:col-span-3 flex flex-col justify-center min-h-[100px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}
         >
