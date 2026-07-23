@@ -2,13 +2,22 @@
 // 读取 Google Sheets Market 表 A 列标的，从新浪获取实时价格
 import { isConfigured, readSheet } from './_google.js'
 
+// 名称 → 新浪代码映射（名称中不可有重复）
+const CODE_MAP = {
+  '上证指数': 's_sh000001',
+  '中证500': 's_sh000905',
+  '中证1000': 's_sh000852',
+  '沪深300': 's_sh000300',
+  '日经225指数': 'int_nikkei',
+  '纳斯达克指数': 'int_nasdaq',
+  '美元人民币': 'USDCNY',  // 新浪外汇用特殊格式
+}
+
+// 静态回退价格
 const STATIC_PRICES = {
-  '中证500': 7734.31,
   'BTC': 64786.71,
   'ETH': 1885.88,
   'SGE黄金9999': 731.50,
-  '沪深300': 4090.12,
-  '上证指数': 3456.78,
 }
 
 export default async function handler(req, res) {
@@ -18,12 +27,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 1. 读取 Google Sheets Market 表 A 列
     let symbols = []
     if (isConfigured()) {
       try {
-        // 读取 Market sheet 第一列（A 列）
         const result = await readSheet('Market')
-        // 提取 A 列值的列表
         const rows = result.data || []
         for (const row of rows) {
           const name = (row[Object.keys(row)[0]] || '').toString().trim()
@@ -35,69 +43,54 @@ export default async function handler(req, res) {
     }
 
     if (!symbols.length) {
-      // 回退静态数据
-      symbols = Object.keys(STATIC_PRICES)
+      symbols = ['上证指数', '中证500', '中证1000', '沪深300', '日经225指数', '纳斯达克指数', 'BTC', 'ETH', 'SGE黄金9999']
     }
 
-    // 从新浪获取实时价格
-    const map = { ...STATIC_PRICES }
+    // 2. 将标的分类：有新浪代码的 / 静态的
+    const sinaNames = []
+    const sinaCodes = []
     for (const name of symbols) {
-      if (!(name in STATIC_PRICES)) {
-        // 尝试新浪查询（只支持 A 股代码格式）
-        // 这里如果有映射表可以根据 symbol 去查
-        // 暂时用默认值
+      const code = CODE_MAP[name]
+      if (code) {
+        sinaNames.push(name)
+        sinaCodes.push(code)
       }
     }
 
-    // 构建返回数据
-    const market = symbols.map((name, idx) => ({
-      name,
-      price: map[name] || 0,
-      change: 0,
-      changePct: 0,
-    }))
-
-    // 尝试从新浪获取
-    // 中证500、BTC 等暂用默认值，A 股可以用新浪接口
-    const hqCodes = []
-    const hqMap = {}
-    for (const s of symbols) {
-      // 尝试匹配已知 A 股代码格式
-    }
-
-    if (hqCodes.length) {
-      const url = `https://hq.sinajs.cn/list=${hqCodes.join(',')}`
+    // 3. 从新浪获取
+    const prices = {}
+    if (sinaCodes.length > 0) {
       try {
+        const url = `https://hq.sinajs.cn/list=${sinaCodes.join(',')}`
         const resp = await fetch(url, {
           headers: { Referer: 'https://finance.sina.com.cn' },
           signal: AbortSignal.timeout(8000),
         })
         const text = await resp.text()
-        for (const line of text.split('\n')) {
-          const hqMatch = line.match(/hq_str_(\w+)="([^"]*)"/)
-          if (!hqMatch) continue
-          const code = hqMatch[1]
-          const fields = hqMatch[2].split(',')
-          const name = hqMap[code]
-          if (!name) continue
-          const price = parseFloat(fields[3]) || 0
-          const prevClose = parseFloat(fields[2]) || 0
-          const change = price - prevClose
-          const changePct = prevClose ? (change / prevClose) * 100 : 0
-          const idx = market.findIndex(m => m.name === name)
-          if (idx >= 0) {
-            market[idx] = {
-              name,
-              price: Math.round(price * 100) / 100,
-              change: Math.round(change * 100) / 100,
-              changePct: Math.round(changePct * 100) / 100,
-            }
-          }
+        const lines = text.split(/\r?\n/).filter(l => l.includes('='))
+        for (const line of lines) {
+          const m = line.match(/hq_str_(\w+)="([^"]*)"/)
+          if (!m) continue
+          const code = m[1]
+          const fields = m[2].split(',')
+          // 找到对应的名称
+          const idx = sinaCodes.indexOf(code)
+          if (idx < 0) continue
+          const name = sinaNames[idx]
+          // 对于指数，fields[1] 是当前价：var hq_str_s_sh000001="上证指数,3456.78,..."
+          let price = parseFloat(fields[1]) || parseFloat(fields[0]) || 0
+          if (price) prices[name] = Math.round(price * 100) / 100
         }
       } catch (e) {
         console.warn('[market] 新浪数据获取失败', e)
       }
     }
+
+    // 4. 构建结果
+    const market = symbols.map(name => ({
+      name,
+      price: prices[name] || STATIC_PRICES[name] || null,
+    }))
 
     res.writeHead(200, { 'Content-Type': 'application/json' })
     return res.end(JSON.stringify({ market, syncedAt: new Date().toISOString() }))
