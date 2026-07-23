@@ -265,7 +265,7 @@ export default function Future({ refreshKey = 0 }) {
                       }`}>
                         {isSpot ? '—' : Math.abs(p.discount).toFixed(1)}
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-500">
+                      <td className="py-2.5 px-2 text-right font-semibold text-gray-500">
                         {isSpot ? '—' : `${p.daysToSettle}天`}
                       </td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${
