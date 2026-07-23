@@ -6,6 +6,7 @@ import Holdings from './pages/Holdings.jsx'
 import Target from './pages/Target.jsx'
 import Profile from './pages/Profile.jsx'
 import Cash from './pages/Cash.jsx'
+import Future from './pages/Future.jsx'
 import AssetDetail from './pages/AssetDetail.jsx'
 import { useAssetData } from './hooks/useAssetData.js'
 import Settings, { initTheme } from './pages/Settings.jsx'
@@ -29,7 +30,7 @@ export default function App() {
         <Route path="jp" element={<AssetDetail refreshKey={refreshKey} assetType="jp" />} />
         <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
         <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
-        <Route path="future" element={<AssetDetail refreshKey={refreshKey} assetType="future" />} />
+        <Route path="future" element={<Future refreshKey={refreshKey} />} />
         <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
         <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
         <Route path="*" element={<Home loading={loading} refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
