@@ -174,7 +174,7 @@ export default function Future({ refreshKey = 0 }) {
                     <td className="py-2.5 px-2 text-right text-gray-600">{formatNumber(usedMargin, 0)}</td>
                     <td className="py-2.5 px-2 text-right text-gray-600">{formatNumber(contractValue, 0)}</td>
                     <td className="py-2.5 px-2 text-right text-gray-600">{formatNumber(depositMargin, 0)}</td>
-                    <td className={`py-2.5 px-2 text-right font-medium ${usageRate > 75 ? 'text-red-500' : 'text-green-600'}`}>
+                    <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : 'text-green-600'}`}>
                       {usageRate.toFixed(1)}%
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-500">{settleDate || '—'}</td>
@@ -226,7 +226,7 @@ export default function Future({ refreshKey = 0 }) {
           })}
         </div>
 
-        <div className="mt-2 text-xs text-gray-800 font-semibold">
+        <div className="mt-2 text-xs text-gray-400">
           保证金比例：14%
         </div>
       </div>
