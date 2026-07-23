@@ -1,36 +1,58 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- 蓝色渐变 -->
-    <linearGradient id="blue" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="yGrad" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#2563EB"/>
-      <stop offset="100%" stop-color="#0EA5E9"/>
+      <stop offset="33%" stop-color="#3B82F6"/>
+      <stop offset="66%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#34D399"/>
     </linearGradient>
-    <!-- 青绿渐变 -->
-    <linearGradient id="green" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#34D399"/>
-      <stop offset="100%" stop-color="#2DD4BF"/>
-    </linearGradient>
+    <filter id="shadow" x="-10%" y="-5%" width="120%" height="115%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#2563EB" flood-opacity="0.12"/>
+    </filter>
   </defs>
 
   <!-- 白色圆角方形背景 -->
-  <rect width="512" height="512" rx="112" fill="#FFFFFF"/>
+  <rect width="1024" height="1024" rx="224" fill="#FFFFFF"/>
 
-  <!-- 蓝色渐变 270° 圆弧 -->
-  <path d="M 150 355 A 145 145 0 1 1 362 355"
-        fill="none" stroke="url(#blue)" stroke-width="28" stroke-linecap="round"/>
+  <!-- 主体 Y 形符号 -->
+  <g filter="url(#shadow)" transform="translate(512,512)">
 
-  <!-- 蓝色折线箭头 左下 → 右上 -->
-  <polyline points="120,400 230,280 340,295 430,170"
-            fill="none" stroke="url(#blue)" stroke-width="24"
-            stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- 箭头头部 -->
-  <polyline points="400,200 430,170 412,152"
-            fill="none" stroke="url(#blue)" stroke-width="22"
-            stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 左翼缎带 -->
+    <path d="M -265 120
+             C -200 -80 -60 -180 50 -160
+             C 90 -155 100 -110 85 -70
+             C 60 -10 30 30 0 60
+             L -265 120 Z"
+          fill="url(#yGrad)" opacity="0.92"/>
 
-  <!-- 三根青绿柱状图 -->
-  <rect x="206" y="370" width="28" height="36" rx="6" fill="url(#green)"/>
-  <rect x="246" y="350" width="28" height="56" rx="6" fill="url(#green)"/>
-  <rect x="286" y="328" width="28" height="78" rx="6" fill="url(#green)"/>
+    <!-- 右翼缎带 -->
+    <path d="M 265 120
+             C 200 -80 60 -180 -50 -160
+             C -90 -155 -100 -110 -85 -70
+             C -60 -10 -30 30 0 60
+             L 265 120 Z"
+          fill="url(#yGrad)" opacity="0.92"/>
 
+    <!-- 中心柱缎带 -->
+    <path d="M -44 -150
+             C -44 -250 -25 -280 0 -310
+             C 25 -280 44 -250 44 -150
+             L 44 240
+             C 44 280 40 290 20 300
+             C 0 308 -20 308 -40 300
+             C -42 290 -44 280 -44 240
+             Z"
+          fill="url(#yGrad)" opacity="0.95"/>
+
+    <!-- 中心高光 -->
+    <path d="M -15 -280
+             C -15 -260 0 -250 0 -310
+             C 0 -250 15 -260 15 -280
+             C 15 -240 10 -120 10 200
+             C 10 240 5 260 0 270
+             C -5 260 -10 240 -10 200
+             C -10 -120 -15 -240 -15 -280 Z"
+          fill="#FFFFFF" opacity="0.18"/>
+
+  </g>
 </svg>
