@@ -148,9 +148,16 @@ const sourceLabels = {
   static: '示例数据',
 }
 
+function isDemoMode() {
+  try { return localStorage.getItem('youshu-demo-mode') === 'true' } catch { return false }
+}
+
 export default function Layout({ source = 'static', syncedAt, loading, error, onRefresh }) {
   const location = useLocation()
   const pageTitle = pageTitles[location.pathname] || '有数'
+  const demoMode = isDemoMode()
+  const displaySource = demoMode ? 'demo' : source
+  const displayLabel = demoMode ? '演示模式' : (sourceLabels[source] || source)
 
   return (
     <div className="min-h-full flex dark:bg-gray-900">
@@ -193,16 +200,18 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
         <div className="px-4 py-3 border-t border-gray-50 dark:border-gray-700 space-y-1.5 text-xs">
           <div className="flex items-center justify-between">
             <span className={`inline-flex items-center gap-1.5 font-medium ${
-              source === 'online' ? 'text-green-600 dark:text-green-400' :
-              source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' :
+              displaySource === 'online' ? 'text-green-600 dark:text-green-400' :
+              displaySource === 'cache' ? 'text-yellow-600 dark:text-yellow-400' :
+              displaySource === 'demo' ? 'text-brand-600 dark:text-brand-400' :
               'text-gray-500 dark:text-gray-400'
             }`}>
               <span className={`w-1.5 h-1.5 rounded-full ${
-                source === 'online' ? 'bg-green-500' :
-                source === 'cache' ? 'bg-yellow-500' :
+                displaySource === 'online' ? 'bg-green-500' :
+                displaySource === 'cache' ? 'bg-yellow-500' :
+                displaySource === 'demo' ? 'bg-brand-500' :
                 'bg-gray-400'
               }`} />
-              {sourceLabels[source] || source}
+              {displayLabel}
             </span>
             <button
               onClick={onRefresh}
@@ -235,16 +244,18 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
             </div>
             <div className="flex items-center gap-1">
               <span className={`inline-flex items-center gap-1 text-xs ${
-                source === 'online' ? 'text-green-600 dark:text-green-400' :
-                source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' :
+                displaySource === 'online' ? 'text-green-600 dark:text-green-400' :
+                displaySource === 'cache' ? 'text-yellow-600 dark:text-yellow-400' :
+                displaySource === 'demo' ? 'text-brand-600 dark:text-brand-400' :
                 'text-gray-500 dark:text-gray-400'
               }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${
-                  source === 'online' ? 'bg-green-500' :
-                  source === 'cache' ? 'bg-yellow-500' :
+                  displaySource === 'online' ? 'bg-green-500' :
+                  displaySource === 'cache' ? 'bg-yellow-500' :
+                  displaySource === 'demo' ? 'bg-brand-500' :
                   'bg-gray-400'
                 }`} />
-                {sourceLabels[source]}
+                {displayLabel}
               </span>
               <button onClick={onRefresh} disabled={loading} className="p-1 text-gray-400 dark:text-gray-500 disabled:opacity-50">
                 <RefreshIcon className="w-4 h-4" spinning={loading} />
@@ -257,7 +268,7 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
         </header>
 
         {/* 内容 - 全宽 两侧不留白 */}
-        <main className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6 pb-24 sm:pb-6">
+        <main className="flex-1 w-full px-3 sm:px-6 py-3 sm:py-6 pb-24 sm:pb-6">
           {loading ? (
             <div className="flex items-center justify-center py-20 text-gray-400 dark:text-gray-500">
               <svg className="animate-spin w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none">

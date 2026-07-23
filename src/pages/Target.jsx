@@ -118,7 +118,7 @@ export default function Target({ refreshKey = 0 }) {
 
       {/* 配置目标表格 */}
       <div className="card">
-        <div className="flex items-center justify-end mb-4">
+        <div className="hidden sm:flex items-center justify-end mb-4">
           <button
             onClick={loadData}
             className="text-xs text-gray-400 hover:text-brand-600 transition-colors"
