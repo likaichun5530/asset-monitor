@@ -9,10 +9,10 @@ export default async function handler(req, res) {
   const spot = 7734.31
 
   const data = [
-    { type: '现货', code: 'CSI500', price: spot, spot, discount: 0, daysToSettle: 0, annualRate: null },
-    { type: '当月', code: 'IC2608', price: 7660, spot, discount: spot - 7660, daysToSettle: 25, annualRate: null },
-    { type: '次月', code: 'IC2609', price: 7602.6, spot, discount: spot - 7602.6, daysToSettle: 54, annualRate: null },
-    { type: '远月', code: 'IC2612', price: 7420, spot, discount: spot - 7420, daysToSettle: 145, annualRate: null },
+    { type: '现货', code: 'CSI500', price: spot, spot, discount: 0, daysToSettle: 0, annualRate: null, settleDate: '' },
+    { type: '当月', code: 'IC2608', price: 7660, spot, discount: spot - 7660, daysToSettle: 25, annualRate: null, settleDate: '2026-08-21' },
+    { type: '次月', code: 'IC2609', price: 7602.6, spot, discount: spot - 7602.6, daysToSettle: 54, annualRate: null, settleDate: '2026-09-18' },
+    { type: '远月', code: 'IC2612', price: 7420, spot, discount: spot - 7420, daysToSettle: 145, annualRate: null, settleDate: '2026-12-18' },
   ]
 
   for (const d of data) {
