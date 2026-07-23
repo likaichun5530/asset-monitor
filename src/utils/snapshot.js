@@ -34,7 +34,11 @@ export function setCachedHistory(history) {
 // 计算当前高点
 export function getCurrentPeak() {
   const h = getMergedHistory()
-  let peak = { value: staticPeakValue, date: staticPeakDate }
+  const demoMode = (() => {
+    try { return localStorage.getItem('youshu-demo-mode') === 'true' } catch { return false }
+  })()
+  const initValue = demoMode ? staticPeakValue / 10 : staticPeakValue
+  let peak = { value: initValue, date: staticPeakDate }
   for (const item of h) {
     if (item.total > peak.value) {
       peak = { value: item.total, date: item.date }
