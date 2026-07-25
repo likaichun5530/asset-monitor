@@ -7,8 +7,6 @@
 //
 // Google 凭据通过 Vercel 环境变量注入，永远不会出现在浏览器中。
 
-import { holdings as staticHoldings } from '../data/holdings.js'
-import { history as staticHistory, peakValue as staticPeakValue, peakDate as staticPeakDate } from '../data/history.js'
 import { demoHoldings, demoHistory, demoPeakValue, demoPeakDate, demoTarget } from '../data/demo.js'
 
 // Vercel 部署时自动使用当前域名，本地开发时使用完整 URL
@@ -90,7 +88,7 @@ export async function fetchHoldings() {
   if (cached?.holdings?.length) {
     return { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
   }
-  return { holdings: staticHoldings, source: 'static', syncedAt: null }
+  return { holdings: [], source: 'static', syncedAt: null }
 }
 
 function normalizeHoldings(arr) {
@@ -141,7 +139,7 @@ export async function fetchHistory() {
 
   const pending = readLocal(KEYS.pending, [])
   const cached = readLocal(KEYS.history, null)
-  const base = cached?.history?.length ? cached.history : staticHistory
+  const base = cached?.history?.length ? cached.history : []
   const merged = mergeHistory(base, pending)
   return { history: merged, source: cached?.history?.length ? 'cache' : 'static', syncedAt: cached?.syncedAt || null }
 }
@@ -164,7 +162,7 @@ export async function addSnapshot(total) {
   filtered.push(snapshot)
   writeLocal(KEYS.pending, filtered)
 
-  const cached = readLocal(KEYS.history, { history: staticHistory, syncedAt: null })
+  const cached = readLocal(KEYS.history, { history: [], syncedAt: null })
   const newHistory = mergeHistory(cached.history, [snapshot])
   writeLocal(KEYS.history, { history: newHistory, syncedAt: cached.syncedAt })
 
@@ -308,8 +306,8 @@ export function getPendingCount() {
 }
 
 export function getCurrentPeak() {
-  const cached = readLocal(KEYS.history, { history: staticHistory })
-  let peak = { value: staticPeakValue, date: staticPeakDate }
+  const cached = readLocal(KEYS.history, { history: [] })
+  let peak = { value: 0, date: '' }
   for (const item of cached.history) {
     if (item.total > peak.value) peak = { value: item.total, date: item.date }
   }

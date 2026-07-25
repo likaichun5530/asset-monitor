@@ -9,6 +9,17 @@
     <title>有数</title>
   </head>
   <body>
+    <script>
+      // 在页面渲染前同步设置暗夜模式，避免闪烁
+      (function() {
+        try {
+          var t = localStorage.getItem('youshu-theme')
+          if (t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+          }
+        } catch(e) {}
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

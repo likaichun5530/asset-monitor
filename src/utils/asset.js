@@ -3,12 +3,19 @@
 //   1. 静态模式（默认）：直接读取 src/data/* 的内置数据
 //   2. 动态模式：通过 loadAll() 从 dataStore（Google Sheets + 本地缓存）加载
 
-import { holdings as staticHoldings, categoryOrder } from '../data/holdings.js'
+import { categoryOrder } from '../data/holdings.js'
 import { getMergedHistory, getCurrentPeak, setCachedHistory } from './snapshot.js'
 import { fetchHoldings, fetchHistory, addSnapshot, retryPendingSync, hasBackend, getLastSyncAt, getPendingCount } from './dataStore.js'
 
+// 检查是否演示模式
+function isDemoMode() {
+  try { return localStorage.getItem('youshu-demo-mode') === 'true' } catch { return false }
+}
+
 // 从 localStorage 同步读取缓存的持仓数据，避免首次渲染显示老数据
 function getCachedHoldings() {
+  // 演示模式下不读取缓存，避免先显示实盘数据再闪烁
+  if (isDemoMode()) return null
   try {
     const raw = localStorage.getItem('asset-monitor:holdings')
     if (raw) {
@@ -20,11 +27,11 @@ function getCachedHoldings() {
 }
 
 // 当前生效的持仓数据（优先用缓存，否则用静态数据）
-let activeHoldings = getCachedHoldings() || staticHoldings
+let activeHoldings = getCachedHoldings() || []
 
 // 设置当前生效的持仓数据
 export function setActiveHoldings(holdings) {
-  activeHoldings = holdings || staticHoldings
+  activeHoldings = holdings || []
 }
 
 export function getActiveHoldings() {
@@ -206,7 +213,8 @@ export function drawdownFromPeak() {
       currentValue: current,
     }
   }
-  const change = current - peak.value
+  const rawChange = current - peak.value
+  const change = Math.round(rawChange * 100) / 100
   const changePct = peak.value ? (change / peak.value) * 100 : 0
   return {
     change,

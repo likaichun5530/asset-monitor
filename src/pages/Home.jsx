@@ -42,7 +42,15 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
   const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
   const pendingCount = useMemo(() => getPendingCount(), [refreshKey])
 
+  const demoMode = typeof window !== 'undefined' ? (localStorage.getItem('youshu-demo-mode') === 'true') : false
+
   const handleSnapshot = useCallback(async () => {
+    // 演示模式不生成快照
+    if (demoMode) {
+      setSnapshotMsg({ type: 'warn', text: '演示模式不支持生成快照' })
+      setTimeout(() => setSnapshotMsg(null), 2000)
+      return
+    }
     setSnapshotLoading(true)
     setSnapshotMsg(null)
     try {

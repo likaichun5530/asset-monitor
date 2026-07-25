@@ -2,12 +2,15 @@
 // 实际逻辑已迁移到 dataStore.js
 // 此文件保留是为了 asset.js 中 getMergedHistory/getCurrentPeak 的引用
 
-import { history as staticHistory, peakValue as staticPeakValue, peakDate as staticPeakDate } from '../data/history.js'
 import { demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
 import { fetchHistory, addSnapshot as dsAddSnapshot, hasBackend, retryPendingSync, getLastSyncAt, getPendingCount } from './dataStore.js'
 
 // 从 localStorage 同步读取缓存的历史数据
 function getCachedHistoryFromStorage() {
+  // 演示模式下不读取缓存，避免先显示实盘数据再闪烁
+  try {
+    if (localStorage.getItem('youshu-demo-mode') === 'true') return null
+  } catch { /* ignore */ }
   try {
     const raw = localStorage.getItem('asset-monitor:history')
     if (raw) {
@@ -24,13 +27,18 @@ let historyLoadPromise = null
 
 // 同步获取合并后的历史数据（从缓存读取，初始回退到本地缓存或静态数据）
 export function getMergedHistory() {
+  // 演示模式直接返回 demo 数据
+  const demoMode = (() => {
+    try { return localStorage.getItem('youshu-demo-mode') === 'true' } catch { return false }
+  })()
+  if (demoMode) return demoHistory
   if (cachedHistory && cachedHistory.length) return cachedHistory
   const cached = getCachedHistoryFromStorage()
   if (cached) {
     cachedHistory = cached
     return cached
   }
-  return staticHistory
+  return []
 }
 
 // 动态加载历史数据（异步）
@@ -66,7 +74,7 @@ export function getCurrentPeak() {
   }
 
   const h = getMergedHistory()
-  let peak = { value: staticPeakValue, date: staticPeakDate }
+  let peak = { value: 0, date: '' }
   for (const item of h) {
     if (item.total > peak.value) {
       peak = { value: item.total, date: item.date }

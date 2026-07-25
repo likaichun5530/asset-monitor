@@ -1,13 +1,11 @@
 // 演示模式固定数据（实盘数据的 1/10，永不更新）
 export const demoHoldings = [
-  { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'NVDA', name: '英伟达', currency: 'USD', quantity: 12.2, price: 20.281, marketValue: 2474.282, marketValueCNY: 16758.932 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'BRK.B', name: '伯克希尔', currency: 'USD', quantity: 3, price: 49.091, marketValue: 1472.730, marketValueCNY: 9975.169 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'META', name: 'Meta', currency: 'USD', quantity: 1.9, price: 64.601, marketValue: 1227.419, marketValueCNY: 8313.616 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'V', name: 'Visa', currency: 'USD', quantity: 3, price: 35.856, marketValue: 1075.680, marketValueCNY: 7285.850 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'GEV', name: 'GE Vernova', currency: 'USD', quantity: 1.3, price: 105.784, marketValue: 1375.192, marketValueCNY: 9314.520 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'GOOGL', name: '谷歌A', currency: 'USD', quantity: 4, price: 34.677, marketValue: 1387.080, marketValueCNY: 9395.040 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'ETN', name: '伊顿公司', currency: 'USD', quantity: 3, price: 39.999, marketValue: 1199.970, marketValueCNY: 8127.697 },
-  { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'MU', name: '美光科技', currency: 'USD', quantity: 2, price: 84.895, marketValue: 1697.900, marketValueCNY: 11500.302 },
   { assetType: '股票', market: 'US', account: 'IBKR', symbol: 'MSFT', name: '微软', currency: 'USD', quantity: 2.7, price: 39.382, marketValue: 1063.314, marketValueCNY: 7202.092 },
   { assetType: '股票', market: 'CN', account: 'Snowball', symbol: '000333', name: '美的集团', currency: 'CNY', quantity: 90, price: 8.43, marketValue: 7587, marketValueCNY: 7587 },
   { assetType: '股票', market: 'CN', account: 'Snowball', symbol: '600036', name: '招商银行', currency: 'CNY', quantity: 190, price: 3.891, marketValue: 7392.9, marketValueCNY: 7392.9 },
@@ -16,7 +14,6 @@ export const demoHoldings = [
   { assetType: '股票', market: 'HK', account: 'Snowball', symbol: '00700', name: '腾讯控股', currency: 'HKD', quantity: 10, price: 47.78, marketValue: 4778, marketValueCNY: 4127.579 },
   { assetType: '股票', market: 'HK', account: 'Snowball', symbol: '09992', name: '泡泡玛特', currency: 'HKD', quantity: 20, price: 16.4, marketValue: 3280, marketValueCNY: 2833.499 },
   { assetType: '股票', market: 'JP', account: 'Snowball', symbol: '513880', name: '日经225ETF华安', currency: 'CNY', quantity: 4480, price: 0.2006, marketValue: 8986.88, marketValueCNY: 8986.88 },
-  { assetType: '数字货币', market: 'GLOBAL', account: 'Binance', symbol: 'BTC', name: 'BTC', currency: 'USD', quantity: 0.094742797, price: 6478.6715, marketValue: 6138.715, marketValueCNY: 41574.717 },
   { assetType: '数字货币', market: 'GLOBAL', account: 'Binance', symbol: 'ETH', name: 'ETH', currency: 'USD', quantity: 0.0376762, price: 188.5875, marketValue: 71.085, marketValueCNY: 481.257 },
   { assetType: '数字货币', market: 'GLOBAL', account: 'Binance', symbol: 'BNB', name: 'BNB', currency: 'USD', quantity: 0.01302, price: 57.056, marketValue: 7.429, marketValueCNY: 50.316 },
   { assetType: '数字货币', market: 'GLOBAL', account: 'Binance', symbol: 'USDT', name: 'USDT', currency: 'USD', quantity: 1155, price: 0.0998765, marketValue: 1153.573, marketValueCNY: 7813.443 },
@@ -33,17 +30,20 @@ export const demoHoldings = [
 ]
 
 export const demoHistory = [
-  { date: '2025-07-01', total: 186975.3, note: '初始记录' },
-  { date: '2025-08-01', total: 192104.6 },
-  { date: '2025-09-01', total: 196809.8 },
-  { date: '2025-10-01', total: 201230.5 },
-  { date: '2025-11-01', total: 210558.7 },
-  { date: '2025-12-01', total: 218304.4 },
-  { date: '2026-01-01', total: 225100.2 },
+  { date: '2024-07-01', total: 186975.3, note: '初始记录' },
+  { date: '2024-09-21', total: 292104.6 },
+  { date: '2024-12-01', total: 496809.8 },
+  { date: '2025-07-15', total: 401230.5 },
+  { date: '2025-10-11', total: 610558.7 },
+  { date: '2025-11-01', total: 514528.7 },
+  { date: '2025-12-15', total: 710558.7 },
+  { date: '2026-04-11', total: 610549.7 },
+  { date: '2026-05-01', total: 418304.4 },
+  { date: '2026-06-01', total: 525100.2 },
 ]
 
-export const demoPeakValue = 225100.2
-export const demoPeakDate = '2026-01-01'
+export const demoPeakValue = 710558.7 
+export const demoPeakDate = '2025-02-15'
 
 // 演示模式配置目标（固定，与实盘逻辑一致）
 export const demoTarget = [
