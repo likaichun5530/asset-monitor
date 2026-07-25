@@ -6,13 +6,30 @@ import { history as staticHistory, peakValue as staticPeakValue, peakDate as sta
 import { demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
 import { fetchHistory, addSnapshot as dsAddSnapshot, hasBackend, retryPendingSync, getLastSyncAt, getPendingCount } from './dataStore.js'
 
-// 缓存最新加载的历史数据（由 loadAll 触发更新）
-let cachedHistory = null
+// 从 localStorage 同步读取缓存的历史数据
+function getCachedHistoryFromStorage() {
+  try {
+    const raw = localStorage.getItem('asset-monitor:history')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed?.history?.length) return parsed.history
+    }
+  } catch { /* ignore */ }
+  return null
+}
+
+// 缓存最新加载的历史数据（由 loadAll 触发更新，优先从 localStorage 同步读取）
+let cachedHistory = getCachedHistoryFromStorage()
 let historyLoadPromise = null
 
-// 同步获取合并后的历史数据（从缓存读取，初始回退到静态数据）
+// 同步获取合并后的历史数据（从缓存读取，初始回退到本地缓存或静态数据）
 export function getMergedHistory() {
   if (cachedHistory && cachedHistory.length) return cachedHistory
+  const cached = getCachedHistoryFromStorage()
+  if (cached) {
+    cachedHistory = cached
+    return cached
+  }
   return staticHistory
 }
 

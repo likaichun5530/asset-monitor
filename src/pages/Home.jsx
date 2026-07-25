@@ -86,7 +86,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
   const anyStat = cardConfig.statCards
 
   return (
-    <div className="space-y-[4px]">
+    <div className="space-y-[4px] sm:space-y-4">
       {editMode && (
         <div className="card py-2 px-4 flex items-center justify-between bg-brand-50 border-brand-200">
           <span className="text-xs text-brand-700 font-medium">编辑模式 — 点击下方按钮增减卡片</span>
@@ -94,8 +94,8 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
 
-      <section className="grid grid-cols-1 lg:grid-cols-8 gap-2 lg:gap-4">
-        <div className={`card py-2 px-3 lg:col-span-3 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+      <section className="grid grid-cols-1 lg:grid-cols-8 gap-1 lg:gap-4">
+        <div className={`card py-2 px-4 lg:col-span-3 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
           <div>
             <div className="flex items-start justify-between">
               <div>
@@ -108,16 +108,13 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
               <button
                 onClick={handleSnapshot}
                 disabled={snapshotLoading}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium transition-colors disabled:opacity-60 shrink-0"
+                className="inline-flex items-center justify-center gap-1 w-[30px] h-[30px] rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium transition-colors disabled:opacity-60 shrink-0"
               >
                 {snapshotLoading ? (
-                  <>
-                    <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                    </svg>
-                    生成中
-                  </>
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
                 ) : (
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -138,7 +135,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
 
         {anyStat && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:col-span-5">
+          <div className="grid grid-cols-3 gap-1 lg:gap-4 lg:col-span-5">
             <div onMouseDown={startLongPress} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress} onTouchStart={startLongPress} onTouchEnd={cancelLongPress}
               className={`${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''} relative`}>
               <StatMini label="近 7 天" change={c7.change} changePct={c7.changePct} sub={`${formatDateMid(c7.start)} → ${formatDateMid(c7.end)}`} />
@@ -168,7 +165,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
       {!cardConfig.trend && editMode && (
-        <button onClick={() => toggleCard('trend')} className="w-full py-8 rounded-2xl border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加资产趋势图</button>
+        <button onClick={() => toggleCard('trend')} className="w-full py-8 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加资产趋势图</button>
       )}
 
       {cardConfig.allocation && (
@@ -180,7 +177,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
       {!cardConfig.allocation && editMode && (
-        <button onClick={() => toggleCard('allocation')} className="w-full py-8 rounded-2xl border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加资产配置</button>
+        <button onClick={() => toggleCard('allocation')} className="w-full py-8 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加资产配置</button>
       )}
 
       {cardConfig.holdings && (
@@ -192,7 +189,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
       {!cardConfig.holdings && editMode && (
-        <button onClick={() => toggleCard('holdings')} className="w-full py-8 rounded-2xl border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加持仓概况</button>
+        <button onClick={() => toggleCard('holdings')} className="w-full py-8 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加持仓概况</button>
       )}
     </div>
   )
@@ -201,16 +198,17 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 function StatMini({ label, change, changePct, sub }) {
   const isUp = Number(change) > 0
   const isDown = Number(change) < 0
+  const isZero = !isUp && !isDown
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
   const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
-  const arrow = isUp ? '▲' : isDown ? '▼' : '—'
   return (
-    <div className="card flex flex-col justify-center items-center text-center p-2 min-h-[85px] lg:min-h-[150px]">
+    <div className="card w-full flex flex-col justify-center items-center text-center p-2 min-h-[85px] lg:min-h-[150px]">
       <div className="text-xs sm:text-sm text-gray-500">{label}</div>
       <div className={`text-base sm:text-xl font-bold mt-2 ${color}`}>{formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
         <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-1 rounded text-xs sm:text-sm ${bg} ${color}`}>
-          <span>{arrow}</span>
+          {isUp && <span>▲</span>}
+          {isDown && <span>▼</span>}
           {formatPercent(Math.abs(changePct))}
         </span>
       </div>

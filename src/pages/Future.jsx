@@ -14,20 +14,29 @@ export default function Future({ refreshKey = 0 }) {
 
   const sumMarketValue = futures.reduce((s, r) => s + holdingMarketValue(r), 0)
 
+  const FUTURES_CACHE_KEY = 'asset-monitor:futures'
+
   // 从后端获取贴水数据
-  const [premiumData, setPremiumData] = useState([])
+  const [premiumData, setPremiumData] = useState(() => {
+    try {
+      const cached = localStorage.getItem(FUTURES_CACHE_KEY)
+      if (cached) return JSON.parse(cached)
+    } catch { /* ignore */ }
+    return []
+  })
   const [premiumLoading, setPremiumLoading] = useState(false)
 
   useEffect(() => {
     if (!API_BASE) return
-    setPremiumLoading(true)
     fetch(`${API_BASE}/api/futures`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
-        setPremiumData(data.futures || [])
+        const futures = data.futures || []
+        setPremiumData(futures)
+        try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(futures)) } catch { /* ignore */ }
         setPremiumLoading(false)
       })
-      .catch(() => setPremiumLoading(false))
+      .catch(() => { /* 静默失败，使用缓存 */ })
   }, [refreshKey])
 
   return (

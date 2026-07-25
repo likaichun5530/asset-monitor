@@ -41,6 +41,42 @@ export default function TrendChart({ refreshKey = 0 }) {
     return allData.filter((d) => new Date(d.date).getTime() >= targetMs)
   }, [allData, range])
 
+  // 给数据添加 timestamp 数值字段，用于 X 轴时间刻度
+  const chartData = useMemo(() => {
+    return data.map((d) => ({
+      ...d,
+      timestamp: new Date(d.date).getTime(),
+    }))
+  }, [data])
+
+  // 根据时间跨度生成 X 轴刻度（按月或按年）
+  const xTicks = useMemo(() => {
+    if (!chartData.length) return []
+    const startMs = chartData[0].timestamp
+    const endMs = chartData[chartData.length - 1].timestamp
+    const spanMs = endMs - startMs
+    const ticks = []
+    // 少于 60 天：每 7 天一个刻度；60~365 天：每月；超过 365 天：每季度或半年
+    const msPerDay = 24 * 60 * 60 * 1000
+    let interval
+    if (spanMs < 60 * msPerDay) {
+      interval = 7 * msPerDay // 一周
+    } else if (spanMs < 365 * msPerDay) {
+      interval = 30 * msPerDay // 一个月左右
+    } else if (spanMs < 730 * msPerDay) {
+      interval = 60 * msPerDay // 两个月
+    } else {
+      interval = 90 * msPerDay // 季度
+    }
+    // 从起始时间取整
+    let tick = Math.ceil(startMs / interval) * interval
+    while (tick <= endMs) {
+      ticks.push(tick)
+      tick += interval
+    }
+    return ticks
+  }, [chartData])
+
   // 纵坐标 ticks：按 50 万一格
   const yTicks = useMemo(() => {
     if (!data.length) return []
@@ -63,8 +99,8 @@ export default function TrendChart({ refreshKey = 0 }) {
   }, [yTicks])
 
   return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div className="card pb-[1px] sm:pb-6 px-[1px] sm:px-6">
+      <div className="flex items-center justify-between mb-[1px] flex-wrap gap-2 px-3 sm:px-0">
         <div>
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
           <p className="text-xs text-gray-400 mt-0.5">单位：万元</p>
@@ -85,9 +121,9 @@ export default function TrendChart({ refreshKey = 0 }) {
           ))}
         </div>
       </div>
-      <div className="w-full h-[180px] lg:h-[300px]">
+      <div className="w-full h-[160px] lg:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 24, right: 12, bottom: 0, left: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 24, right: 12, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
@@ -95,12 +131,15 @@ export default function TrendChart({ refreshKey = 0 }) {
               </linearGradient>
             </defs>
             <XAxis
-              dataKey="date"
-              tickFormatter={formatDateShort}
+              dataKey="timestamp"
+              type="number"
+              scale="time"
+              domain={['dataMin', 'dataMax']}
+              ticks={xTicks.length ? xTicks : undefined}
+              tickFormatter={(ts) => formatDateShort(new Date(ts).toISOString().slice(0, 10))}
               tick={{ fontSize: 11, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={{ stroke: '#e2e8f0' }}
-              minTickGap={24}
             />
             <YAxis
               ticks={yTicks}
@@ -118,7 +157,7 @@ export default function TrendChart({ refreshKey = 0 }) {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                 fontSize: 12,
               }}
-              labelFormatter={(label) => `日期 ${formatDateMid(label)}`}
+              labelFormatter={(label) => `日期 ${formatDateMid(new Date(label).toISOString().slice(0, 10))}`}
               formatter={(value, name, props) => {
                 const note = props?.payload?.note
                 const text = formatCurrency(value)
@@ -134,9 +173,9 @@ export default function TrendChart({ refreshKey = 0 }) {
               dot={false}
               activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }}
             />
-            {peak && data.some((d) => d.date === peak.date) && (
+            {peak && chartData.some((d) => d.timestamp === new Date(peak.date).getTime()) && (
               <ReferenceDot
-                x={peak.date}
+                x={new Date(peak.date).getTime()}
                 y={peak.value}
                 r={5}
                 fill="#ef4444"

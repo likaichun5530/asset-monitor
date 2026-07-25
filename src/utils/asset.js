@@ -7,8 +7,20 @@ import { holdings as staticHoldings, categoryOrder } from '../data/holdings.js'
 import { getMergedHistory, getCurrentPeak, setCachedHistory } from './snapshot.js'
 import { fetchHoldings, fetchHistory, addSnapshot, retryPendingSync, hasBackend, getLastSyncAt, getPendingCount } from './dataStore.js'
 
-// 当前生效的持仓数据（动态加载后会被替换）
-let activeHoldings = staticHoldings
+// 从 localStorage 同步读取缓存的持仓数据，避免首次渲染显示老数据
+function getCachedHoldings() {
+  try {
+    const raw = localStorage.getItem('asset-monitor:holdings')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed?.holdings?.length) return parsed.holdings
+    }
+  } catch { /* ignore */ }
+  return null
+}
+
+// 当前生效的持仓数据（优先用缓存，否则用静态数据）
+let activeHoldings = getCachedHoldings() || staticHoldings
 
 // 设置当前生效的持仓数据
 export function setActiveHoldings(holdings) {

@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { NavLink, Outlet } from 'react-router-dom'
 import { formatDateLong } from '../utils/format.js'
@@ -143,15 +144,6 @@ function SettingsIcon({ className }) {
   )
 }
 
-function RefreshIcon({ className, spinning }) {
-  return (
-    <svg className={`${className} ${spinning ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M23 4v6h-6M1 20v-6h6" />
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-    </svg>
-  )
-}
-
 const sourceLabels = {
   online: '在线',
   cache: '离线',
@@ -169,13 +161,102 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
   const displaySource = demoMode ? 'demo' : source
   const displayLabel = demoMode ? '演示模式' : (sourceLabels[source] || source)
 
+  // 下拉刷新状态 — 使用 ref 直接操作 DOM 避免 re-render 卡顿
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const contentRef = useRef(null)
+  const touchStartY = useRef(0)
+  const refreshingRef = useRef(false)
+  const pullingRef = useRef(false)
+  const sloganTimerRef = useRef(null)
+  const MAX_PULL = 90
+  const THRESHOLD = 50
+
+  const resetPull = useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.transition = 'transform 0.3s ease-out'
+      contentRef.current.style.transform = 'translateY(0px)'
+    }
+  }, [])
+
+  const handleTouchStart = useCallback((e) => {
+    const scrollY = window.scrollY || document.documentElement.scrollTop
+    if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current) return
+    touchStartY.current = e.touches[0].clientY
+    pullingRef.current = false
+  }, [])
+
+  const handleTouchMove = useCallback((e) => {
+    if (refreshingRef.current || window.innerWidth >= 640) return
+    const scrollY = window.scrollY || document.documentElement.scrollTop
+    if (scrollY > 5) return
+    const deltaY = e.touches[0].clientY - touchStartY.current
+    if (deltaY <= 0) {
+      if (pullingRef.current) {
+        pullingRef.current = false
+        resetPull()
+      }
+      return
+    }
+    pullingRef.current = true
+    e.preventDefault()
+    const distance = Math.min(deltaY * 0.4, MAX_PULL)
+    // 直接操作 DOM，避免 React re-render
+    if (contentRef.current) {
+      contentRef.current.style.transition = 'none'
+      contentRef.current.style.transform = `translateY(${distance}px)`
+    }
+  }, [resetPull])
+
+  const handleTouchEnd = useCallback(async () => {
+    if (refreshingRef.current || window.innerWidth >= 640 || !pullingRef.current) {
+      pullingRef.current = false
+      return
+    }
+    pullingRef.current = false
+    const currentTransform = contentRef.current?.style?.transform || 'translateY(0px)'
+    const match = currentTransform.match(/translateY\(([\d.]+)px\)/)
+    const dist = match ? parseFloat(match[1]) : 0
+
+    if (dist < THRESHOLD) {
+      resetPull()
+      return
+    }
+
+    refreshingRef.current = true
+    setIsRefreshing(true)
+
+    clearTimeout(sloganTimerRef.current)
+    sloganTimerRef.current = setTimeout(async () => {
+      // 1秒后弹回
+      if (contentRef.current) {
+        contentRef.current.style.transition = 'transform 0.3s ease-out'
+        contentRef.current.style.transform = 'translateY(0px)'
+      }
+
+      await new Promise((r) => setTimeout(r, 450))
+
+      try {
+        await onRefresh()
+      } finally {
+        refreshingRef.current = false
+        setIsRefreshing(false)
+      }
+    }, 1000)
+  }, [onRefresh, resetPull])
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(sloganTimerRef.current)
+    }
+  }, [])
+
   return (
     <div className="min-h-full flex dark:bg-gray-900">
       {/* 桌面端侧边栏 */}
       <aside className="hidden sm:flex flex-col w-52 shrink-0 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto">
-        <div className="px-4 py-4 flex items-center gap-2 border-b border-gray-50 dark:border-gray-700">
-          <img src="/icon.png" alt="logo" className="w-9 h-9 rounded-lg" />
-          <span className="font-semibold text-gray-800 dark:text-gray-200">有数</span>
+        <div className="px-4 pt-[21px] pb-4 border-b border-gray-50 dark:border-gray-700">
+          <img src="/Transparent-Chinese.png" alt="logo" className="w-[108px] h-[40px] object-cover object-center rounded-lg block dark:hidden" />
+          <img src="/white-Chinese.png" alt="logo" className="w-[108px] h-[40px] object-cover object-center rounded-lg hidden dark:block" />
         </div>
 
         <nav className="flex-1 px-3 py-3 space-y-0.5">
@@ -223,14 +304,6 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
               }`} />
               {displayLabel}
             </span>
-            <button
-              onClick={onRefresh}
-              disabled={loading}
-              className="p-1 rounded text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-              title="刷新数据"
-            >
-              <RefreshIcon className="w-3.5 h-3.5" spinning={loading} />
-            </button>
           </div>
           {syncedAt && (
             <div className="text-gray-400 dark:text-gray-500">
@@ -245,12 +318,11 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
 
       {/* 主内容区 - 全宽无 max-w 限制 */}
       <div className="flex-1 min-w-0 flex flex-col bg-gray-50 dark:bg-gray-900">
-          {/* 移动端顶部栏 */}
+        {/* 移动端顶部栏 - 固定不随下拉移动 */}
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           <div className="px-4 h-12 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src="/icon.png" alt="logo" className="w-8 h-8 rounded-lg" />
-              <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{pageTitle}</span>
+              <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className={`inline-flex items-center gap-1 text-xs ${
@@ -267,9 +339,6 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
                 }`} />
                 {displayLabel}
               </span>
-              <button onClick={onRefresh} disabled={loading} className="p-1 text-gray-400 dark:text-gray-500 disabled:opacity-50">
-                <RefreshIcon className="w-4 h-4" spinning={loading} />
-              </button>
               <NavLink to="/settings" className="p-1 text-gray-400 dark:text-gray-500">
                 <SettingsIcon className="w-4 h-4" />
               </NavLink>
@@ -277,20 +346,30 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
           </div>
         </header>
 
-        {/* 内容 - 全宽 两侧不留白 */}
-        <main className="flex-1 w-full px-[4px] sm:px-6 py-2 sm:py-6 pb-24 sm:pb-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-20 text-gray-400 dark:text-gray-500">
-              <svg className="animate-spin w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
-                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-              加载中...
+        {/* 下拉区域：移动端标题栏以下部分 */}
+        <div
+          className="relative flex-1 flex flex-col"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* 可下拉移动的内容 */}
+          <div
+            ref={contentRef}
+            className="flex-1 flex flex-col relative"
+          >
+            {/* slogan：绝对定位在内容顶部上方36px，被标题栏(48px)挡住，下拉时随内容下移可见 */}
+            <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
+              <span className="text-sm text-gray-700 font-medium tracking-wider">
+                资产配置，心中有数
+              </span>
             </div>
-          ) : (
-            <Outlet />
-          )}
-        </main>
+            {/* 内容 - 全宽 两侧不留白 */}
+            <main className="flex-1 w-full px-[4px] sm:px-8 pt-[4px] sm:pt-2 pb-24 sm:pb-8">
+              <Outlet />
+            </main>
+          </div>
+        </div>
       </div>
 
       {/* 移动端底部 Tab */}

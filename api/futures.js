@@ -1,28 +1,31 @@
 // Vercel Function: GET /api/futures
-// 中证500股指期货贴水数据，从 market 表获取现货价格
-import { isConfigured, readSheet, toNumber } from './_google.js'
+// 中证500股指期货贴水数据，从 market 表指定单元格读取
+// Market sheet: B9 = 当月, B10 = 近月, B11 = 远月
+import { isConfigured, toNumber } from './_google.js'
+
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID || ''
 
 const SPOT_FALLBACK = 7734.31
-const CONTRACT_FALLBACK = {
-  '中证500期货当月': 7660,
-  '中证500期货近月': 7602.6,
-  '中证500期货远月': 7420,
-}
+const CONTRACT_FALLBACK = [7660, 7602.6, 7420]
 
-async function getPrice(name, fallback) {
+async function getCellValue(range, fallback) {
   if (!isConfigured()) return fallback
   try {
-    const result = await readSheet('Market')
-    for (const row of (result.data || [])) {
-      const rowName = (row[Object.keys(row)[0]] || '').toString().trim()
-      if (rowName === name) {
-        const raw = String(row[Object.keys(row)[1]] || '').replace(/,/g, '').replace(/"/g, '').trim()
-        const val = parseFloat(raw)
-        if (!isNaN(val)) return val
-      }
-    }
-  } catch (e) { console.warn(`[futures] 读取 ${name} 失败`, e) }
-  return fallback
+    const { getAccessToken } = await import('./_google.js')
+    const token = await getAccessToken()
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent('Market')}!${range}`
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (!resp.ok) return fallback
+    const result = await resp.json()
+    const raw = result.values?.[0]?.[0]
+    if (raw === undefined || raw === null) return fallback
+    const cleaned = String(raw).replace(/,/g, '').replace(/"/g, '').trim()
+    const val = parseFloat(cleaned)
+    return isNaN(val) ? fallback : val
+  } catch (e) {
+    console.warn(`[futures] 读取 ${range} 失败`, e)
+    return fallback
+  }
 }
 
 export default async function handler(req, res) {
@@ -31,10 +34,14 @@ export default async function handler(req, res) {
     return res.end(JSON.stringify({ error: 'Method not allowed' }))
   }
 
-  const spot = await getPrice('中证500', SPOT_FALLBACK)
-  const p0 = await getPrice('中证500期货当月', CONTRACT_FALLBACK['中证500期货当月'])
-  const p1 = await getPrice('中证500期货近月', CONTRACT_FALLBACK['中证500期货近月'])
-  const p2 = await getPrice('中证500期货远月', CONTRACT_FALLBACK['中证500期货远月'])
+  // 现货价格从 B2 单元格读取
+  const spot = await getCellValue('B2', SPOT_FALLBACK)
+  // 当月 B9, 近月 B10, 远月 B11
+  const [p0, p1, p2] = await Promise.all([
+    getCellValue('B9', CONTRACT_FALLBACK[0]),
+    getCellValue('B10', CONTRACT_FALLBACK[1]),
+    getCellValue('B11', CONTRACT_FALLBACK[2]),
+  ])
 
   const data = [
     { type: '现货', code: 'CSI500', price: spot, spot, discount: 0, daysToSettle: 0, annualRate: null, settleDate: '' },

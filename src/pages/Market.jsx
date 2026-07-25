@@ -2,24 +2,37 @@ import { useState, useEffect, useMemo } from 'react'
 import { formatNumber } from '../utils/format.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || ''
+const CACHE_KEY = 'asset-monitor:market'
 
 const GROUP_ORDER = ['汇率', 'A股', '期货', '境外', '数字货币']
 
 export default function Market({ refreshKey = 0 }) {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState(() => {
+    // 首次渲染从缓存读取
+    try {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) return JSON.parse(cached)
+    } catch { /* ignore */ }
+    return []
+  })
+  const [loading, setLoading] = useState(!data.length)
 
   useEffect(() => {
     if (!API_BASE) return
-    setLoading(true)
+    // 静默刷新，不显示 loading
     fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((res) => {
-        setData(res.market || [])
+        const marketData = res.market || []
+        setData(marketData)
+        // 写入缓存
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
-  }, [refreshKey])
+      .catch(() => {
+        if (!data.length) setLoading(false)
+      })
+  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const groups = useMemo(() => {
     const map = new Map()
@@ -37,18 +50,6 @@ export default function Market({ refreshKey = 0 }) {
     }
     return ordered
   }, [data])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 text-gray-400">
-        <svg className="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
-          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-        加载中...
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6 px-1 sm:px-0">

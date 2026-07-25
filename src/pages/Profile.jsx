@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getActiveHoldings, holdingMarketValue, totalMarketValue, lastUpdateDate } from '../utils/asset.js'
+import { getActiveHoldings, holdingMarketValue, totalMarketValue, lastUpdateDate, generateSnapshot, hasBackend } from '../utils/asset.js'
+import { getPendingCount } from '../utils/dataStore.js'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan, formatDateLong } from '../utils/format.js'
 
@@ -21,6 +22,31 @@ export default function Profile({ refreshKey = 0 }) {
   const total = useMemo(() => totalMarketValue(), [refreshKey])
   const navigate = useNavigate()
 
+  const [snapshotLoading, setSnapshotLoading] = useState(false)
+  const [snapshotMsg, setSnapshotMsg] = useState(null)
+  const pendingCount = useMemo(() => getPendingCount(), [refreshKey])
+  const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
+
+  const handleSnapshot = useCallback(async () => {
+    setSnapshotLoading(true)
+    setSnapshotMsg(null)
+    try {
+      const result = await generateSnapshot(total)
+      if (result.synced) {
+        setSnapshotMsg({ type: 'success', text: `快照已生成（${result.date}）并同步至 Google Sheets` })
+      } else if (hasBackend()) {
+        setSnapshotMsg({ type: 'warn', text: `快照已生成（${result.date}），离线暂存` })
+      } else {
+        setSnapshotMsg({ type: 'success', text: `快照已生成（${result.date}）` })
+      }
+    } catch (e) {
+      setSnapshotMsg({ type: 'error', text: '生成快照失败：' + (e?.message || String(e)) })
+    } finally {
+      setSnapshotLoading(false)
+      setTimeout(() => setSnapshotMsg(null), 4000)
+    }
+  }, [total])
+
   const items = useMemo(() => {
     return ASSETS.map((asset) => {
       const filtered = holdings.filter(asset.filter)
@@ -34,18 +60,16 @@ export default function Profile({ refreshKey = 0 }) {
     }).filter((item) => item.count > 0)
   }, [holdings, total])
 
-  const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
-
   return (
     <div className="space-y-[4px]">
       {/* 移动端总资产卡片 */}
-      <div className="card py-5 px-6 sm:hidden">
-        <div className="text-xs text-gray-500">总资产（人民币）</div>
-        <div className="text-3xl font-bold mt-1 text-gray-900">
-          {formatCurrency(total)}
-        </div>
-        <div className="mt-1 text-xs text-gray-400">
-          更新于 {updateDate ? formatDateLong(updateDate) : '--'}
+      <div className="card py-2 px-4 sm:hidden">
+        <div>
+          <div className="text-xs text-gray-500">总资产（人民币）</div>
+          <div className="text-3xl font-bold mt-1 text-gray-900">{formatCurrency(total)}</div>
+          <div className="mt-1 text-xs text-gray-400">
+            更新于 {updateDate ? formatDateLong(updateDate) : '--'}
+          </div>
         </div>
       </div>
       {items.map((item) => (

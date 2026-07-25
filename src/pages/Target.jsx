@@ -50,9 +50,9 @@ export default function Target({ refreshKey = 0 }) {
   const totalRow = (data || []).find((r) => r.isTotal)
 
   // 统计超配/低配
-  const overWeight = rows.filter((r) => r.targetRatio !== null && r.diff > 0.03)
-  const underWeight = rows.filter((r) => r.targetRatio !== null && r.diff < -0.03)
-  const balanced = rows.filter((r) => r.targetRatio !== null && Math.abs(r.diff) <= 0.03)
+  const overWeight = rows.filter((r) => r.targetRatio !== null && r.diff > 0.02)
+  const underWeight = rows.filter((r) => r.targetRatio !== null && r.diff < -0.02)
+  const balanced = rows.filter((r) => r.targetRatio !== null && Math.abs(r.diff) <= 0.02)
   const noTarget = rows.filter((r) => r.targetRatio === null)
 
   if (loading) {
@@ -145,8 +145,8 @@ export default function Target({ refreshKey = 0 }) {
                 const color = colorMap[r.category] || '#94a3b8'
                 const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined
                 const diffPct = hasTarget ? r.diff * 100 : null
-                const isOver = diffPct !== null && diffPct > 3
-                const isUnder = diffPct !== null && diffPct < -3
+                const isOver = diffPct !== null && diffPct > 2
+                const isUnder = diffPct !== null && diffPct < -2
 
                 return (
                   <tr key={idx} className="border-b border-gray-50 last:border-0">
@@ -197,8 +197,8 @@ export default function Target({ refreshKey = 0 }) {
             const color = colorMap[r.category] || '#94a3b8'
             const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined
             const diffPct = hasTarget ? r.diff * 100 : null
-            const isOver = diffPct !== null && diffPct > 3
-            const isUnder = diffPct !== null && diffPct < -3
+                const isOver = diffPct !== null && diffPct > 2
+                const isUnder = diffPct !== null && diffPct < -2
             return (
               <div key={idx} className="border border-gray-100 rounded-lg p-3">
                 <div className="flex items-center justify-between">
@@ -237,7 +237,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
-          💡 在 Google Sheets 的 target 表中填写「配置目标」列即可。差值超过 ±3% 会提醒。
+          💡 在 Google Sheets 的 target 表中填写「配置目标」列即可。差值超过 ±2% 会提醒。
         </div>
       </div>
     </div>

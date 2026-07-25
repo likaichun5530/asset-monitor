@@ -14,6 +14,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   @apply bg-gray-50 text-gray-800;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 按钮和链接可选中 */
+button, a, input, textarea, select {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* 阻止移动端长按弹出菜单（底部导航等） */
+nav a, nav button, .bottom-nav-link {
+  -webkit-touch-callout: none;
 }
 
 /* 数字字体：窄等宽，类似雪球 */
@@ -31,12 +44,20 @@ html.dark body {
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl border border-gray-100 p-4 sm:p-6;
+    @apply bg-white rounded-lg p-4 sm:p-6;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.02);
   }
-  html.dark .card {
-    @apply bg-gray-800 border-gray-700;
-  }
+html.dark .card {
+  @apply bg-gray-800 border-gray-700;
+}
+}
+
+/* 阻止移动端浏览器默认的下拉刷新（黑色圆圈） */
+html {
+  overscroll-behavior: none;
+}
+body {
+  overscroll-behavior: none;
 }
 
 /* ========== 暗夜模式全局覆盖 ========== */
