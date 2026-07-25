@@ -31,7 +31,8 @@ html.dark body {
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6;
+    @apply bg-white rounded-2xl border border-gray-100 p-4 sm:p-6;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.02);
   }
   html.dark .card {
     @apply bg-gray-800 border-gray-700;

@@ -96,7 +96,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
   const anyStat = cardConfig.statCards
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-[3px]">
       {/* 编辑模式提示条 */}
       {editMode && (
         <div className="card py-2 px-4 flex items-center justify-between bg-brand-50 border-brand-200">

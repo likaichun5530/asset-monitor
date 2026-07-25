@@ -77,7 +77,7 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-[3px]">
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -192,7 +192,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         {/* 移动端卡片列表 */}
-        <div className="sm:hidden space-y-2">
+        <div className="sm:hidden space-y-[3px]">
           {rows.map((r, idx) => {
             const color = colorMap[r.category] || '#94a3b8'
             const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined

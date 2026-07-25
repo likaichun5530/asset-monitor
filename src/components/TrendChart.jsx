@@ -67,6 +67,7 @@ export default function TrendChart({ refreshKey = 0 }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
+          <p className="text-xs text-gray-400 mt-0.5">单位：万元</p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           {RANGES.map((r) => (
@@ -153,10 +154,6 @@ export default function TrendChart({ refreshKey = 0 }) {
             )}
           </AreaChart>
         </ResponsiveContainer>
-      </div>
-      <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
-        <span>单位：万元</span>
-        <span>共 {data.length} 个快照</span>
       </div>
     </div>
   )

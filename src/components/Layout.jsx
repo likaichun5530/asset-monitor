@@ -278,7 +278,7 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
         </header>
 
         {/* 内容 - 全宽 两侧不留白 */}
-        <main className="flex-1 w-full px-2 sm:px-6 py-2 sm:py-6 pb-24 sm:pb-6">
+        <main className="flex-1 w-full px-[3px] sm:px-6 py-2 sm:py-6 pb-24 sm:pb-6">
           {loading ? (
             <div className="flex items-center justify-center py-20 text-gray-400 dark:text-gray-500">
               <svg className="animate-spin w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none">

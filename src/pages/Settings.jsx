@@ -44,10 +44,10 @@ export default function Settings() {
   ]
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-[3px]">
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-4">数据模式</h3>
-        <div className="space-y-2">
+        <div className="space-y-[3px]">
           <button
             onClick={() => { if (demoMode) handleDemoToggle() }}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
@@ -89,7 +89,7 @@ export default function Settings() {
 
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-4">皮肤选择</h3>
-        <div className="space-y-2">
+        <div className="space-y-[3px]">
           {themes.map((t) => (
             <button
               key={t.key}
@@ -116,7 +116,7 @@ export default function Settings() {
 
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-4">关于</h3>
-        <div className="space-y-2 text-sm">
+        <div className="space-y-[3px] text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">应用名称</span>
             <span className="text-gray-800 font-medium">有数</span>

@@ -11,14 +11,7 @@ const GROUP_MAP = {
   'SGE黄金9999': '其他',
 }
 
-const FALLBACK = {
-  '上证指数': 3876.78, '中证500': 7734.31, '中证1000': 7195.50, '沪深300': 4728.00,
-  'BTC': 64786.71, 'ETH': 1885.88,
-  '日经225指数': 39504, '纳斯达克指数': 19654,
-  'USD': 7.26, 'HKD': 0.93, 'JPY': 0.048,
-  'SGE黄金9999': 731.50,
-  '中证500期货当月': 7660, '中证500期货近月': 7602.6, '中证500期货远月': 7420,
-}
+const FALLBACK = {}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -38,7 +31,7 @@ export default async function handler(req, res) {
         for (const row of data) {
           const name = (row[nameKey] || '').toString().trim()
           if (!name) continue
-          const raw = row[priceKey]
+          const raw = String(row[priceKey] || '').replace(/,/g, '').replace(/"/g, '').trim()
           const price = parseFloat(raw)
           market.push({
             name,
