@@ -185,6 +185,15 @@ export function change30d() {
 export function drawdownFromPeak() {
   const current = totalMarketValue()
   const peak = getCurrentPeak()
+  if (current >= peak.value) {
+    return {
+      change: 0,
+      changePct: 0,
+      peakValue: peak.value,
+      peakDate: peak.date,
+      currentValue: current,
+    }
+  }
   const change = current - peak.value
   const changePct = peak.value ? (change / peak.value) * 100 : 0
   return {
