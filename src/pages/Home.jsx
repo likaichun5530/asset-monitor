@@ -110,7 +110,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
       {/* 总资产 + 统计卡片 */}
       <section className="grid grid-cols-1 lg:grid-cols-8 gap-2 lg:gap-4">
         <div
-          className={`card py-5 px-6 lg:col-span-3 flex flex-col justify-center min-h-[100px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}
+          className={`card py-3 px-4 lg:col-span-3 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}
         >
           <div>
             <div className="flex items-start justify-between">
@@ -148,7 +148,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
               </button>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
+          <div className="mt-1 flex items-center gap-2 flex-wrap">
             {pendingCount > 0 && (
               <span className="text-xs text-yellow-600">{pendingCount} 条待同步</span>
             )}
@@ -294,7 +294,7 @@ function StatMini({ label, change, changePct, sub }) {
   const arrow = isUp ? '▲' : isDown ? '▼' : '—'
 
   return (
-    <div className="card flex flex-col justify-center items-center text-center p-4 min-h-[100px] lg:min-h-[150px]">
+    <div className="card flex flex-col justify-center items-center text-center p-3 min-h-[85px] lg:min-h-[150px]">
       <div className="text-xs sm:text-sm text-gray-500">{label}</div>
       <div className={`text-base sm:text-xl font-bold mt-2 ${color}`}>{formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
