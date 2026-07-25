@@ -26,8 +26,10 @@ export function formatPercent(pctValue, { withSign = false } = {}) {
 export function formatChange(value) {
   if (!Number.isFinite(Number(value))) return '--'
   const num = Number(value)
+  const formatted = num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (formatted === '-0.00') return '0.00'
   const prefix = num > 0 ? '+' : ''
-  return prefix + num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return prefix + formatted
 }
 
 // 日期格式化 YYYY-MM-DD -> MM-DD

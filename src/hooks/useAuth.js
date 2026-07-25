@@ -34,7 +34,7 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY)
-    localStorage.setItem('youshu-demo-mode', 'true')
+    localStorage.removeItem('youshu-demo-mode')
     setToken(null)
   }, [])
 
