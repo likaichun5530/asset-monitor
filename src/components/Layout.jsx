@@ -152,14 +152,11 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
           <div className="px-4 h-12 flex items-center justify-between">
             <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
             <div className="flex items-center gap-3">
-              {/* 演示模式左侧：未登录显示"登录"，已登录显示用户名 */}
-              {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? (
-                auth?.isLoggedIn ? (
-                  <span className="text-sm text-gray-800 dark:text-gray-200 font-medium shrink-0">{auth.username}</span>
-                ) : (
-                  <NavLink to="/login" className="text-sm text-brand-600 dark:text-brand-400 font-medium shrink-0">登录</NavLink>
-                )
-              ) : null}
+              {auth?.isLoggedIn ? (
+                <span className="text-sm text-gray-800 dark:text-gray-200 font-medium shrink-0">{auth.username}</span>
+              ) : (
+                <NavLink to="/login" className="text-sm text-brand-600 dark:text-brand-400 font-medium shrink-0">登录</NavLink>
+              )}
               <span className={`text-sm ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
               </span>

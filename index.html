@@ -9,6 +9,7 @@
     <title>有数</title>
   </head>
   <body>
+    <style>*{margin:0;padding:0}</style>
     <script>
       // 在页面渲染前同步设置暗夜模式，避免闪烁
       (function() {
@@ -16,6 +17,7 @@
           var t = localStorage.getItem('youshu-theme')
           if (t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark')
+            document.documentElement.style.backgroundColor = '#111827'
           }
         } catch(e) {}
       })()
