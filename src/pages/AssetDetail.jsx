@@ -61,7 +61,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
   }, [rows, showToggle])
 
   return (
-    <div className="space-y-[3px]">
+    <div className="space-y-[4px]">
       {/* 移动端返回按钮 */}
       <button
         onClick={() => navigate('/my')}

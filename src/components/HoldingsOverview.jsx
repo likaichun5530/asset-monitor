@@ -112,7 +112,7 @@ export default function HoldingsOverview({ refreshKey = 0 }) {
       </div>
 
       {/* 移动端卡片列表 */}
-      <div className="sm:hidden space-y-[3px]">
+      <div className="sm:hidden space-y-[4px]">
         {top5.map((h, idx) => {
           const color = getColor(h)
           return (

@@ -76,7 +76,7 @@ export default function Holdings({ loading, refreshKey }) {
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
 
   return (
-    <div className="space-y-[3px]">
+    <div className="space-y-[4px]">
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-gray-800">持仓</h2>

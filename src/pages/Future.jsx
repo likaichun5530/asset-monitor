@@ -31,7 +31,7 @@ export default function Future({ refreshKey = 0 }) {
   }, [refreshKey])
 
   return (
-    <div className="space-y-[3px]">
+    <div className="space-y-[4px]">
       {/* 概要 */}
       <div className="card py-3 px-4 flex items-center justify-between">
         <div>
@@ -187,7 +187,7 @@ export default function Future({ refreshKey = 0 }) {
         </div>
 
         {/* 保证金信息 - 移动端卡片 */}
-        <div className="sm:hidden space-y-[3px]">
+        <div className="sm:hidden space-y-[4px]">
           {futures.map((h, idx) => {
             const premium = premiumData.find((p) => p.code === h.symbol)
             const livePrice = premium?.price ?? h.price
