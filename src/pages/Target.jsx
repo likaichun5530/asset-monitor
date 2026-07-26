@@ -83,7 +83,14 @@ export default function Target({ refreshKey = 0 }) {
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {overWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-red-400">
-              <div className="text-sm font-medium text-red-500">⚠️ 超配（建议减仓）</div>
+              <div className="text-sm font-medium text-red-500 flex items-center gap-1.5">
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="10" fill="currentColor" opacity="0.15" />
+                  <path d="M10 4l5 6H5l5-6z" fill="currentColor" />
+                  <rect x="5" y="12.5" width="10" height="2" rx="1" fill="currentColor" opacity="0.5" />
+                </svg>
+                超配（建议减仓）
+              </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {overWeight.map((r) => (
                   <span key={r.category} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-xs">
@@ -95,7 +102,14 @@ export default function Target({ refreshKey = 0 }) {
           )}
           {underWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-green-400">
-              <div className="text-sm font-medium text-green-600">📉 低配（建议加仓）</div>
+              <div className="text-sm font-medium text-green-600 flex items-center gap-1.5">
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="10" fill="currentColor" opacity="0.15" />
+                  <path d="M10 16l5-6H5l5 6z" fill="currentColor" />
+                  <rect x="5" y="5.5" width="10" height="2" rx="1" fill="currentColor" opacity="0.5" />
+                </svg>
+                低配（建议加仓）
+              </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {underWeight.map((r) => (
                   <span key={r.category} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-600 text-xs">
