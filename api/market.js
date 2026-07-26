@@ -1,18 +1,6 @@
 // Vercel Function: GET /api/market
-// 从 Google Sheets Market 表读取标的名称和价格（A列=名称，B列=价格）
+// 从 Google Sheets Market_Show 表读取行情数据（A列=类型，B列=标的，C列=价格）
 import { isConfigured, readSheet } from './_google.js'
-
-const GROUP_MAP = {
-  'USD': '汇率', 'HKD': '汇率', 'JPY': '汇率',
-  '上证指数': 'A股', '中证500': 'A股', '中证1000': 'A股', '沪深300': 'A股',
-  '中证500期货当月': '期货', '中证500期货近月': '期货', '中证500期货远月': '期货',
-  'IC': '期货', 'IC当月': '期货', 'IC近月': '期货', 'IC远月': '期货',
-  'BTC': '数字货币', 'ETH': '数字货币',
-  '纳斯达克指数': '境外', '日经225指数': '境外',
-  'SGE黄金9999': '其他',
-}
-
-const FALLBACK = {}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -27,31 +15,19 @@ export default async function handler(req, res) {
         const result = await readSheet('Market_Show')
         const data = result.data || []
         const headers = result.headers || []
-        const nameKey = headers[0] || ''
-        const priceKey = headers[1] || ''
+        const groupKey = headers[0] || ''   // A列：类型
+        const nameKey = headers[1] || ''    // B列：标的
+        const priceKey = headers[2] || ''   // C列：价格
         for (const row of data) {
           const name = (row[nameKey] || '').toString().trim()
           if (!name) continue
           const raw = String(row[priceKey] || '').replace(/,/g, '').replace(/"/g, '').trim()
           const price = parseFloat(raw)
-          // 先用精确匹配，再用模糊匹配
-          let group = GROUP_MAP[name]
-          if (!group) {
-            if (name.includes('IC')) group = '期货'
-            else if (name.includes('中证500') || name.includes('上证') || name.includes('中证1000') || name.includes('沪深300')) group = 'A股'
-            else group = '其他'
-          }
+          const group = (row[groupKey] || '').toString().trim() || '其他'
           market.push({ name, price: isNaN(price) ? null : price, group })
         }
       } catch (e) {
         console.warn('[market] Google Sheets 读取失败', e)
-      }
-    }
-
-    // 回退
-    if (!market.length) {
-      for (const [name, price] of Object.entries(FALLBACK)) {
-        market.push({ name, price, group: GROUP_MAP[name] || '其他' })
       }
     }
 
