@@ -34,11 +34,14 @@ export default async function handler(req, res) {
           if (!name) continue
           const raw = String(row[priceKey] || '').replace(/,/g, '').replace(/"/g, '').trim()
           const price = parseFloat(raw)
-          market.push({
-            name,
-            price: isNaN(price) ? null : price,
-            group: GROUP_MAP[name] || '其他',
-          })
+          // 先用精确匹配，再用模糊匹配
+          let group = GROUP_MAP[name]
+          if (!group) {
+            if (name.includes('IC')) group = '期货'
+            else if (name.includes('中证500') || name.includes('上证') || name.includes('中证1000') || name.includes('沪深300')) group = 'A股'
+            else group = '其他'
+          }
+          market.push({ name, price: isNaN(price) ? null : price, group })
         }
       } catch (e) {
         console.warn('[market] Google Sheets 读取失败', e)
