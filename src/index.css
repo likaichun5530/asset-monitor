@@ -4,6 +4,7 @@
 
 :root { color-scheme: light; background-color: #f9fafb; }
 html.dark { color-scheme: dark; background-color: #111827; }
+.no-transitions, .no-transitions * { transition: none !important; }
 
 html, body, #root { height: 100%; }
 

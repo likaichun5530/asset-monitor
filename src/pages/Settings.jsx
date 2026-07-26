@@ -5,17 +5,18 @@ const THEME_KEY = 'youshu-theme'
 function applyTheme(t) {
   const root = document.documentElement
   const metaTheme = document.querySelector('meta[name="theme-color"]')
-  // 临时禁用所有过渡动画，避免切换主题时有 transition 的元素闪白
-  const style = document.createElement('style')
-  style.textContent = '*,*::before,*::after{transition:none!important}'
-  document.head.appendChild(style)
-  // 切换主题
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  // 添加 no-transitions class，CSS 中已定义该规则
+  root.classList.add('no-transitions')
+  // 强制回流，确保 no-transitions 生效
+  root.offsetHeight
+  // 切换主题
   root.classList.toggle('dark', isDark)
   if (metaTheme) metaTheme.content = isDark ? '#111827' : '#2563eb'
-  // 强制回流后恢复过渡
+  // 强制回流确保 dark 样式已计算
   root.offsetHeight
-  document.head.removeChild(style)
+  // 恢复过渡
+  root.classList.remove('no-transitions')
 }
 
 export function initTheme() {
