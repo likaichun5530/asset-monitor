@@ -102,7 +102,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
 
-      <section className="grid grid-cols-1 lg:grid-cols-8 gap-1 lg:gap-4">
+      <section className="grid grid-cols-1 lg:grid-cols-8 gap-1 lg:gap-4" onTouchStart={startLongPress} onTouchEnd={cancelLongPress}>
         <div className={`card py-2 px-4 lg:col-span-3 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
           <div>
             <div className="flex items-start justify-between">
@@ -144,16 +144,15 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 
         {anyStat && (
           <div className="grid grid-cols-3 gap-1 lg:gap-4 lg:col-span-5">
-            <div onMouseDown={startLongPress} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress} onTouchStart={startLongPress} onTouchEnd={cancelLongPress}
-              className={`${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''} relative`}>
+            <div className={`${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''} relative`}>
               <StatMini label="近 7 天" change={c7.change} changePct={c7.changePct} sub={`${formatDateMid(c7.start)} → ${formatDateMid(c7.end)}`} />
-              {editMode && <button onClick={(e) => { e.stopPropagation(); toggleCard('statCards') }} className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow">−</button>}
             </div>
             <div className={editMode ? 'animate-[wiggle_0.4s_ease-in-out_infinite]' : ''}>
               <StatMini label="近 1 个月" change={c30.change} changePct={c30.changePct} sub={`${formatDateMid(c30.start)} → ${formatDateMid(c30.end)}`} />
             </div>
-            <div className={editMode ? 'animate-[wiggle_0.35s_ease-in-out_infinite]' : ''}>
+            <div className={`${editMode ? 'animate-[wiggle_0.35s_ease-in-out_infinite]' : ''} relative`}>
               <StatMini label="较高点回撤" change={dd.change} changePct={dd.changePct} sub={`高点 ${formatDateMid(dd.peakDate)}`} />
+              {editMode && <button onClick={(e) => { e.stopPropagation(); toggleCard('statCards') }} className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow">−</button>}
             </div>
           </div>
         )}
