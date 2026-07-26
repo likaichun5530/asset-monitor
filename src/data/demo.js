@@ -43,7 +43,7 @@ export const demoHistory = [
 ]
 
 export const demoPeakValue = 710558.7 
-export const demoPeakDate = '2025-02-15'
+export const demoPeakDate = '2025-12-15'
 
 // 演示模式配置目标（固定，与实盘逻辑一致）
 export const demoTarget = [
