@@ -38,7 +38,7 @@ function getNameIcon(name) {
       </svg>
     )
   }
-  if (name.includes('中证') || name.includes('上证') || name.includes('沪深')) return <span>🇨🇳</span>
+  if (name.includes('中证') || name.includes('上证') || name.includes('沪深') || name.includes('期货')) return <span>🇨🇳</span>
   if (name === 'SGE黄金9999') return <span>🥇</span>
   return null
 }
@@ -68,10 +68,10 @@ export default function Market({ refreshKey = 0 }) {
       })
   }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 找中证500现货价格（模糊匹配名称包含"中证500"的条目）
+  // 找中证500现货价格
   const zz500Spot = useMemo(() => {
-    const item = data.find((d) => d.name.includes('中证500') && !d.name.includes('期货'))
-    return item?.price ?? null
+    const item = data.find((d) => d.name === '中证500')
+    return item?.price != null ? Number(item.price) : null
   }, [data])
 
   const groups = useMemo(() => {
@@ -100,8 +100,8 @@ export default function Market({ refreshKey = 0 }) {
           </h2>
           <div className="grid grid-cols-3 gap-1">
             {group.items.map((item, idx) => {
-              const isFutures = item.name.includes('中证500期货') && zz500Spot !== null
-              const spread = isFutures ? zz500Spot - item.price : null
+              const isFutures = item.name.includes('期货') && zz500Spot !== null && item.price != null
+              const spread = isFutures ? zz500Spot - Number(item.price) : null
               const icon = getNameIcon(item.name)
               return (
                 <div key={idx}
