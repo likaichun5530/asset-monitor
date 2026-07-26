@@ -6,9 +6,14 @@ const CACHE_KEY = 'asset-monitor:market'
 
 const GROUP_ORDER = ['汇率', 'A股', '期货', '境外', '数字货币']
 
+function adaptPrecision(val) {
+  if (val >= 1000) return 2
+  if (val >= 1) return 4
+  return 4
+}
+
 export default function Market({ refreshKey = 0 }) {
   const [data, setData] = useState(() => {
-    // 首次渲染从缓存读取
     try {
       const cached = localStorage.getItem(CACHE_KEY)
       if (cached) return JSON.parse(cached)
@@ -19,13 +24,11 @@ export default function Market({ refreshKey = 0 }) {
 
   useEffect(() => {
     if (!API_BASE) return
-    // 静默刷新，不显示 loading
     fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((res) => {
         const marketData = res.market || []
         setData(marketData)
-        // 写入缓存
         try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
         setLoading(false)
       })
@@ -33,6 +36,12 @@ export default function Market({ refreshKey = 0 }) {
         if (!data.length) setLoading(false)
       })
   }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 找中证500现货价格，用于计算期货贴水
+  const zz500Spot = useMemo(() => {
+    const item = data.find((d) => d.name === '中证500')
+    return item?.price ?? null
+  }, [data])
 
   const groups = useMemo(() => {
     const map = new Map()
@@ -52,37 +61,36 @@ export default function Market({ refreshKey = 0 }) {
   }, [data])
 
   return (
-    <div className="space-y-6 px-1 sm:px-0">
+    <div className="space-y-4 px-1 sm:px-0">
       {groups.map((group, gi) => (
         <section key={gi}>
-          <h2 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider px-4 sm:px-0 mb-2">
+          <h2 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider px-4 sm:px-0 mb-1">
             {group.name}
           </h2>
-          <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-            {group.items.map((item, idx) => (
-              <div
-                key={idx}
-                className={`flex items-center justify-between px-5 py-4 ${
-                  idx < group.items.length - 1 ? 'border-b border-gray-100' : ''
-                }`}
-              >
-                <span className="text-[15px] text-gray-900 font-medium tracking-[-0.01em]">
-                  {item.name}
-                </span>
-                <span className="text-[15px] text-gray-900 font-semibold tabular-nums tracking-[-0.01em]">
-                  {item.price ? formatNumber(item.price, adaptPrecision(item.price)) : '—'}
-                </span>
-              </div>
-            ))}
+          <div className="grid grid-cols-3 gap-1">
+            {group.items.map((item, idx) => {
+              const isFutures = item.name.includes('中证500期货') && zz500Spot !== null
+              const spread = isFutures ? zz500Spot - item.price : null
+              return (
+                <div key={idx}
+                  className="card flex flex-col justify-center items-center text-center p-2 min-h-[85px]"
+                >
+                  <div className="text-sm text-gray-900">{item.name}</div>
+                  <div className="text-sm font-semibold text-gray-900 mt-1">
+                    {item.price ? formatNumber(item.price, adaptPrecision(item.price)) : '—'}
+                  </div>
+                  {spread !== null && (
+                    <div className="text-xs text-gray-500 font-normal mt-0.5">
+                      {spread >= 0 ? '贴水 ' : '升水 '}
+                      {formatNumber(Math.abs(spread), 2)}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </section>
       ))}
     </div>
   )
-}
-
-function adaptPrecision(val) {
-  if (val >= 1000) return 2
-  if (val >= 1) return 4
-  return 4
 }
