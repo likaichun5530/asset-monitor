@@ -5,10 +5,8 @@ const CACHE_KEY = 'asset-monitor:market'
 
 const GROUP_ORDER = ['汇率', '数字货币', 'A股', '境外', '期货']
 
-function adaptPrecision(val) {
-  if (val >= 1000) return 2
-  if (val >= 1) return 4
-  return 4
+function adaptPrecision() {
+  return 2
 }
 
 // 标的名 -> 图标映射
