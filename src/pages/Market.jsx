@@ -24,6 +24,17 @@ function getNameIcon(name) {
       </svg>
     )
   }
+  if (name === 'BNB') {
+    return (
+      <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" fill="#f0b90b" />
+        <path d="M7.5 12L12 7.5l4.5 4.5-1.5 1.5L12 10.5 9 13.5 7.5 12z" fill="#fff" />
+        <path d="M12 16.5l-3-3-1.5 1.5L12 19.5l4.5-4.5L15 13.5l-3 3z" fill="#fff" />
+        <path d="M16.5 12L18 13.5l-1.5 1.5L15 13.5 16.5 12z" fill="#fff" opacity="0.6" />
+        <path d="M7.5 12L6 13.5l1.5 1.5L9 13.5 7.5 12z" fill="#fff" opacity="0.6" />
+      </svg>
+    )
+  }
   if (name === 'ETH') {
     return (
       <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
