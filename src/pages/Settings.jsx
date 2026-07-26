@@ -7,21 +7,17 @@ function applyTheme(t) {
   const metaTheme = document.querySelector('meta[name="theme-color"]')
   if (t === 'dark') {
     root.classList.add('dark')
-    root.style.backgroundColor = '#111827'
     if (metaTheme) metaTheme.content = '#111827'
   } else if (t === 'light') {
     root.classList.remove('dark')
-    root.style.backgroundColor = ''
     if (metaTheme) metaTheme.content = '#2563eb'
   } else {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     if (isDark) {
       root.classList.add('dark')
-      root.style.backgroundColor = '#111827'
       if (metaTheme) metaTheme.content = '#111827'
     } else {
       root.classList.remove('dark')
-      root.style.backgroundColor = ''
       if (metaTheme) metaTheme.content = '#2563eb'
     }
   }

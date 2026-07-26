@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
-html.dark { color-scheme: dark; }
+:root { color-scheme: light; background-color: #f9fafb; }
+html.dark { color-scheme: dark; background-color: #111827; }
 
 html, body, #root { height: 100%; }
 
