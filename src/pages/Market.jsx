@@ -38,7 +38,7 @@ function getNameIcon(name) {
       </svg>
     )
   }
-  if (name.includes('中证') || name.includes('上证') || name.includes('沪深') || name.includes('期货') || name === 'IC') return <span>🇨🇳</span>
+  if (name.includes('中证') || name.includes('上证') || name.includes('沪深') || name.includes('期货') || name.includes('IC')) return <span>🇨🇳</span>
   if (name === 'SGE黄金9999') return <span>🥇</span>
   return null
 }
@@ -100,7 +100,7 @@ export default function Market({ refreshKey = 0 }) {
           </h2>
           <div className="grid grid-cols-3 gap-1">
             {group.items.map((item, idx) => {
-              const isFutures = (item.name.includes('期货') || item.name === 'IC') && zz500Spot !== null && item.price != null
+              const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null
               const icon = getNameIcon(item.name)
               return (
