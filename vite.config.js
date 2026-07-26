@@ -15,7 +15,7 @@ export default defineConfig({
         name: '有数',
         short_name: '有数',
         description: '资产配置，心里有数',
-        theme_color: '#2563eb',
+        theme_color: '#ffffff',
         background_color: '#f5f7fa',
         display: 'standalone',
         orientation: 'portrait',
