@@ -137,7 +137,7 @@ export default function Holdings({ loading, refreshKey }) {
               {rows.map((h, idx) => {
                 const color = getColor(h)
                 return (
-                  <tr key={`${h.symbol}-${idx}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 whitespace-nowrap">
+                  <tr key={`${h.symbol}-${idx}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/60 whitespace-nowrap">
                     <td className="py-2 px-1.5 text-gray-600 sticky left-0 bg-white dark:bg-gray-800 z-10">{h.name}</td>
                     <td className="py-2 px-1.5 text-gray-600">{h.symbol === '-' ? '—' : h.symbol}</td>
                     <td className="py-2 px-1.5">
