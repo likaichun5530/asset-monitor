@@ -80,7 +80,7 @@ export default function Holdings({ loading, refreshKey }) {
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-gray-800">明细</h2>
-          <span className="text-xs text-gray-400">共 {rows.length} 项</span>
+          <span className="text-sm text-gray-500">共 {rows.length} 项</span>
         </div>
 
         {/* 类别筛选 */}
@@ -89,7 +89,7 @@ export default function Holdings({ loading, refreshKey }) {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
                 activeCategory === cat
                   ? 'bg-brand-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -138,38 +138,38 @@ export default function Holdings({ loading, refreshKey }) {
                 const color = getColor(h)
                 return (
                   <tr key={`${h.symbol}-${idx}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 whitespace-nowrap">
-                    <td className="py-2 px-1.5 text-gray-800 font-medium sticky left-0 bg-white dark:bg-gray-800 z-10">{h.name}</td>
-                    <td className="py-2 px-1.5 text-gray-500">{h.symbol === '-' ? '—' : h.symbol}</td>
+                    <td className="py-2 px-1.5 text-gray-600 sticky left-0 bg-white dark:bg-gray-800 z-10">{h.name}</td>
+                    <td className="py-2 px-1.5 text-gray-600">{h.symbol === '-' ? '—' : h.symbol}</td>
                     <td className="py-2 px-1.5">
                       <span className="inline-flex items-center gap-1">
                         <span className="inline-block w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
                         <span className="text-gray-600">{getCategory(h)}</span>
                       </span>
                     </td>
-                    <td className="py-2 px-1.5 text-gray-500">{marketLabels[h.market] || h.market}</td>
-                    <td className="py-2 px-1.5 text-gray-500">{h.account}</td>
-                    <td className="py-2 px-1.5 text-gray-400">{h.currency}</td>
+                    <td className="py-2 px-1.5 text-gray-600">{marketLabels[h.market] || h.market}</td>
+                    <td className="py-2 px-1.5 text-gray-600">{h.account}</td>
+                    <td className="py-2 px-1.5 text-gray-600">{h.currency}</td>
                     <td className="py-2 px-1.5 text-right text-gray-600">
                       {h.quantity === null || h.quantity === undefined ? '—' : formatNumber(h.quantity, h.quantity < 1 ? 6 : 2)}
                     </td>
                     <td className="py-2 px-1.5 text-right text-gray-600">
                       {h.price === null || h.price === undefined ? '—' : formatNumber(h.price, h.price < 1 ? 6 : 2)}
                     </td>
-                    <td className="py-2 px-1.5 text-right text-gray-500">
+                    <td className="py-2 px-1.5 text-right text-gray-600">
                       {h.marketValue === null || h.marketValue === undefined ? '—' : formatNumber(h.marketValue, 2)}
                     </td>
-                    <td className="py-2 px-1.5 text-right text-gray-800 font-medium">{formatCurrency(h.marketValueCNY)}</td>
-                    <td className="py-2 px-1.5 text-right text-gray-500">{h.ratio.toFixed(2)}%</td>
+                    <td className="py-2 px-1.5 text-right text-gray-600">{formatCurrency(h.marketValueCNY)}</td>
+                    <td className="py-2 px-1.5 text-right text-gray-600">{h.ratio.toFixed(2)}%</td>
                   </tr>
                 )
               })}
             </tbody>
             <tfoot>
               <tr className="font-semibold border-t-2 border-gray-100 whitespace-nowrap">
-                <td className="py-2 px-1.5 text-gray-800 sticky left-0 bg-white dark:bg-gray-800 z-10" colSpan={1}>合计</td>
-                <td className="py-2 px-1.5 text-gray-800" colSpan={8}>—</td>
-                <td className="py-2 px-1.5 text-right text-gray-800">{formatCurrency(sumMarketValue)}</td>
-                <td className="py-2 px-1.5 text-right text-gray-500">100%</td>
+                <td className="py-2 px-1.5 text-gray-600 sticky left-0 bg-white dark:bg-gray-800 z-10" colSpan={1}>合计</td>
+                <td className="py-2 px-1.5 text-gray-600" colSpan={8}>—</td>
+                <td className="py-2 px-1.5 text-right text-gray-600">{formatCurrency(sumMarketValue)}</td>
+                <td className="py-2 px-1.5 text-right text-gray-600">100%</td>
               </tr>
             </tfoot>
           </table>
@@ -189,7 +189,7 @@ function Th({ label, field, sortBy, sortDir, onSort, align = 'left', sticky }) {
         className={`inline-flex items-center gap-1 ${active ? 'text-brand-600' : 'text-gray-400 hover:text-gray-600'}`}
       >
         {label}
-        {active && <span className="text-xs">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+        {active && <span className="text-sm">{sortDir === 'asc' ? '↑' : '↓'}</span>}
       </button>
     </th>
   )

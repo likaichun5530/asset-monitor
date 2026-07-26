@@ -103,7 +103,7 @@ export default function Market({ refreshKey = 0 }) {
     <div className="space-y-4 pt-3 px-1 sm:px-0 sm:pt-0">
       {groups.map((group, gi) => (
         <section key={gi}>
-          <h2 className="text-[13px] font-semibold text-gray-900 uppercase tracking-wider px-4 sm:px-0 mb-1">
+          <h2 className="text-base font-semibold text-gray-900 uppercase tracking-wider px-4 sm:px-0 mb-1">
             {group.name}
           </h2>
           <div className="grid grid-cols-3 lg:grid-cols-5 gap-1 lg:gap-2">
