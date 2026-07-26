@@ -100,7 +100,7 @@ export default function Market({ refreshKey = 0 }) {
   }, [data])
 
   return (
-    <div className="space-y-4 px-1 sm:px-0">
+    <div className="space-y-4 pt-3 px-1 sm:px-0 sm:pt-0">
       {groups.map((group, gi) => (
         <section key={gi}>
           <h2 className="text-[13px] font-semibold text-gray-900 uppercase tracking-wider px-4 sm:px-0 mb-1">
@@ -113,17 +113,17 @@ export default function Market({ refreshKey = 0 }) {
               const icon = getNameIcon(item.name)
               return (
                 <div key={idx}
-                  className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 min-h-[85px] lg:min-h-[120px]"
+                  className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 aspect-square"
                 >
-                  <div className="text-sm text-gray-900 flex items-center gap-1">
+                  <div className="text-base text-gray-900 flex items-center gap-1">
                     {icon}
                     <span>{item.name}</span>
                   </div>
-                  <div className="text-sm font-semibold text-gray-900 mt-1">
+                  <div className="text-base font-semibold text-gray-900 mt-1">
                     {item.price ? Number(item.price).toFixed(adaptPrecision(item.price)) : '—'}
                   </div>
                   {spread !== null && (
-                    <div className="text-xs text-gray-500 font-normal mt-0.5">
+                    <div className="text-sm text-gray-500 font-normal mt-0.5">
                       {spread >= 0 ? '贴水 ' : '升水 '}
                       {Math.abs(spread).toFixed(2)}
                     </div>
