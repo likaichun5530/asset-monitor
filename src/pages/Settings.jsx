@@ -6,17 +6,8 @@ function applyTheme(t) {
   const root = document.documentElement
   const metaTheme = document.querySelector('meta[name="theme-color"]')
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  // 添加 no-transitions class，CSS 中已定义该规则
-  root.classList.add('no-transitions')
-  // 强制回流，确保 no-transitions 生效
-  root.offsetHeight
-  // 切换主题
   root.classList.toggle('dark', isDark)
   if (metaTheme) metaTheme.content = isDark ? '#111827' : '#2563eb'
-  // 强制回流确保 dark 样式已计算
-  root.offsetHeight
-  // 恢复过渡
-  root.classList.remove('no-transitions')
 }
 
 export function initTheme() {

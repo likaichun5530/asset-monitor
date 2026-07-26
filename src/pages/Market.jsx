@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { formatNumber } from '../utils/format.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 const CACHE_KEY = 'asset-monitor:market'
@@ -112,12 +111,12 @@ export default function Market({ refreshKey = 0 }) {
                     <span>{item.name}</span>
                   </div>
                   <div className="text-sm font-semibold text-gray-900 mt-1">
-                    {item.price ? formatNumber(item.price, adaptPrecision(item.price)) : '—'}
+                    {item.price ? Number(item.price).toFixed(adaptPrecision(item.price)) : '—'}
                   </div>
                   {spread !== null && (
                     <div className="text-xs text-gray-500 font-normal mt-0.5">
                       {spread >= 0 ? '贴水 ' : '升水 '}
-                      {formatNumber(Math.abs(spread), 2)}
+                      {Math.abs(spread).toFixed(2)}
                     </div>
                   )}
                 </div>

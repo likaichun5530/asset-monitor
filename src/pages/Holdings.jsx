@@ -101,13 +101,26 @@ export default function Holdings({ loading, refreshKey }) {
         </div>
       </div>
 
-      {/* 表格（移动端可左右滚动） */}
-      <div className="card">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+      {/* 表格（移动端可左右滚动，名称列冻结） */}
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto max-w-full">
+          <table className="w-full text-sm">
+            <colgroup>
+              <col className="w-[120px] min-w-[120px]" />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+            </colgroup>
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
-                <Th label="名称" field="name" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
+                <Th label="名称" field="name" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} sticky />
                 <Th label="代码" field="symbol" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
                 <Th label="类别" field="assetType" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
                 <Th label="市场" field="market" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} />
@@ -125,7 +138,7 @@ export default function Holdings({ loading, refreshKey }) {
                 const color = getColor(h)
                 return (
                   <tr key={`${h.symbol}-${idx}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 whitespace-nowrap">
-                    <td className="py-2 px-1.5 text-gray-800 font-medium">{h.name}</td>
+                    <td className="py-2 px-1.5 text-gray-800 font-medium sticky left-0 bg-white dark:bg-gray-800 z-10">{h.name}</td>
                     <td className="py-2 px-1.5 text-gray-500">{h.symbol === '-' ? '—' : h.symbol}</td>
                     <td className="py-2 px-1.5">
                       <span className="inline-flex items-center gap-1">
@@ -153,7 +166,8 @@ export default function Holdings({ loading, refreshKey }) {
             </tbody>
             <tfoot>
               <tr className="font-semibold border-t-2 border-gray-100 whitespace-nowrap">
-                <td className="py-2 px-1.5 text-gray-800" colSpan={9}>合计</td>
+                <td className="py-2 px-1.5 text-gray-800 sticky left-0 bg-white dark:bg-gray-800 z-10" colSpan={1}>合计</td>
+                <td className="py-2 px-1.5 text-gray-800" colSpan={8}>—</td>
                 <td className="py-2 px-1.5 text-right text-gray-800">{formatCurrency(sumMarketValue)}</td>
                 <td className="py-2 px-1.5 text-right text-gray-500">100%</td>
               </tr>
@@ -166,10 +180,10 @@ export default function Holdings({ loading, refreshKey }) {
   )
 }
 
-function Th({ label, field, sortBy, sortDir, onSort, align = 'left' }) {
+function Th({ label, field, sortBy, sortDir, onSort, align = 'left', sticky }) {
   const active = sortBy === field
   return (
-    <th className={`py-2 px-1.5 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}>
+    <th className={`py-2 px-1.5 font-medium whitespace-nowrap ${align === 'right' ? 'text-right' : 'text-left'} ${sticky ? 'sticky left-0 z-20 bg-white dark:bg-gray-800' : ''}`}>
       <button
         onClick={() => onSort(field)}
         className={`inline-flex items-center gap-1 ${active ? 'text-brand-600' : 'text-gray-400 hover:text-gray-600'}`}
