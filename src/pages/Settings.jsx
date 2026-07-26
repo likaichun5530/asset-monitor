@@ -5,22 +5,17 @@ const THEME_KEY = 'youshu-theme'
 function applyTheme(t) {
   const root = document.documentElement
   const metaTheme = document.querySelector('meta[name="theme-color"]')
-  if (t === 'dark') {
-    root.classList.add('dark')
-    if (metaTheme) metaTheme.content = '#111827'
-  } else if (t === 'light') {
-    root.classList.remove('dark')
-    if (metaTheme) metaTheme.content = '#2563eb'
-  } else {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    if (isDark) {
-      root.classList.add('dark')
-      if (metaTheme) metaTheme.content = '#111827'
-    } else {
-      root.classList.remove('dark')
-      if (metaTheme) metaTheme.content = '#2563eb'
-    }
-  }
+  // 临时禁用所有过渡动画，避免切换主题时有 transition 的元素闪白
+  const style = document.createElement('style')
+  style.textContent = '*,*::before,*::after{transition:none!important}'
+  document.head.appendChild(style)
+  // 切换主题
+  const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  root.classList.toggle('dark', isDark)
+  if (metaTheme) metaTheme.content = isDark ? '#111827' : '#2563eb'
+  // 强制回流后恢复过渡
+  root.offsetHeight
+  document.head.removeChild(style)
 }
 
 export function initTheme() {
