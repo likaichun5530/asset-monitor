@@ -71,7 +71,9 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
     }
   }, [total, onSnapshot])
 
-  const startLongPress = useCallback(() => {
+  const startLongPress = useCallback((e) => {
+    // 在图表区域（recharts）内长按不触发编辑模式，防止干扰图表交互
+    if (e?.target?.closest?.('.recharts-wrapper')) return
     longPressTimer.current = setTimeout(() => { setEditMode(true) }, 800)
   }, [])
 
