@@ -74,9 +74,9 @@ export function useAssetData() {
     })
   }, [doLoad])
 
-  // 自动刷新：在线 5 分钟，离线 3 分钟
+  // 自动刷新：每 5 分钟刷新一次
   useEffect(() => {
-    const interval = hasBackend() ? 3 * 60 * 1000 : 5 * 60 * 1000
+    const interval = 5 * 60 * 1000
     const id = setInterval(() => {
       doLoad(false).then(() => {
         if (mountedRef.current) setRefreshKey((k) => k + 1)
