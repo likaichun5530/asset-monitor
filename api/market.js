@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     let market = []
     if (isConfigured()) {
       try {
-        const result = await readSheet('Market')
+        const result = await readSheet('Market_Show')
         const data = result.data || []
         const headers = result.headers || []
         const nameKey = headers[0] || ''
