@@ -57,7 +57,7 @@ export default function Profile({ refreshKey = 0 }) {
         marketValue: sum,
         ratio: total ? sum / total : 0,
       }
-    }).filter((item) => item.count > 0)
+    }).filter((item) => item.count > 0).sort((a, b) => b.marketValue - a.marketValue)
   }, [holdings, total])
 
   return (
