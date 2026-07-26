@@ -13,9 +13,9 @@ function adaptPrecision(val) {
 
 // 标的名 -> 图标映射
 function getNameIcon(name) {
-  if (name === 'USD' || name === '纳斯达克指数') return <span>🇺🇸</span>
-  if (name === 'HKD') return <span>🇭🇰</span>
-  if (name === 'JPY' || name === '日经225指数') return <span>🇯🇵</span>
+  if (name === '美元' || name === 'USD' || name === '纳斯达克指数') return <span>🇺🇸</span>
+  if (name === '港币' || name === 'HKD') return <span>🇭🇰</span>
+  if (name === '日元' || name === 'JPY' || name === '日经225指数') return <span>🇯🇵</span>
   if (name === 'BTC') {
     return (
       <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
