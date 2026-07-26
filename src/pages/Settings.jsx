@@ -7,7 +7,7 @@ function applyTheme(t) {
   const metaTheme = document.querySelector('meta[name="theme-color"]')
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.classList.toggle('dark', isDark)
-  if (metaTheme) metaTheme.content = isDark ? '#111827' : '#2563eb'
+  if (metaTheme) metaTheme.content = isDark ? '#111827' : '#ffffff'
 }
 
 export function initTheme() {
