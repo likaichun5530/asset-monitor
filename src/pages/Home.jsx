@@ -106,7 +106,6 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 
       <section className="grid grid-cols-1 lg:grid-cols-8 gap-1 lg:gap-4">
         <div className={`card py-2 px-4 lg:col-span-3 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
-          {editMode && <button onClick={(e) => { e.stopPropagation(); toggleCard('statCards') }} className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow z-10">−</button>}
           <div>
             <div className="flex items-start justify-between">
               <div>
@@ -160,8 +159,8 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
           </div>
         )}
         {!anyStat && editMode && (
-          <div className="lg:col-span-5 flex items-center justify-center">
-            <button onClick={() => toggleCard('statCards')} className="px-4 py-2 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加涨跌卡片</button>
+          <div className="lg:col-span-8">
+            <button onClick={() => toggleCard('statCards')} className="w-full py-8 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-sm hover:border-brand-400 hover:text-brand-500 transition-colors">+ 添加涨跌卡片</button>
           </div>
         )}
       </section>
