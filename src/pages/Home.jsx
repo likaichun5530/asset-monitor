@@ -104,6 +104,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 
       <section className="grid grid-cols-1 lg:grid-cols-8 gap-1 lg:gap-4" onTouchStart={startLongPress} onTouchEnd={cancelLongPress}>
         <div className={`card py-2 px-4 lg:col-span-3 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+          {editMode && <button onClick={(e) => { e.stopPropagation(); toggleCard('statCards') }} className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow z-10">−</button>}
           <div>
             <div className="flex items-start justify-between">
               <div>
@@ -152,7 +153,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
             </div>
             <div className={`${editMode ? 'animate-[wiggle_0.35s_ease-in-out_infinite]' : ''} relative`}>
               <StatMini label="较高点回撤" change={dd.change} changePct={dd.changePct} sub={`高点 ${formatDateMid(dd.peakDate)}`} />
-              {editMode && <button onClick={(e) => { e.stopPropagation(); toggleCard('statCards') }} className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow">−</button>}
+              {editMode && <button onClick={(e) => { e.stopPropagation(); toggleCard('statCards') }} className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow z-10">−</button>}
             </div>
           </div>
         )}
