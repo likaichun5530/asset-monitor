@@ -4,7 +4,7 @@ import { formatNumber } from '../utils/format.js'
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 const CACHE_KEY = 'asset-monitor:market'
 
-const GROUP_ORDER = ['汇率', '数字货币', '期货', '境外', 'A股']
+const GROUP_ORDER = ['汇率', '数字货币', 'A股', '境外', '期货']
 
 function adaptPrecision(val) {
   if (val >= 1000) return 2
