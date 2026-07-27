@@ -4,7 +4,6 @@ import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
 import Holdings from './pages/Holdings.jsx'
 import Target from './pages/Target.jsx'
-import Profile from './pages/Profile.jsx'
 import Cash from './pages/Cash.jsx'
 import Future from './pages/Future.jsx'
 import Market from './pages/Market.jsx'
@@ -30,7 +29,6 @@ export default function App() {
         <Route index element={<Home loading={loading} refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
         <Route path="holdings" element={<Holdings loading={loading} refreshKey={refreshKey} />} />
         <Route path="target" element={<Target refreshKey={refreshKey} />} />
-        <Route path="my" element={<Profile refreshKey={refreshKey} />} />
         <Route path="settings" element={<Settings auth={auth} />} />
         <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
         <Route path="cn" element={<AssetDetail refreshKey={refreshKey} assetType="cn" />} />

@@ -13,10 +13,10 @@ import { getHistory, getPeak } from '../utils/asset.js'
 import { formatCurrency, formatDateShort, formatDateMid, formatWan } from '../utils/format.js'
 
 const RANGES = [
-  { key: '1m', label: '月', days: 30 },
-  { key: '3m', label: '季', days: 90 },
-  { key: '6m', label: '半年', days: 180 },
-  { key: '1y', label: '年', days: 365 },
+  { key: '1m', label: '近1月', days: 30 },
+  { key: '3m', label: '近3月', days: 90 },
+  { key: '1y', label: '近1年', days: 365 },
+  { key: 'ytd', label: '今年以来', days: null },
   { key: 'all', label: '全部', days: Infinity },
 ]
 
@@ -33,10 +33,15 @@ export default function TrendChart({ refreshKey = 0 }) {
 
   const data = useMemo(() => {
     if (!allData.length) return []
-    const rangeCfg = RANGES.find((r) => r.key === range) || RANGES[3]
+    const rangeCfg = RANGES.find((r) => r.key === range) || RANGES[2]
     if (rangeCfg.days === Infinity) return allData
     const lastDate = allData[allData.length - 1].date
     const lastMs = new Date(lastDate).getTime()
+    // 今年以来：从当年1月1日开始
+    if (rangeCfg.days === null) {
+      const yearStart = new Date(lastDate).getFullYear() + '-01-01'
+      return allData.filter((d) => d.date >= yearStart)
+    }
     const targetMs = lastMs - rangeCfg.days * 24 * 60 * 60 * 1000
     return allData.filter((d) => new Date(d.date).getTime() >= targetMs)
   }, [allData, range])

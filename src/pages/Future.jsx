@@ -14,30 +14,38 @@ export default function Future({ refreshKey = 0 }) {
 
   const sumMarketValue = futures.reduce((s, r) => s + holdingMarketValue(r), 0)
 
-  const FUTURES_CACHE_KEY = 'asset-monitor:futures'
+  const MARKET_CACHE_KEY = 'asset-monitor:market'
 
-  // 从后端获取贴水数据
-  const [premiumData, setPremiumData] = useState(() => {
+  // 从 /api/market 获取实时行情数据
+  const [marketData, setMarketData] = useState(() => {
     try {
-      const cached = localStorage.getItem(FUTURES_CACHE_KEY)
+      const cached = localStorage.getItem(MARKET_CACHE_KEY)
       if (cached) return JSON.parse(cached)
     } catch { /* ignore */ }
     return []
   })
-  const [premiumLoading, setPremiumLoading] = useState(false)
 
   useEffect(() => {
     if (!API_BASE) return
-    fetch(`${API_BASE}/api/futures`, { cache: 'no-store' })
+    fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
       .then((r) => r.json())
-      .then((data) => {
-        const futures = data.futures || []
-        setPremiumData(futures)
-        try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(futures)) } catch { /* ignore */ }
-        setPremiumLoading(false)
+      .then((res) => {
+        const data = res.market || []
+        setMarketData(data)
+        try { localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
       })
       .catch(() => { /* 静默失败，使用缓存 */ })
   }, [refreshKey])
+
+  // 从市场数据中提取中证500现货和期货价格
+  const spotZZ500 = useMemo(() => {
+    const item = marketData.find((d) => d.name.includes('中证500') && !d.name.includes('期货') && !d.name.includes('IC'))
+    return item?.price ?? null
+  }, [marketData])
+
+  const futuresContracts = useMemo(() => {
+    return marketData.filter((d) => d.name.includes('期货') || d.name.includes('IC'))
+  }, [marketData])
 
   return (
     <div className="space-y-[4px]">
@@ -90,167 +98,14 @@ export default function Future({ refreshKey = 0 }) {
                 </tr>
               ))}
             </tbody>
-            <tfoot>
-              <tr className="font-semibold border-t-2 border-gray-100">
-                <td className="py-3 px-2 text-gray-800" colSpan={5}>合计</td>
-                <td className="py-3 px-2 text-right text-gray-800">{formatCurrency(sumMarketValue)}</td>
-                <td className="py-3 px-2 text-right text-gray-500">100%</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-
-        {/* 持仓列表 - 移动端 */}
-        <div className="sm:hidden overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-          <table className="min-w-full text-xs whitespace-nowrap">
-            <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-100">
-                <th className="py-2.5 px-3 font-medium sticky left-0 bg-white z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>名称</th>
-                <th className="py-2.5 px-3 font-medium">代码</th>
-                <th className="py-2.5 px-3 font-medium text-right">数量</th>
-                <th className="py-2.5 px-3 font-medium text-right">市值</th>
-                <th className="py-2.5 px-3 font-medium text-right">占比</th>
-              </tr>
-            </thead>
-            <tbody>
-              {futures.map((h, idx) => (
-                <tr key={idx} className="border-b border-gray-50 last:border-0">
-                  <td className="py-2.5 px-3 text-gray-800 font-medium sticky left-0 bg-white z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>{h.name}</td>
-                  <td className="py-2.5 px-3 text-gray-500">{h.symbol === '-' ? '—' : h.symbol}</td>
-                  <td className="py-2.5 px-3 text-right text-gray-600">
-                    {h.quantity === null ? '—' : formatNumber(h.quantity, 0)}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-gray-800 font-medium">{formatCurrency(holdingMarketValue(h))}</td>
-                  <td className="py-2.5 px-3 text-right text-gray-500">
-                    {sumMarketValue ? ((holdingMarketValue(h) / sumMarketValue) * 100).toFixed(1) : 0}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
           </table>
         </div>
       </div>
 
-      {/* 保证金信息 - 桌面端 */}
-      <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-3">保证金信息</h3>
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-100">
-                <th className="py-2 px-2 font-medium">名称</th>
-                <th className="py-2 px-2 font-medium">代码</th>
-                <th className="py-2 px-2 font-medium text-right">所需保证金</th>
-                <th className="py-2 px-2 font-medium text-right">合约价值</th>
-                <th className="py-2 px-2 font-medium text-right">账户资金</th>
-                <th className="py-2 px-2 font-medium text-right">使用率</th>
-                <th className="py-2 px-2 font-medium text-right">结算日</th>
-                <th className="py-2 px-2 font-medium text-right">距结算</th>
-              </tr>
-            </thead>
-            <tbody>
-              {futures.map((h, idx) => {
-                // 从贴水数据中获取该合约的实时价格和结算信息
-                const premium = premiumData.find((p) => p.code === h.symbol)
-                const livePrice = premium?.price ?? h.price // 优先用实时价格
-                const settleDate = premium?.settleDate || ''
-                const daysToSettle = premium?.daysToSettle || 0
-
-                // 合约价值 = 点数 × 数量(手) × 乘数
-                // IC 合约乘数 = 200 元/点，IF/IH = 300，IM = 200
-                const getMultiplier = (symbol) => {
-                  if (!symbol) return 1
-                  if (symbol.startsWith('IC') || symbol.startsWith('IM')) return 200
-                  if (symbol.startsWith('IF') || symbol.startsWith('IH')) return 300
-                  return 1
-                }
-                const multiplier = getMultiplier(h.symbol)
-                // 合约面值 = 点数 × 乘数 / 手 × 手数
-                const contractValue = (livePrice || 0) * (h.quantity || 0) * multiplier
-                // 所需保证金 = 合约价值 × 保证金率（中证500 IC 为 12%）
-                const marginRate = 0.14
-                const requiredMargin = contractValue * marginRate
-                const usedMargin = contractValue * marginRate
-                // 账户实际存入资金（marketValueCNY）
-                const depositMargin = holdingMarketValue(h)
-                // 保证金使用率 = 所需保证金 / 已存资金 × 100，> 75% 预警
-                const usageRate = depositMargin ? (requiredMargin / depositMargin) * 100 : 0
-
-                return (
-                  <tr key={idx} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 px-2 text-gray-800 font-medium">{h.name}</td>
-                    <td className="py-2.5 px-2 text-gray-500">{h.symbol}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-600">{formatNumber(usedMargin, 0)}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-600">{formatNumber(contractValue, 0)}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-600">{formatNumber(depositMargin, 0)}</td>
-                    <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : 'text-green-600'}`}>
-                      {usageRate.toFixed(1)}%
-                    </td>
-                    <td className="py-2.5 px-2 text-right text-gray-500">{settleDate || '—'}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-500">{daysToSettle > 0 ? `${daysToSettle}天` : '—'}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 保证金信息 - 移动端卡片 */}
-        <div className="sm:hidden space-y-[4px]">
-          {futures.map((h, idx) => {
-            const premium = premiumData.find((p) => p.code === h.symbol)
-            const livePrice = premium?.price ?? h.price
-            const settleDate = premium?.settleDate || ''
-            const daysToSettle = premium?.daysToSettle || 0
-            const getMultiplier = (symbol) => {
-              if (!symbol) return 1
-              if (symbol.startsWith('IC') || symbol.startsWith('IM')) return 200
-              if (symbol.startsWith('IF') || symbol.startsWith('IH')) return 300
-              return 1
-            }
-            const multiplier = getMultiplier(h.symbol)
-            const contractValue = (livePrice || 0) * (h.quantity || 0) * multiplier
-            const requiredMargin = contractValue * 0.14
-            const depositMargin = holdingMarketValue(h)
-            const usageRate = depositMargin ? (requiredMargin / depositMargin) * 100 : 0
-            return (
-              <div key={idx} className="border border-gray-100 rounded-lg p-3 text-xs space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-800">{h.name}</span>
-                  <span className="text-gray-400">{h.symbol}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  <div><span className="text-gray-400">保证金：</span><span className="text-gray-700">{formatNumber(requiredMargin, 0)}</span></div>
-                  <div><span className="text-gray-400">合约价值：</span><span className="text-gray-700">{formatNumber(contractValue, 0)}</span></div>
-                  <div><span className="text-gray-400">账户资金：</span><span className="text-gray-700">{formatNumber(depositMargin, 0)}</span></div>
-                  <div>
-                    <span className="text-gray-400">使用率：</span>
-                    <span className={`font-medium ${usageRate > 75 ? 'text-red-500' : 'text-green-600'}`}>{usageRate.toFixed(1)}%</span>
-                  </div>
-                  <div><span className="text-gray-400">结算日：</span><span className="text-gray-700">{settleDate || '—'}</span></div>
-                  <div><span className="text-gray-400">距结算：</span><span className="text-gray-700">{daysToSettle > 0 ? `${daysToSettle}天` : '—'}</span></div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="mt-2 text-xs text-gray-400 flex items-center gap-1">
-          <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          保证金比例：14%
-        </div>
-      </div>
-
-      {/* 期限结构 */}
+      {/* 期现贴水 */}
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-3">期现贴水</h3>
-        {premiumLoading ? (
-          <div className="text-sm text-gray-400 py-4 text-center">加载中...</div>
-        ) : premiumData.length > 0 ? (
+        {spotZZ500 !== null && futuresContracts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
@@ -258,34 +113,28 @@ export default function Future({ refreshKey = 0 }) {
                   <th className="py-2 px-2 font-medium">代码</th>
                   <th className="py-2 px-2 font-medium text-right">当前价格</th>
                   <th className="py-2 px-2 font-medium text-right">贴水金额</th>
-                  <th className="py-2 px-2 font-medium text-right">剩余天数</th>
-                  <th className="py-2 px-2 font-medium text-right">年化利率</th>
+                  <th className="py-2 px-2 font-medium text-right">贴水率</th>
                 </tr>
               </thead>
               <tbody>
-                {premiumData.map((p, idx) => {
-                  const isSpot = p.type === '现货'
-                  const discountAbs = p.discount !== null ? Math.abs(p.discount) : null
+                <tr className="border-b border-gray-50 bg-blue-50">
+                  <td className="py-2.5 px-2 text-blue-700 font-bold">中证500（现货）</td>
+                  <td className="py-2.5 px-2 text-right text-blue-700 font-bold">{Number(spotZZ500).toFixed(2)}</td>
+                  <td className="py-2.5 px-2 text-right text-gray-500">—</td>
+                  <td className="py-2.5 px-2 text-right text-gray-500">—</td>
+                </tr>
+                {futuresContracts.map((item, idx) => {
+                  const spread = spotZZ500 - Number(item.price)
+                  const spreadRate = (spread / spotZZ500) * 100
                   return (
-                    <tr key={idx} className={`border-b border-gray-50 last:border-0 whitespace-nowrap ${isSpot ? 'bg-blue-100 border-blue-200' : ''}`}>
-                      <td className="py-2.5 px-2 text-gray-800 font-semibold">
-                        {isSpot ? <span className="inline-flex items-center gap-1.5 text-blue-700 font-bold">📍 {p.code}</span> : p.code}
+                    <tr key={idx} className="border-b border-gray-50 last:border-0 whitespace-nowrap">
+                      <td className="py-2.5 px-2 text-gray-800 font-semibold">{item.name}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-800">{Number(item.price).toFixed(2)}</td>
+                      <td className={`py-2.5 px-2 text-right font-semibold ${spread >= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                        {spread >= 0 ? '贴水 ' : '升水 '}{Math.abs(spread).toFixed(2)}
                       </td>
-                      <td className={`py-2.5 px-2 text-right font-medium ${isSpot ? 'text-blue-700 font-bold' : 'text-gray-800'}`}>
-                        {p.price !== null ? formatNumber(p.price, 1) : '—'}
-                      </td>
-                      <td className={`py-2.5 px-2 text-right font-semibold ${
-                        isSpot ? 'text-gray-500' : 'text-red-500'
-                      }`}>
-                        {isSpot ? '—' : Math.abs(p.discount).toFixed(1)}
-                      </td>
-                      <td className="py-2.5 px-2 text-right font-semibold text-gray-500">
-                        {isSpot ? '—' : `${p.daysToSettle}天`}
-                      </td>
-                      <td className={`py-2.5 px-2 text-right font-semibold ${
-                        isSpot ? 'text-gray-500' : 'text-red-500'
-                      }`}>
-                        {isSpot ? '—' : `${Math.abs(p.annualRate).toFixed(2)}%`}
+                      <td className={`py-2.5 px-2 text-right font-semibold ${spread >= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                        {spread >= 0 ? '' : ''}{spreadRate.toFixed(2)}%
                       </td>
                     </tr>
                   )

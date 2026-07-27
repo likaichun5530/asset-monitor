@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget } from '../utils/dataStore.js'
@@ -15,7 +16,13 @@ const colorMap = {
   现金: assetColors.现金,
 }
 
+const CATEGORY_ROUTE = {
+  '美股': '/us', 'A股': '/cn', '港股': '/hk', '日股': '/jp',
+  '债基': '/bond', '数字货币': '/crypto', '期货': '/future', '黄金': '/gold', '现金': '/cash',
+}
+
 export default function Target({ refreshKey = 0 }) {
+  const navigate = useNavigate()
   const [data, setData] = useState(() => {
     // 优先读缓存，实现即时渲染
     try {
@@ -163,8 +170,8 @@ export default function Target({ refreshKey = 0 }) {
                 const isUnder = diffPct !== null && diffPct < -2
 
                 return (
-                  <tr key={idx} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 px-2">
+                    <tr key={idx} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
+                      <td className="py-2.5 px-2">
                       <span className="inline-flex items-center gap-1.5">
                         <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
                         <span className="text-gray-800">{r.category}</span>
@@ -214,7 +221,7 @@ export default function Target({ refreshKey = 0 }) {
                 const isOver = diffPct !== null && diffPct > 2
                 const isUnder = diffPct !== null && diffPct < -2
             return (
-              <div key={idx} className="border border-gray-100 rounded-lg p-3">
+              <div key={idx} className="border border-gray-100 rounded-lg p-3 cursor-pointer hover:border-gray-300" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
