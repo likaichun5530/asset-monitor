@@ -8,6 +8,11 @@ function normalizeDate(s) {
   return s
 }
 
+// 9类资产对应的列索引（从0开始）：
+// A=0(日期), B=1(总资产), C=2(美股), D=3(数字货币), E=4(债券), F=5(期货),
+// G=6(A股), H=7(黄金), I=8(日股), J=9(港股), K=10(现金), L=11(备注)
+const CATEGORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.writeHead(405, { 'Content-Type': 'application/json' })
@@ -21,29 +26,30 @@ export default async function handler(req, res) {
 
   try {
     const result = await readSheet('History')
-    const rows = result.data || []
-    const headers = result.headers || []
-    const dateKey = headers[0]  // A列：日期
-    const totalKey = headers[1] // B列：资产总额
-    const noteKey = headers[2]  // C列：备注（可选）
-
-    let headerIdx = 0
-    for (let i = 0; i < Math.min(rows.length, 5); i++) {
-      if (rows[i] && String(rows[i][dateKey] || '').includes('日期')) { headerIdx = i; break }
-    }
+    const rawRows = result.rawRows || [] // 原始行数组，不依赖表头映射
 
     const history = []
-    for (let i = headerIdx + 1; i < rows.length; i++) {
-      const row = rows[i]
-      if (!row) continue
-      const dateStr = row[dateKey]
-      if (!dateStr) continue
-      const date = normalizeDate(String(dateStr).trim())
+    for (const row of rawRows) {
+      if (!row || !row[0]) continue
+      const date = normalizeDate(String(row[0]).trim())
       if (!date) continue
-      const total = toNumber(row[totalKey])
+      const total = toNumber(row[1])
       if (total === null) continue
+
       const obj = { date, total: total || 0 }
-      if (noteKey && row[noteKey]) obj.note = String(row[noteKey]).trim()
+
+      // 解析各类资产（C~K列，索引2~10）
+      const categories = {}
+      for (let ci = 0; ci < CATEGORY_KEYS.length; ci++) {
+        const colIdx = ci + 2 // C列=索引2
+        const val = row[colIdx] !== undefined ? toNumber(row[colIdx]) : null
+        if (val !== null && val !== 0) categories[CATEGORY_KEYS[ci]] = val
+      }
+      if (Object.keys(categories).length > 0) obj.categories = categories
+
+      // 备注（L列，索引11）
+      if (row[11]) obj.note = String(row[11]).trim()
+
       history.push(obj)
     }
     history.sort((a, b) => new Date(a.date) - new Date(b.date))

@@ -1,8 +1,16 @@
 import { useMemo, useState, useEffect } from 'react'
-import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
-import { formatCurrency, formatNumber } from '../utils/format.js'
+import { getActiveHoldings, holdingMarketValue, totalMarketValue, getCategoryHistory } from '../utils/asset.js'
+import { formatCurrency, formatNumber, formatDateShort, formatDateMid } from '../utils/format.js'
 import { assetColors } from '../data/holdings.js'
 import { useNavigate } from 'react-router-dom'
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from 'recharts'
 
 const ASSET_CONFIG = {
   us: { label: '美股', filter: (h) => h.assetType === '股票' && h.market === 'US', color: assetColors.美股, showOriginal: true },
@@ -13,6 +21,7 @@ const ASSET_CONFIG = {
   bond: { label: '债基', filter: (h) => h.assetType === '债券', color: assetColors.债基, showOriginal: false },
   future: { label: '期货', filter: (h) => h.assetType === '期货', color: assetColors.期货, showOriginal: false },
   gold: { label: '黄金', filter: (h) => h.assetType === '黄金', color: assetColors.黄金, showOriginal: false },
+  cash: { label: '现金', filter: (h) => h.assetType === '现金', color: assetColors.现金, showOriginal: false },
 }
 
 export default function AssetDetail({ refreshKey = 0, assetType }) {
@@ -60,6 +69,74 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
     return Array.from(map.entries()).map(([cur, val]) => ({ currency: cur, value: val }))
   }, [rows, showToggle])
 
+  // 各类资产趋势图
+  const categoryHistory = useMemo(() => getCategoryHistory(assetKey), [refreshKey, assetKey])
+  const [catRange, setCatRange] = useState('all')
+  const CAT_RANGES = [
+    { key: '1m', label: '近1月', days: 30 },
+    { key: '3m', label: '近3月', days: 90 },
+    { key: 'all', label: '全部', days: Infinity },
+  ]
+
+  const filteredHistory = useMemo(() => {
+    if (!categoryHistory.length) return []
+    const rangeCfg = CAT_RANGES.find((r) => r.key === catRange) || CAT_RANGES[2]
+    if (rangeCfg.days === Infinity) return categoryHistory
+    const lastDate = categoryHistory[categoryHistory.length - 1].date
+    const lastMs = new Date(lastDate).getTime()
+    const targetMs = lastMs - rangeCfg.days * 24 * 60 * 60 * 1000
+    return categoryHistory.filter((d) => new Date(d.date).getTime() >= targetMs)
+  }, [categoryHistory, catRange])
+
+  const chartData = useMemo(() => {
+    return filteredHistory.map((d) => ({
+      ...d,
+      timestamp: new Date(d.date).getTime(),
+    }))
+  }, [filteredHistory])
+
+  const yTicks = useMemo(() => {
+    if (!chartData.length) return []
+    const values = chartData.map((d) => d.total)
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    const step = 10000
+    const tickMin = Math.floor(min / step) * step
+    const tickMax = Math.ceil(max / step) * step
+    const ticks = []
+    for (let v = tickMin; v <= tickMax; v += step) {
+      ticks.push(v)
+    }
+    return ticks
+  }, [chartData])
+
+  function toWanNum(v) {
+    return (Number(v) / 10000).toFixed(0)
+  }
+
+  const xTicks = useMemo(() => {
+    if (!chartData.length) return []
+    const startMs = chartData[0].timestamp
+    const endMs = chartData[chartData.length - 1].timestamp
+    const spanMs = endMs - startMs
+    const ticks = []
+    const msPerDay = 24 * 60 * 60 * 1000
+    let interval
+    if (spanMs < 60 * msPerDay) {
+      interval = 7 * msPerDay
+    } else if (spanMs < 365 * msPerDay) {
+      interval = 30 * msPerDay
+    } else {
+      interval = 90 * msPerDay
+    }
+    let tick = Math.ceil(startMs / interval) * interval
+    while (tick <= endMs) {
+      ticks.push(tick)
+      tick += interval
+    }
+    return ticks
+  }, [chartData])
+
   return (
     <div className="space-y-[4px]">
       {/* 移动端返回按钮 */}
@@ -89,6 +166,84 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
           </div>
         </div>
       </div>
+
+      {/* 各类资产趋势卡片 */}
+      {categoryHistory.length >= 1 && (
+        <div className="card dark:bg-gray-800 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-2 flex-wrap gap-2 px-3 sm:px-0">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">趋势</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500">单位：万元</p>
+            </div>
+            <div className="flex items-center gap-[1px] bg-gray-100 dark:bg-gray-700 rounded-lg">
+              {CAT_RANGES.map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => setCatRange(r.key)}
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                    catRange === r.key
+                      ? 'bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="w-full h-[140px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="catTrendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={config.color} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={config.color} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="timestamp"
+                  type="number"
+                  scale="time"
+                  domain={['dataMin', 'dataMax']}
+                  ticks={xTicks.length ? xTicks : undefined}
+                  tickFormatter={(ts) => formatDateShort(new Date(ts).toISOString().slice(0, 10))}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                />
+                <YAxis
+                  ticks={yTicks}
+                  domain={[yTicks[0], yTicks[yTicks.length - 1]]}
+                  tickFormatter={toWanNum}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={40}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    fontSize: 12,
+                  }}
+                  labelFormatter={(label) => `日期 ${formatDateMid(new Date(label).toISOString().slice(0, 10))}`}
+                  formatter={(value) => [formatCurrency(value), config.label]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke={config.color}
+                  strokeWidth={2}
+                  fill="url(#catTrendFill)"
+                  dot={false}
+                  activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="card dark:bg-gray-800 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">

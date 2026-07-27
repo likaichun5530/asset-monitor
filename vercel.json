@@ -4,6 +4,12 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/snapshot-auto",
+      "schedule": "50 23 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

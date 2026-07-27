@@ -78,14 +78,16 @@ export async function readSheet(sheetName) {
   }
   const result = await resp.json()
   const rows = result.values || []
-  if (rows.length < 2) return { headers: rows[0] || [], data: [] }
+  if (rows.length < 2) {
+    return { headers: rows[0] || [], data: [], rawRows: rows.slice(1) }
+  }
   const headers = rows[0].map((h) => String(h).trim())
   const data = rows.slice(1).map((row) => {
     const obj = {}
     headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : '' })
     return obj
   })
-  return { headers, data }
+  return { headers, data, rawRows: rows.slice(1) }
 }
 
 // 通过 Sheets API 写入行

@@ -147,6 +147,18 @@ export function getHistory() {
   return getMergedHistory()
 }
 
+// 提取某类资产的历史数据（用于各类资产详情页的趋势图）
+// categoryKey 取值: 'us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash'
+export function getCategoryHistory(categoryKey) {
+  const all = getMergedHistory()
+  return all
+    .filter((d) => d.categories && d.categories[categoryKey] !== undefined)
+    .map((d) => ({
+      date: d.date,
+      total: d.categories[categoryKey],
+    }))
+}
+
 export function getPeak() {
   return getCurrentPeak()
 }
@@ -199,6 +211,41 @@ export function change7d() {
 
 export function change30d() {
   return calcRangeChange(30)
+}
+
+// 今年以来涨跌
+export function changeYtd() {
+  const h = getHistory()
+  if (h.length < 2) {
+    return { change: 0, changePct: 0, start: null, end: null, startValue: 0, endValue: 0 }
+  }
+  const endIdx = h.length - 1
+  const endValue = h[endIdx].total
+  const endDate = h[endIdx].date
+
+  // 今年1月1日
+  const yearStart = new Date(endDate).getFullYear() + '-01-01'
+  const yearStartMs = new Date(yearStart).getTime()
+
+  let startIdx = 0
+  for (let i = endIdx - 1; i >= 0; i--) {
+    const ms = new Date(h[i].date).getTime()
+    if (ms <= yearStartMs) {
+      startIdx = i
+      break
+    }
+  }
+  const startValue = h[startIdx].total
+  const change = endValue - startValue
+  const changePct = startValue ? (change / startValue) * 100 : 0
+  return {
+    change,
+    changePct,
+    start: h[startIdx].date,
+    end: endDate,
+    startValue,
+    endValue,
+  }
 }
 
 export function drawdownFromPeak() {
