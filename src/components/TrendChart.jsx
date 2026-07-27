@@ -16,7 +16,7 @@ const RANGES = [
   { key: '1m', label: '近1月', days: 30 },
   { key: '3m', label: '近3月', days: 90 },
   { key: '1y', label: '近1年', days: 365 },
-  { key: 'ytd', label: '今年以来', days: null },
+  { key: 'ytd', label: '今年', days: null },
   { key: 'all', label: '全部', days: Infinity },
 ]
 
@@ -26,7 +26,7 @@ function toWanNum(v) {
 }
 
 export default function TrendChart({ refreshKey = 0 }) {
-  const [range, setRange] = useState('1y')
+  const [range, setRange] = useState('ytd')
 
   const allData = useMemo(() => getHistory(), [refreshKey])
   const peak = useMemo(() => getPeak(), [refreshKey])
@@ -110,12 +110,12 @@ export default function TrendChart({ refreshKey = 0 }) {
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
           <p className="text-xs text-gray-400 mt-0.5">单位：万元</p>
         </div>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+        <div className="flex items-center gap-[1px] bg-gray-100 rounded-lg">
           {RANGES.map((r) => (
             <button
               key={r.key}
               onClick={() => setRange(r.key)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                 range === r.key
                   ? 'bg-white text-brand-600 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
