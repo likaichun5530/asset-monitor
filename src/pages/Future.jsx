@@ -11,43 +11,6 @@ function getMultiplier(symbol) {
   return 1
 }
 
-// 计算合约月份第三个星期五的到期天数
-// 中证500(IC)期货交割日：合约月份的第三个星期五
-// 如遇非交易日则向前取最近的一个交易日（近似处理：周末则提前到周五）
-function estimateDaysToSettle(name) {
-  // 尝试从合约名中提取交割月份，如 "IC2408"、"IC2503"
-  const match = name.match(/IC(\d{4})/i)
-  if (!match) return 90
-
-  const year = 2000 + parseInt(match[1].slice(0, 2))
-  const month = parseInt(match[1].slice(2, 4))
-  if (month < 1 || month > 12) return 90
-
-  // 计算该月第三个星期五
-  const firstDay = new Date(year, month - 1, 1)
-  // 第一个星期五是第几天 (0=Sun, 5=Fri)
-  const firstFriday = (5 - firstDay.getDay() + 7) % 7 + 1
-  // 第三个星期五
-  const thirdFriday = firstFriday + 14
-
-  const settleDate = new Date(year, month - 1, thirdFriday)
-  const dayOfWeek = settleDate.getDay()
-  // 如果第三个星期五是周末（周六0，周日0? 实际周六6，周日0），向前取最近交易日
-  // 周六(6)→周五(-1)，周日(0)→周五(-2)
-  if (dayOfWeek === 6) { // 星期六
-    settleDate.setDate(settleDate.getDate() - 1)
-  } else if (dayOfWeek === 0) { // 星期日
-    settleDate.setDate(settleDate.getDate() - 2)
-  }
-
-  // 国定假日（元旦、春节、清明等）无法精确计算，此处用交易日历近似
-  // 实际交割所会根据中金所公告调整，此处不再进一步处理
-
-  const now = new Date()
-  const diff = Math.ceil((settleDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  return Math.max(diff, 0)
-}
-
 export default function Future({ refreshKey = 0 }) {
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
   const total = useMemo(() => totalMarketValue(), [refreshKey])
@@ -58,36 +21,46 @@ export default function Future({ refreshKey = 0 }) {
 
   const sumMarketValue = futures.reduce((s, r) => s + holdingMarketValue(r), 0)
 
-  const MARKET_CACHE_KEY = 'asset-monitor:market'
+  const FUTURES_CACHE_KEY = 'asset-monitor:futures'
 
-  const [marketData, setMarketData] = useState(() => {
+  const [futuresData, setFuturesData] = useState(() => {
     try {
-      const cached = localStorage.getItem(MARKET_CACHE_KEY)
+      const cached = localStorage.getItem(FUTURES_CACHE_KEY)
       if (cached) return JSON.parse(cached)
     } catch { /* ignore */ }
-    return []
+    return null
   })
 
   useEffect(() => {
     if (!API_BASE) return
-    fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
+    fetch(`${API_BASE}/api/futures`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((res) => {
-        const data = res.market || []
-        setMarketData(data)
-        try { localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
+        const data = res.futures || null
+        setFuturesData(data)
+        if (data) {
+          try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
+        }
       })
       .catch(() => { /* 静默失败，使用缓存 */ })
   }, [refreshKey])
 
-  const spotZZ500 = useMemo(() => {
-    const item = marketData.find((d) => d.name.includes('中证500') && !d.name.includes('期货') && !d.name.includes('IC'))
-    return item?.price ?? null
-  }, [marketData])
+  // 现货价格
+  const spot = futuresData?.[0]?.price ?? null
 
-  const futuresContracts = useMemo(() => {
-    return marketData.filter((d) => d.name.includes('期货') || d.name.includes('IC'))
-  }, [marketData])
+  // 期货合约数据（当月/次月/远月）
+  const contracts = useMemo(() => {
+    if (!futuresData || futuresData.length < 2) return []
+    return futuresData.slice(1).map((d) => ({
+      name: d.code,
+      label: d.type,
+      price: d.price,
+      spread: d.discount ?? null,
+      daysToSettle: d.daysToSettle ?? null,
+      settleDate: d.settleDate ?? null,
+      annualRate: d.annualRate ?? null,
+    }))
+  }, [futuresData])
 
   return (
     <div className="space-y-[4px]">
@@ -146,41 +119,45 @@ export default function Future({ refreshKey = 0 }) {
       {/* 期现贴水 */}
       <div className="card">
         <h3 className="text-base font-semibold text-gray-800 mb-3">期现贴水</h3>
-        {spotZZ500 !== null && futuresContracts.length > 0 ? (
+        {spot !== null && contracts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
-                  <th className="py-2 px-2 font-medium">标的</th>
-                  <th className="py-2 px-2 font-medium text-right">当前价格</th>
+                  <th className="py-2 px-2 font-medium">合约</th>
+                  <th className="py-2 px-2 font-medium text-right">价格</th>
                   <th className="py-2 px-2 font-medium text-right">贴水</th>
+                  <th className="py-2 px-2 font-medium text-right">交割日</th>
                   <th className="py-2 px-2 font-medium text-right">到期天数</th>
                   <th className="py-2 px-2 font-medium text-right">年化率</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-gray-50">
-                  <td className="py-2.5 px-2 text-gray-600">中证500</td>
-                  <td className="py-2.5 px-2 text-right text-gray-600">{Number(spotZZ500).toFixed(2)}</td>
+                  <td className="py-2.5 px-2 text-gray-600 font-medium">中证500（现货）</td>
+                  <td className="py-2.5 px-2 text-right text-gray-600">{Number(spot).toFixed(2)}</td>
+                  <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                 </tr>
-                {futuresContracts.map((item, idx) => {
-                  const spread = spotZZ500 - Number(item.price)
-                  const days = estimateDaysToSettle(item.name)
-                  // 年化率 = (贴水/现货) * (365/到期天数)
-                  const annualRate = days > 0 ? (Math.abs(spread) / spotZZ500) * (365 / days) * 100 : 0
+                {contracts.map((item, idx) => {
+                  const spread = item.spread
+                  const spreadPositive = spread !== null && spread > 0
                   return (
                     <tr key={idx} className="border-b border-gray-50 last:border-0 whitespace-nowrap">
-                      <td className="py-2.5 px-2 text-gray-600">{item.name}</td>
-                      <td className="py-2.5 px-2 text-right text-gray-600">{Number(item.price).toFixed(2)}</td>
-                      <td className={`py-2.5 px-2 text-right font-semibold ${spread >= 0 ? 'text-red-500' : 'text-green-600'}`}>
-                        {Math.abs(spread).toFixed(2)}
+                      <td className="py-2.5 px-2">
+                        <span className="text-gray-600">{item.label}</span>
+                        <span className="text-gray-400 ml-1 text-xs">{item.name}</span>
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-600">{days}天</td>
-                      <td className={`py-2.5 px-2 text-right font-semibold ${spread >= 0 ? 'text-red-500' : 'text-green-600'}`}>
-                        {annualRate.toFixed(2)}%
+                      <td className="py-2.5 px-2 text-right text-gray-600">{Number(item.price).toFixed(2)}</td>
+                      <td className={`py-2.5 px-2 text-right font-semibold ${spreadPositive ? 'text-red-500' : 'text-gray-500'}`}>
+                        {spread !== null ? Math.abs(spread).toFixed(2) : '—'}
+                      </td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 text-xs">{item.settleDate || '—'}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600">{item.daysToSettle !== null ? `${item.daysToSettle}天` : '—'}</td>
+                      <td className={`py-2.5 px-2 text-right font-semibold ${spreadPositive ? 'text-red-500' : 'text-gray-500'}`}>
+                        {item.annualRate !== null ? `${item.annualRate.toFixed(2)}%` : '—'}
                       </td>
                     </tr>
                   )

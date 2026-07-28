@@ -82,20 +82,36 @@ export default function TrendChart({ refreshKey = 0 }) {
     return ticks
   }, [chartData])
 
-  // 纵坐标 ticks：动态计算步长（5的倍数），每格 5-7 个刻度
+  // 纵坐标 ticks：使用 D3 风格的 tickStep 算法
+  // 自动选择美观的步长：1、2、5 × 10ⁿ，适配任意数据范围
+  function tickStep(range, targetCount) {
+    const rawStep = range / targetCount
+    const exponent = Math.floor(Math.log10(rawStep))
+    const base = rawStep / Math.pow(10, exponent)
+    // 将基数映射到最接近的美观值 1、2、5、10
+    let niceBase
+    if (base <= 1.5) niceBase = 1
+    else if (base <= 3.5) niceBase = 2
+    else if (base <= 7.5) niceBase = 5
+    else niceBase = 10
+    return niceBase * Math.pow(10, exponent)
+  }
+
   const yTicks = useMemo(() => {
     if (!data.length) return []
     const values = data.map((d) => d.total)
     const min = Math.min(...values)
     const max = Math.max(...values)
     const range = max - min
-    if (range === 0) return [Math.floor(min / 50000) * 50000, Math.ceil(max / 50000) * 50000]
+    if (range === 0) {
+      // 单值情况：以该值为中心，上下各扩展半步长
+      const step = tickStep(Math.abs(min) || 10000, 6)
+      return [Math.floor(min / step) * step, Math.ceil(max / step) * step]
+    }
 
-    // 计算合适的步长，确保 4~8 个刻度，且是 5 的倍数
+    // 目标 5~7 个刻度
     const targetSteps = 6
-    let rawStep = range / targetSteps
-    // 将 rawStep 向上取整到最近的 5 的倍数
-    const step = Math.ceil(rawStep / 50000) * 50000
+    const step = tickStep(range, targetSteps)
 
     const tickMin = Math.floor(min / step) * step
     const tickMax = Math.ceil(max / step) * step
