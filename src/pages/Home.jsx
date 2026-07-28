@@ -141,13 +141,13 @@ function CurrencyCard() {
 }
 
 // 账户健康度卡片
-function HealthCard() {
+function HealthCard({ refreshKey }) {
   const [targetData, setTargetData] = useState([])
   useEffect(() => {
     fetchTarget()
       .then((data) => setTargetData(data.target || []))
       .catch(() => {})
-  }, [])
+  }, [refreshKey])
 
   const holdings = useMemo(() => getActiveHoldings(), [])
   const total = useMemo(() => totalMarketValue(), [])
@@ -250,7 +250,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 
   const startLongPress = useCallback((e) => {
     if (e?.target?.closest?.('.recharts-wrapper')) return
-    longPressTimer.current = setTimeout(() => { setEditMode(true) }, 800)
+    longPressTimer.current = setTimeout(() => { setEditMode(true) }, 2000)
   }, [])
   const cancelLongPress = useCallback(() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null } }, [])
   useEffect(() => { return () => { if (longPressTimer.current) clearTimeout(longPressTimer.current) } }, [])
@@ -315,7 +315,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
 
   function renderCard(key) {
     if (key === 'currency') return <CurrencyCard />
-    if (key === 'health') return <HealthCard />
+    if (key === 'health') return <HealthCard refreshKey={refreshKey} />
     switch (key) {
       case 'trend': return <TrendChart refreshKey={refreshKey} />
       case 'allocation': return <AllocationChart refreshKey={refreshKey} />
@@ -431,7 +431,10 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
 
-      <style>{`.sortable-ghost { opacity: 0.15; } .sortable-drag { opacity: 1 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 12px; transform: scale(1.02); }`}</style>
+      <style>{`
+        .sortable-ghost { opacity: 0.15; }
+        .sortable-drag { opacity: 1 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 12px; transform: scale(1.02); }
+      `}</style>
     </div>
   )
 }

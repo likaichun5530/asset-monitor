@@ -11,6 +11,43 @@ function getMultiplier(symbol) {
   return 1
 }
 
+// 计算合约月份第三个星期五的到期天数
+// 中证500(IC)期货交割日：合约月份的第三个星期五
+// 如遇非交易日则向前取最近的一个交易日（近似处理：周末则提前到周五）
+function estimateDaysToSettle(name) {
+  // 尝试从合约名中提取交割月份，如 "IC2408"、"IC2503"
+  const match = name.match(/IC(\d{4})/i)
+  if (!match) return 90
+
+  const year = 2000 + parseInt(match[1].slice(0, 2))
+  const month = parseInt(match[1].slice(2, 4))
+  if (month < 1 || month > 12) return 90
+
+  // 计算该月第三个星期五
+  const firstDay = new Date(year, month - 1, 1)
+  // 第一个星期五是第几天 (0=Sun, 5=Fri)
+  const firstFriday = (5 - firstDay.getDay() + 7) % 7 + 1
+  // 第三个星期五
+  const thirdFriday = firstFriday + 14
+
+  const settleDate = new Date(year, month - 1, thirdFriday)
+  const dayOfWeek = settleDate.getDay()
+  // 如果第三个星期五是周末（周六0，周日0? 实际周六6，周日0），向前取最近交易日
+  // 周六(6)→周五(-1)，周日(0)→周五(-2)
+  if (dayOfWeek === 6) { // 星期六
+    settleDate.setDate(settleDate.getDate() - 1)
+  } else if (dayOfWeek === 0) { // 星期日
+    settleDate.setDate(settleDate.getDate() - 2)
+  }
+
+  // 国定假日（元旦、春节、清明等）无法精确计算，此处用交易日历近似
+  // 实际交割所会根据中金所公告调整，此处不再进一步处理
+
+  const now = new Date()
+  const diff = Math.ceil((settleDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.max(diff, 0)
+}
+
 export default function Future({ refreshKey = 0 }) {
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
   const total = useMemo(() => totalMarketValue(), [refreshKey])
@@ -47,14 +84,6 @@ export default function Future({ refreshKey = 0 }) {
     const item = marketData.find((d) => d.name.includes('中证500') && !d.name.includes('期货') && !d.name.includes('IC'))
     return item?.price ?? null
   }, [marketData])
-
-  // 根据合约名称估算到期天数
-  function estimateDaysToSettle(name) {
-    if (name.includes('当月')) return 30
-    if (name.includes('近月')) return 60
-    if (name.includes('远月')) return 180
-    return 90
-  }
 
   const futuresContracts = useMemo(() => {
     return marketData.filter((d) => d.name.includes('期货') || d.name.includes('IC'))

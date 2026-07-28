@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/api/snapshot-auto",
-      "schedule": "50 23 * * *"
+      "schedule": "40 16 * * *"
     }
   ],
   "headers": [

@@ -82,18 +82,26 @@ export default function TrendChart({ refreshKey = 0 }) {
     return ticks
   }, [chartData])
 
-  // 纵坐标 ticks：按 50 万一格
+  // 纵坐标 ticks：动态计算步长（5的倍数），每格 5-7 个刻度
   const yTicks = useMemo(() => {
     if (!data.length) return []
     const values = data.map((d) => d.total)
     const min = Math.min(...values)
     const max = Math.max(...values)
-    const step = 500000
+    const range = max - min
+    if (range === 0) return [Math.floor(min / 50000) * 50000, Math.ceil(max / 50000) * 50000]
+
+    // 计算合适的步长，确保 4~8 个刻度，且是 5 的倍数
+    const targetSteps = 6
+    let rawStep = range / targetSteps
+    // 将 rawStep 向上取整到最近的 5 的倍数
+    const step = Math.ceil(rawStep / 50000) * 50000
+
     const tickMin = Math.floor(min / step) * step
     const tickMax = Math.ceil(max / step) * step
     const ticks = []
-    for (let v = tickMin; v <= tickMax; v += step) {
-      ticks.push(v)
+    for (let v = tickMin; v <= tickMax + step * 0.01; v += step) {
+      ticks.push(Math.round(v))
     }
     return ticks
   }, [data])

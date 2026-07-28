@@ -1,21 +1,18 @@
-// Vercel Cron Function: 每天 23:50 自动生成资产快照
+// Vercel Cron Function: 每天北京时间 00:40 自动生成资产快照
 // 由 vercel.json crons 配置触发
 import { isConfigured, readSheet, appendRows, updateRows, toNumber } from './_google.js'
 
 const CRON_SECRET = process.env.CRON_SECRET || ''
 
-// 9类资产的分类规则
-// key: Holdings 中的过滤条件，value: { key, label, filter }
 function classifyAsset(row) {
   const type = String(row.AssetType ?? row.assetType ?? '').toLowerCase()
   const market = String(row.Market ?? row.market ?? '').toUpperCase()
-
   if (type === 'stock') {
     if (market === 'US') return 'us'
     if (market === 'CN') return 'cn'
     if (market === 'HK') return 'hk'
     if (market === 'JP') return 'jp'
-    return null // 其他股票忽略
+    return null
   }
   if (type === 'crypto') return 'crypto'
   if (type === 'bond') return 'bond'
@@ -45,7 +42,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (!CRON_SECRET || req.headers['authorization'] !== `Bearer ${CRON_SECRET}`) {
+  // Vercel Cron 自动携带 x-vercel-cron 头，手动调用需传 CRON_SECRET
+  const isVercelCron = req.headers['x-vercel-cron'] === '1'
+  const isValidAuth = CRON_SECRET && req.headers['authorization'] === `Bearer ${CRON_SECRET}`
+  if (!isVercelCron && !isValidAuth) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
@@ -54,11 +54,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. 读取 Holdings 表，按 9 类资产汇总
     const result = await readSheet('Holdings')
     const rows = result.data || []
 
-    // 各类资产合计
     const categories = {}
     let total = 0
     for (const row of rows) {
@@ -74,7 +72,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, message: '总资产为 0，跳过快照', total })
     }
 
-    // 2. 组装写入行：[日期, 总资产, 美股, 数字货币, 债券, 期货, A股, 黄金, 日股, 港股, 现金, 备注]
     const today = new Date().toISOString().slice(0, 10)
     const sheetDate = toSheetDate(today)
 
@@ -82,13 +79,11 @@ export default async function handler(req, res) {
       sheetDate,
       Math.round(total * 100) / 100,
     ]
-    // 按固定顺序写入 C~K 列
     for (const key of CATEGORY_KEYS) {
       rowValues.push(categories[key] !== undefined ? Math.round(categories[key] * 100) / 100 : '')
     }
-    rowValues.push('') // L列：备注（保留占位，暂不填写）
+    rowValues.push('')
 
-    // 3. 检查 History 表当天是否已有记录
     const historyResult = await readSheet('History')
     const historyRows = historyResult.data || []
     const headers = historyResult.headers || []
@@ -108,8 +103,7 @@ export default async function handler(req, res) {
     }
 
     if (existingRow > 0) {
-      // 更新整行 A~L
-      const col = String.fromCharCode(64 + rowValues.length) // L=12
+      const col = String.fromCharCode(64 + rowValues.length)
       await updateRows('History', `A${existingRow}:${col}${existingRow}`, [rowValues])
     } else {
       await appendRows('History', [rowValues])

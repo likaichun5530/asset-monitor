@@ -76,6 +76,9 @@ html.dark .bg-white { background-color: #1e293b; }
 html.dark .bg-gray-50 { background-color: #111827; }
 html.dark .bg-gray-100 { background-color: #1e293b; }
 
+/* 暗夜下 hover 背景 */
+html.dark .hover\:bg-gray-50:hover { background-color: #1e293b; }
+
 /* 暗夜下边框 */
 html.dark .border-gray-100 { border-color: #374151; }
 html.dark .border-gray-50 { border-color: #374151; }
@@ -94,3 +97,14 @@ html.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
 /* 暗夜下按钮状态条 */
 html.dark .bg-gray-100.rounded-lg { background-color: #334155; }
 html.dark .bg-gray-100.rounded-lg button.bg-white { background-color: #475569; color: #e2e8f0; }
+
+/* 全局 recharts 选中/聚焦时无外框 */
+.recharts-wrapper, .recharts-wrapper *, .recharts-surface, .recharts-pie, .recharts-pie-sector,
+.recharts-wrapper:focus, .recharts-wrapper:focus-visible,
+.recharts-wrapper *:focus, .recharts-wrapper *:focus-visible,
+.recharts-surface:focus, .recharts-surface:focus-visible,
+.recharts-pie:focus, .recharts-pie:focus-visible {
+  outline: none !important;
+  outline-color: transparent !important;
+  outline-style: none !important;
+}
