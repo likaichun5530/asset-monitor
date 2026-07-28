@@ -11,6 +11,14 @@ function getMultiplier(symbol) {
   return 1
 }
 
+// 交割日 "2026-08-21" → "08-21"
+function formatSettleDate(dateStr) {
+  if (!dateStr) return '—'
+  const parts = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/)
+  if (parts) return `${parts[2]}-${parts[3]}`
+  return dateStr
+}
+
 export default function Future({ refreshKey = 0 }) {
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
   const total = useMemo(() => totalMarketValue(), [refreshKey])
@@ -102,7 +110,7 @@ export default function Future({ refreshKey = 0 }) {
                   <tr key={idx} className="border-b border-gray-50 last:border-0">
                     <td className="py-2.5 px-2 text-gray-600">{h.symbol === '-' ? '—' : h.symbol}</td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
-                      {h.price === null ? '—' : formatNumber(h.price, 1)}
+                      {h.price === null ? '—' : Math.round(h.price)}
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-600">{formatCurrency(holdingMarketValue(h))}</td>
                     <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : 'text-green-600'}`}>
@@ -134,8 +142,8 @@ export default function Future({ refreshKey = 0 }) {
               </thead>
               <tbody>
                 <tr className="border-b border-gray-50">
-                  <td className="py-2.5 px-2 text-gray-600 font-medium">中证500（现货）</td>
-                  <td className="py-2.5 px-2 text-right text-gray-600">{Number(spot).toFixed(2)}</td>
+                  <td className="py-2.5 px-2 text-gray-600 font-medium">中证500</td>
+                  <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(spot)}</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
@@ -150,11 +158,11 @@ export default function Future({ refreshKey = 0 }) {
                         <span className="text-gray-600">{item.label}</span>
                         <span className="text-gray-400 ml-1 text-xs">{item.name}</span>
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-600">{Number(item.price).toFixed(2)}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(item.price)}</td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${spreadPositive ? 'text-red-500' : 'text-gray-500'}`}>
-                        {spread !== null ? Math.abs(spread).toFixed(2) : '—'}
+                        {spread !== null ? Math.round(Math.abs(spread)) : '—'}
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-600 text-xs">{item.settleDate || '—'}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600 text-xs">{formatSettleDate(item.settleDate)}</td>
                       <td className="py-2.5 px-2 text-right text-gray-600">{item.daysToSettle !== null ? `${item.daysToSettle}天` : '—'}</td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${spreadPositive ? 'text-red-500' : 'text-gray-500'}`}>
                         {item.annualRate !== null ? `${item.annualRate.toFixed(2)}%` : '—'}

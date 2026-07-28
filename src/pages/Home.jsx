@@ -86,25 +86,25 @@ function CurrencyCard() {
   const total = useMemo(() => totalMarketValue(), [])
 
   const pieData = useMemo(() => {
-    // 从持仓中计算数字货币总额（按 assetType）
-    const cryptoAmount = holdings
-      .filter(h => h.assetType === '数字货币')
-      .reduce((s, h) => s + holdingMarketValue(h), 0)
+    // 从持仓中计算数字货币总额（按 assetType），从法币中排除
+    const cryptoHoldings = holdings.filter(h => h.assetType === '数字货币')
+    const cryptoAmount = cryptoHoldings.reduce((s, h) => s + holdingMarketValue(h), 0)
 
-    // 从 groupByCurrency 计算法币金额
-    const currencyData = groupByCurrency()
+    // 法币金额：从所有持仓中排除数字货币后，按 currency 汇总
+    const fiatHoldings = holdings.filter(h => h.assetType !== '数字货币')
     let cnyAmount = 0, usdAmount = 0, hkdAmount = 0
-    for (const d of currencyData) {
-      if (d.currency === 'CNY') cnyAmount = d.marketValueCNY
-      else if (d.currency === 'USD') usdAmount = d.marketValueCNY
-      else if (d.currency === 'HKD') hkdAmount = d.marketValueCNY
+    for (const h of fiatHoldings) {
+      const mv = holdingMarketValue(h)
+      if (h.currency === 'CNY') cnyAmount += mv
+      else if (h.currency === 'USD') usdAmount += mv
+      else if (h.currency === 'HKD') hkdAmount += mv
     }
 
     const items = [
-      { name: '人民币', value: Math.round(cnyAmount * 100) / 100, color: '#ef4444' },
-      { name: '美元', value: Math.round(usdAmount * 100) / 100, color: '#3b82f6' },
-      { name: '港币', value: Math.round(hkdAmount * 100) / 100, color: '#8b5cf6' },
-      { name: '数字货币', value: Math.round(cryptoAmount * 100) / 100, color: '#f97316' },
+      { name: '人民币', value: Math.round(cnyAmount), color: '#ef4444' },
+      { name: '美元', value: Math.round(usdAmount), color: '#3b82f6' },
+      { name: '港币', value: Math.round(hkdAmount), color: '#8b5cf6' },
+      { name: '数字货币', value: Math.round(cryptoAmount), color: '#f97316' },
     ].filter(d => d.value > 0).sort((a, b) => b.value - a.value)
 
     const totalVal = items.reduce((s, d) => s + d.value, 0)
@@ -131,7 +131,7 @@ function CurrencyCard() {
                 <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: d.color }} />
                 {d.name}
               </span>
-              <span className="text-gray-800 dark:text-gray-200 font-medium">{d.ratio.toFixed(1)}%</span>
+              <span className="text-gray-800 dark:text-gray-200 font-medium">{Math.round(d.ratio)}%</span>
             </div>
           ))}
         </div>
@@ -187,14 +187,15 @@ function HealthCard({ refreshKey }) {
     <div className="card w-full aspect-square flex flex-col px-3 pt-2 pb-4">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
       <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
+        <div className="text-gray-500">现金建议：</div>
         <div>
-          <span className="text-gray-500">超配：</span>
+          <span className="text-gray-500">减持：</span>
           {overCategories.length ? (
             overCategories.map((c, i) => <span key={c} className="text-red-500 font-medium">{i > 0 ? '、' : ''}{c}</span>)
           ) : <span className="text-gray-400">无</span>}
         </div>
         <div>
-          <span className="text-gray-500">低配：</span>
+          <span className="text-gray-500">加仓：</span>
           {underCategories.length ? (
             underCategories.map((c, i) => <span key={c} className="text-green-600 font-medium">{i > 0 ? '、' : ''}{c}</span>)
           ) : <span className="text-gray-400">无</span>}
@@ -208,7 +209,7 @@ function HealthCard({ refreshKey }) {
           <span className="text-gray-500">状态</span>
           <span className="font-medium" style={{ color: usageColor }}>{usageText}</span>
         </div>
-        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
           <div className="h-full rounded-full" style={{ width: Math.min(futureUsageRate, 100) + '%', backgroundColor: usageColor }} />
         </div>
       </div>
