@@ -4,6 +4,7 @@ import Sortable from 'sortablejs'
 import TrendChart from '../components/TrendChart.jsx'
 import AllocationChart from '../components/AllocationChart.jsx'
 import HoldingsOverview from '../components/HoldingsOverview.jsx'
+import CalendarHeatmap from '../components/CalendarHeatmap.jsx'
 import {
   currentTotal, change7d, change30d, changeYtd, drawdownFromPeak,
   lastUpdateDate, generateSnapshot, hasBackend,
@@ -14,7 +15,7 @@ import { formatCurrency, formatPercent, formatChange, formatDateLong, formatDate
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
-const ALL_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown', 'currency', 'health', 'trend', 'allocation', 'holdings']
+const ALL_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown', 'currency', 'health', 'trend', 'allocation', 'holdings', 'calendar']
 const STAT_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown']
 const HALF_KEYS = ['currency', 'health']
 
@@ -53,7 +54,7 @@ function writeCardOrder(o) { try { localStorage.setItem(ORDER_KEY, JSON.stringif
 const CARD_LABELS = {
   change7d: '近7天涨跌', change30d: '近1月涨跌', changeYtd: '今年涨跌',
   drawdown: '较高点回撤', currency: '货币比例', health: '账户健康度',
-  trend: '资产趋势图', allocation: '资产配置', holdings: '持仓概况',
+  trend: '资产趋势图', allocation: '资产配置', holdings: '持仓概况', calendar: '收益日历',
 }
 
 function StatMini({ label, change, changePct }) {
@@ -321,6 +322,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
       case 'trend': return <TrendChart refreshKey={refreshKey} />
       case 'allocation': return <AllocationChart refreshKey={refreshKey} />
       case 'holdings': return <HoldingsOverview refreshKey={refreshKey} />
+      case 'calendar': return <CalendarHeatmap refreshKey={refreshKey} />
       default: return null
     }
   }

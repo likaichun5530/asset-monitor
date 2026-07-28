@@ -40,6 +40,13 @@ export const demoHistory = [
   { date: '2026-04-11', total: 610549.7 },
   { date: '2026-05-01', total: 418304.4 },
   { date: '2026-06-01', total: 525100.2 },
+  { date: '2026-07-15', total: 543200.0 },
+  { date: '2026-07-16', total: 538100.5 },
+  { date: '2026-07-20', total: 541200.0 },
+  { date: '2026-07-25', total: 561300.8 },
+  { date: '2026-07-26', total: 558900.3 },
+  { date: '2026-07-27', total: 562100.0 },
+  { date: '2026-07-28', total: 560400.0 },
 ]
 
 export const demoPeakValue = 710558.7 
