@@ -124,7 +124,7 @@ function CurrencyCard() {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="w-full grid grid-cols-2 gap-x-2">
+        <div className="w-full grid grid-cols-2 gap-x-6">
           {pieData.map((d) => (
             <div key={d.name} className="flex items-center justify-between text-[10px]">
               <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">

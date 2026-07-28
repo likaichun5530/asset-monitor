@@ -188,10 +188,10 @@ export default function Target({ refreshKey = 0 }) {
                       {diffPct !== null ? `${diffPct > 0 ? '+' : ''}${diffPct.toFixed(2)}%` : <span className="text-gray-300">—</span>}
                     </td>
                     <td className="py-2.5 px-2 text-center">
-                      {isOver && <span className="text-sm text-red-500">超配</span>}
-                      {isUnder && <span className="text-sm text-green-600">低配</span>}
-                      {diffPct !== null && !isOver && !isUnder && <span className="text-sm text-gray-400">正常</span>}
-                      {!hasTarget && <span className="text-sm text-gray-300">未设置</span>}
+                      {isOver && <span className="text-sm px-1.5 py-0.5 rounded bg-red-50 text-red-500">超配</span>}
+                      {isUnder && <span className="text-sm px-1.5 py-0.5 rounded bg-green-50 text-green-600">低配</span>}
+                      {diffPct !== null && !isOver && !isUnder && <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">正常</span>}
+                      {!hasTarget && <span className="text-sm px-1.5 py-0.5 rounded bg-gray-50 text-gray-400">未设置</span>}
                     </td>
                   </tr>
                 )
@@ -229,8 +229,8 @@ export default function Target({ refreshKey = 0 }) {
                   </div>
                   {isOver && <span className="text-sm px-1.5 py-0.5 rounded bg-red-50 text-red-500">超配</span>}
                   {isUnder && <span className="text-sm px-1.5 py-0.5 rounded bg-green-50 text-green-600">低配</span>}
-                  {diffPct !== null && !isOver && !isUnder && <span className="text-sm text-gray-400">正常</span>}
-                  {!hasTarget && <span className="text-sm text-gray-300">未设置</span>}
+                  {diffPct !== null && !isOver && !isUnder && <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">正常</span>}
+                  {!hasTarget && <span className="text-sm px-1.5 py-0.5 rounded bg-gray-50 text-gray-400">未设置</span>}
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
                   <div>
