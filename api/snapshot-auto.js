@@ -1,4 +1,4 @@
-// Vercel Cron Function: 每天北京时间 00:40 自动生成资产快照
+// Vercel Cron Function: 每天北京时间 23:00 自动生成资产快照
 // 由 vercel.json crons 配置触发
 import { isConfigured, readSheet, appendRows, updateRows, toNumber } from './_google.js'
 
