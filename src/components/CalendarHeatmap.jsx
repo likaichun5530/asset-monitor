@@ -37,7 +37,14 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const history = useMemo(() => getHistory(), [refreshKey])
   const [selectedDay, setSelectedDay] = useState(null)
   const [showMonthPicker, setShowMonthPicker] = useState(false)
-  const [displayMode, setDisplayMode] = useState('amount') // 'amount' | 'percent'
+  // 显示模式（记忆上次选择）
+  const [displayMode, setDisplayMode] = useState(() => {
+    try { return localStorage.getItem('youshu-calendar-mode') || 'amount' } catch { return 'amount' }
+  })
+  const changeDisplayMode = (mode) => {
+    setDisplayMode(mode)
+    try { localStorage.setItem('youshu-calendar-mode', mode) } catch { /* ignore */ }
+  }
 
   // 当前选中年月
   const now = new Date()
@@ -138,11 +145,11 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           {/* 金额/比例切换 */}
           <div className="flex items-center gap-[1px] bg-gray-100 rounded-lg">
             <button
-              onClick={() => setDisplayMode('amount')}
+              onClick={() => changeDisplayMode('amount')}
               className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${displayMode === 'amount' ? 'bg-white text-brand-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >金额</button>
             <button
-              onClick={() => setDisplayMode('percent')}
+              onClick={() => changeDisplayMode('percent')}
               className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${displayMode === 'percent' ? 'bg-white text-brand-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >比例</button>
           </div>
