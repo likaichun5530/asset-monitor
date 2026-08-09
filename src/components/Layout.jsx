@@ -123,21 +123,22 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
 
   return (
     <div className="min-h-full flex dark:bg-gray-900">
-      <aside className="hidden sm:flex flex-col w-52 shrink-0 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto">
-        <div className="px-4 pt-[21px] pb-4 border-b border-gray-50 dark:border-gray-700">
-          <img src="/Transparent-Chinese.png" alt="logo" className="w-[108px] h-[40px] object-cover object-center rounded-lg block dark:hidden" />
-          <img src="/white-Chinese.png" alt="logo" className="w-[108px] h-[40px] object-cover object-center rounded-lg hidden dark:block" />
+      {/* PC 侧栏 */}
+      <aside className="hidden sm:flex flex-col w-60 shrink-0 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto">
+        <div className="px-5 pt-5 pb-4 border-b border-gray-50 dark:border-gray-700">
+          <img src="/Transparent-Chinese.png" alt="logo" className="w-[120px] h-[44px] object-cover object-center rounded-lg block dark:hidden" />
+          <img src="/white-Chinese.png" alt="logo" className="w-[120px] h-[44px] object-cover object-center rounded-lg hidden dark:block" />
         </div>
-        <nav className="flex-1 px-3 py-3 space-y-0.5">
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
           {navItems.map((item, i) => {
-            if (item.type === 'divider') return <div key={i} className="mx-2 my-2 border-t border-gray-200 dark:border-gray-600" />
+            if (item.type === 'divider') return <div key={i} className="mx-3 my-2 border-t border-gray-100 dark:border-gray-700" />
             const Icon = item.icon
-            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2 rounded-lg text-[15px] font-medium transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-gray-700 dark:text-brand-400' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-200'}`}>
+            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-gray-700 dark:text-brand-400 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'}`}>
               <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>
             </NavLink>)
           })}
         </nav>
-        <div className="px-4 py-3 border-t border-gray-50 dark:border-gray-700 space-y-1.5 text-xs">
+        <div className="px-5 py-3 border-t border-gray-50 dark:border-gray-700 space-y-1.5 text-xs">
           <span className={`inline-flex items-center gap-1.5 font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
             {displayLabel}
@@ -147,7 +148,9 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
         </div>
       </aside>
 
+      {/* 主内容区 */}
       <div className="flex-1 min-w-0 flex flex-col bg-gray-50 dark:bg-gray-900">
+        {/* 移动端顶部栏 */}
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           <div className="px-4 h-12 flex items-center justify-between">
             <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
@@ -165,18 +168,36 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
           </div>
         </header>
 
+        {/* PC 顶部栏 */}
+        <header className="hidden sm:flex sticky top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-100 dark:border-gray-700">
+          <div className="flex-1 flex items-center justify-between px-8 h-14">
+            <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</h1>
+            <div className="flex items-center gap-4">
+              {auth?.isLoggedIn && (
+                <span className="text-sm text-gray-500 dark:text-gray-400">{auth.username}</span>
+              )}
+              <span className={`text-xs ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                {source === 'online' ? '在线' : source === 'cache' ? '离线' : '刷新中'}
+                {syncedAt && <span className="text-gray-400 ml-1">· {formatDateLong(syncedAt.slice(0, 10))}</span>}
+              </span>
+              <NavLink to="/settings" className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">设置</NavLink>
+            </div>
+          </div>
+        </header>
+
         <div className="relative flex-1 flex flex-col" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           <div ref={contentRef} className="flex-1 flex flex-col relative">
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 w-full px-[4px] sm:px-8 pt-[4px] sm:pt-2 pb-24 sm:pb-8">
+            <main className="flex-1 w-full max-w-7xl mx-auto px-2 sm:px-8 pt-2 sm:pt-6 pb-24 sm:pb-10">
               <Outlet />
             </main>
           </div>
         </div>
       </div>
 
+      {/* 移动端底部导航 */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-20 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex">
         <NavLink to="/" end className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><HomeIcon className="w-5 h-5" /><span>总览</span></NavLink>
         <NavLink to="/market" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><MarketIcon className="w-5 h-5" /><span>行情</span></NavLink>

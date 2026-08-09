@@ -29,10 +29,11 @@ export default async function handler(req, res) {
           if (show !== 'y') continue
           const name = (row[0] || '').toString().trim()  // A列：标的名称
           if (!name) continue
+          const symbol = (row[1] || '').toString().trim()  // B列：代码
           const raw = String(row[2] || '').replace(/,/g, '').replace(/"/g, '').trim()  // C列：价格
           const price = parseFloat(raw)
           const group = (row[5] || '').toString().trim() || '其他'  // F列：类别
-          market.push({ name, price: isNaN(price) ? null : price, group })
+          market.push({ name, symbol, price: isNaN(price) ? null : price, group })
         }
       } catch (e) {
         console.warn('[market] Google Sheets 读取失败', e)

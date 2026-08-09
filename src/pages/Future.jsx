@@ -30,6 +30,7 @@ export default function Future({ refreshKey = 0 }) {
   const sumMarketValue = futures.reduce((s, r) => s + holdingMarketValue(r), 0)
 
   const FUTURES_CACHE_KEY = 'asset-monitor:futures'
+  const MARKET_CACHE_KEY = 'asset-monitor:market'
 
   const [futuresData, setFuturesData] = useState(() => {
     try {
@@ -37,6 +38,14 @@ export default function Future({ refreshKey = 0 }) {
       if (cached) return JSON.parse(cached)
     } catch { /* ignore */ }
     return null
+  })
+
+  const [marketData, setMarketData] = useState(() => {
+    try {
+      const cached = localStorage.getItem(MARKET_CACHE_KEY)
+      if (cached) return JSON.parse(cached)
+    } catch { /* ignore */ }
+    return []
   })
 
   useEffect(() => {
@@ -53,22 +62,64 @@ export default function Future({ refreshKey = 0 }) {
       .catch(() => { /* 静默失败，使用缓存 */ })
   }, [refreshKey])
 
-  // 现货价格
-  const spot = futuresData?.[0]?.price ?? null
+  // 同时拉取行情数据获取实时价格
+  useEffect(() => {
+    if (!API_BASE) return
+    fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((res) => {
+        const data = res.market || []
+        setMarketData(data)
+        if (data.length) {
+          try { localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
+        }
+      })
+      .catch(() => { /* 静默失败，使用缓存 */ })
+  }, [refreshKey])
 
-  // 期货合约数据（当月/次月/远月）
+  // 从行情数据中查找合约价格（按 symbol 匹配）
+  const marketPriceMap = useMemo(() => {
+    const map = new Map()
+    for (const item of marketData) {
+      if (item.group === '期货' && item.symbol && item.price != null) {
+        map.set(item.symbol, Number(item.price))
+      }
+    }
+    return map
+  }, [marketData])
+
+  // 现货价格（从行情数据获取，优先用 symbol='CSI500' 或名称含中证500的）
+  const spot = useMemo(() => {
+    const csi = marketData.find((d) => d.symbol === 'CSI500')
+    if (csi?.price != null) return Number(csi.price)
+    const item = marketData.find((d) => d.name.includes('中证500') && !d.name.includes('期货') && !d.name.includes('IC'))
+    return item?.price != null ? Number(item.price) : null
+  }, [marketData])
+
+  // 期货合约数据（前端自行计算年化率，保留正负号）
   const contracts = useMemo(() => {
     if (!futuresData || futuresData.length < 2) return []
-    return futuresData.slice(1).map((d) => ({
-      name: d.code,
-      label: d.type,
-      price: d.price,
-      spread: d.discount ?? null,
-      daysToSettle: d.daysToSettle ?? null,
-      settleDate: d.settleDate ?? null,
-      annualRate: d.annualRate ?? null,
-    }))
-  }, [futuresData])
+    return futuresData.slice(1).map((d) => {
+      const code = d.code
+      // 优先用行情数据中的实时价格
+      const realPrice = marketPriceMap.get(code)
+      const price = realPrice ?? d.price
+      const spread = spot != null ? spot - price : null
+      const daysToSettle = d.daysToSettle ?? null
+      // 年化率 = (贴水/价格) * (365/到期天数)，贴水正、升水负
+      const annualRate = spread !== null && daysToSettle && daysToSettle > 0
+        ? (spread / price) * (365 / daysToSettle) * 100
+        : null
+      return {
+        name: code,
+        price,
+        spread,
+        daysToSettle,
+        settleDate: d.settleDate ?? null,
+        annualRate,
+      }
+    })
+  }, [futuresData, marketPriceMap, spot])
 
   return (
     <div className="space-y-[4px]">
@@ -113,7 +164,7 @@ export default function Future({ refreshKey = 0 }) {
                       {h.price === null ? '—' : Math.round(h.price)}
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-600">{formatCurrency(holdingMarketValue(h))}</td>
-                    <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : 'text-green-600'}`}>
+                    <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : usageRate > 65 ? 'text-yellow-500' : 'text-green-600'}`}>
                       {usageRate.toFixed(1)}%
                     </td>
                   </tr>
@@ -132,7 +183,7 @@ export default function Future({ refreshKey = 0 }) {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
-                  <th className="py-2 px-2 font-medium">合约</th>
+                  <th className="py-2 px-2 font-medium">标的</th>
                   <th className="py-2 px-2 font-medium text-right">价格</th>
                   <th className="py-2 px-2 font-medium text-right">贴水</th>
                   <th className="py-2 px-2 font-medium text-right">交割日</th>
@@ -150,21 +201,20 @@ export default function Future({ refreshKey = 0 }) {
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                 </tr>
                 {contracts.map((item, idx) => {
-                  const spread = item.spread
-                  const spreadPositive = spread !== null && spread > 0
+                  const isDiscount = item.spread !== null && item.spread > 0 // 贴水（期货低于现货）
+                  const isPremium = item.spread !== null && item.spread < 0 // 升水（期货高于现货）
                   return (
                     <tr key={idx} className="border-b border-gray-50 last:border-0 whitespace-nowrap">
                       <td className="py-2.5 px-2">
-                        <span className="text-gray-600">{item.label}</span>
-                        <span className="text-gray-400 ml-1 text-xs">{item.name}</span>
+                        <span className="text-gray-600">{item.name}</span>
                       </td>
                       <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(item.price)}</td>
-                      <td className={`py-2.5 px-2 text-right font-semibold ${spreadPositive ? 'text-red-500' : 'text-gray-500'}`}>
-                        {spread !== null ? Math.round(Math.abs(spread)) : '—'}
+                      <td className={`py-2.5 px-2 text-right font-semibold ${isDiscount ? 'text-red-500' : isPremium ? 'text-green-600' : 'text-gray-500'}`}>
+                        {item.spread !== null ? Math.round(item.spread) : '—'}
                       </td>
                       <td className="py-2.5 px-2 text-right text-gray-600 text-xs">{formatSettleDate(item.settleDate)}</td>
                       <td className="py-2.5 px-2 text-right text-gray-600">{item.daysToSettle !== null ? `${item.daysToSettle}天` : '—'}</td>
-                      <td className={`py-2.5 px-2 text-right font-semibold ${spreadPositive ? 'text-red-500' : 'text-gray-500'}`}>
+                      <td className={`py-2.5 px-2 text-right font-semibold ${isDiscount ? 'text-red-500' : isPremium ? 'text-green-600' : 'text-gray-500'}`}>
                         {item.annualRate !== null ? `${item.annualRate.toFixed(2)}%` : '—'}
                       </td>
                     </tr>

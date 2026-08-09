@@ -106,7 +106,7 @@ export default function Market({ refreshKey = 0 }) {
           <h2 className="text-base font-semibold text-gray-900 uppercase tracking-wider px-4 sm:px-0 mb-1">
             {group.name}
           </h2>
-          <div className="grid grid-cols-3 lg:grid-cols-5 gap-1 lg:gap-2">
+          <div className="grid grid-cols-3 lg:grid-cols-7 gap-1 lg:gap-2">
             {group.items.map((item, idx) => {
               const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null

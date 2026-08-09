@@ -125,7 +125,7 @@ function CurrencyCard() {
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="w-full grid grid-cols-2 gap-x-6">
+        <div className="w-full grid grid-cols-2 gap-x-4">
           {pieData.map((d) => (
             <div key={d.name} className="flex items-center justify-between text-[10px]">
               <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
@@ -150,8 +150,8 @@ function HealthCard({ refreshKey }) {
       .catch(() => {})
   }, [refreshKey])
 
-  const holdings = useMemo(() => getActiveHoldings(), [])
-  const total = useMemo(() => totalMarketValue(), [])
+  const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
+  const total = useMemo(() => totalMarketValue(), [refreshKey])
 
   // 超配/低配类别名（只显示名称，不显示金额）
   const { overCategories, underCategories, futureUsageRate } = useMemo(() => {
@@ -181,8 +181,8 @@ function HealthCard({ refreshKey }) {
     return { overCategories: overs, underCategories: unders, futureUsageRate: maxUsage }
   }, [holdings, total, targetData])
 
-  const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 60 ? '#eab308' : '#10b981'
-  const usageText = futureUsageRate > 75 ? '红色预警' : futureUsageRate > 60 ? '黄色警告' : '正常'
+  const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 65 ? '#eab308' : '#10b981'
+  const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 65 ? '警戒' : '正常'
 
   return (
     <div className="card w-full aspect-square flex flex-col px-3 pt-2 pb-4">
@@ -374,7 +374,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
-              <div key={key} data-id={key} className="w-1/3 px-0.5 sm:px-2 mb-[4px] sm:mb-4">
+              <div key={key} data-id={key} className="w-1/3 lg:w-1/4 px-0.5 sm:px-2 mb-[4px] sm:mb-4">
                 <div className="relative">
                   {editMode && (
                     <>
@@ -407,7 +407,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
             )
           }
           return (
-            <div key={key} data-id={key} className="w-full px-1 sm:px-2 mb-[4px] sm:mb-4">
+            <div key={key} data-id={key} className="w-full lg:w-1/2 px-1 sm:px-2 mb-[4px] sm:mb-4">
               <div className="relative">
                 {editMode && (
                   <>

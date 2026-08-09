@@ -26,7 +26,7 @@ function toWanNum(v) {
 }
 
 export default function TrendChart({ refreshKey = 0 }) {
-  const [range, setRange] = useState('ytd')
+  const [range, setRange] = useState('1m')
 
   const allData = useMemo(() => getHistory(), [refreshKey])
   const peak = useMemo(() => getPeak(), [refreshKey])
@@ -194,7 +194,7 @@ export default function TrendChart({ refreshKey = 0 }) {
               }}
             />
             <Area
-              type="monotone"
+              type="linear"
               dataKey="total"
               stroke="#3b82f6"
               strokeWidth={2}
