@@ -15,10 +15,11 @@ function formatChangeShort(value) {
   return value > 0 ? '+' + rounded : '-' + rounded
 }
 
-// 格式化涨跌百分比
+// 格式化涨跌百分比（value 已是百分比数值，如 0.2 表示 +0.2%）
 function formatChangePct(value) {
   if (value === null || value === undefined) return ''
-  return (value * 100).toFixed(1) + '%'
+  const sign = value > 0 ? '+' : ''
+  return sign + value.toFixed(1) + '%'
 }
 
 // 日期字符串工具
@@ -249,16 +250,11 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       {selectedDay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setSelectedDay(null)}>
           <div className="fixed inset-0 bg-black/30" />
-          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl px-6 py-5 text-center max-w-[260px]">
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{selectedDay.date}</div>
-            <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg px-3 py-2 text-center max-w-[180px]">
+            <div className="text-[10px] text-gray-500 dark:text-gray-400">{selectedDay.date}</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatCurrency(selectedDay.total)}
             </div>
-            {selectedDay.hasChange && (
-              <div className={`mt-1 text-sm font-medium ${selectedDay.change > 0 ? 'text-red-500' : 'text-green-600'}`}>
-                {selectedDay.change > 0 ? '涨了 ' : '跌了 '}{formatChangeShort(selectedDay.change)}
-              </div>
-            )}
           </div>
         </div>
       )}
