@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { getHistory } from '../utils/asset.js'
 import { formatCurrency } from '../utils/format.js'
 
@@ -46,6 +46,9 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     setDisplayMode(mode)
     try { localStorage.setItem('youshu-calendar-mode', mode) } catch { /* ignore */ }
   }
+
+  // 存储每个日期格子的 DOM 引用，用于滚动时更新弹窗位置
+  const dayRefs = useRef({})
 
   // 当前选中年月
   const now = new Date()
@@ -104,11 +107,38 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     return days
   }, [totalMap, viewYear, viewMonth])
 
+  // 根据被选中日期的格子重新计算弹窗位置（跟随滚动）
+  const updatePopupPos = useCallback(() => {
+    if (!selectedDay) return
+    const el = dayRefs.current[selectedDay.date]
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    setPopupPos({
+      top: rect.top,
+      left: rect.left + rect.width / 2,
+    })
+  }, [selectedDay])
+
+  // 监听滚动和窗口大小变化，让弹窗跟随日期格子
+  useEffect(() => {
+    if (!selectedDay) return
+    const onScroll = () => updatePopupPos()
+    const onResize = () => updatePopupPos()
+    // 用 capture + passive 确保捕获所有滚动（包括内部滚动容器）
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true })
+      window.removeEventListener('resize', onResize)
+    }
+  }, [selectedDay, updatePopupPos])
+
   const handleDayClick = (dayInfo, event) => {
     if (!dayInfo.hasTotal) return
-    if (selectedDay?.date === dayInfo.date) { setSelectedDay(null); return }
+    // 点击同一日期：关闭弹窗
+    if (selectedDay?.date === dayInfo.date) { setSelectedDay(null); setPopupPos(null); return }
+    // 点击其他日期：直接切换为新的日期，并更新弹窗位置
     setSelectedDay(dayInfo)
-    // 记录格子位置，让弹窗出现在日期旁边
     const rect = event.currentTarget.getBoundingClientRect()
     setPopupPos({
       top: rect.top,
@@ -174,8 +204,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
             {/* 月份下拉选择器（双箭头翻年 + 单箭头翻月） */}
             {showMonthPicker && (
               <>
-                <div className="fixed inset-0 z-20" onClick={() => setShowMonthPicker(false)} />
-                <div className="absolute right-0 top-full mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-200 p-2 w-52">
+                <div className="fixed inset-0 z-[45]" onClick={() => setShowMonthPicker(false)} />
+                <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-2 w-52">
                   <div className="flex items-center justify-between mb-2 px-1">
                     <div className="flex items-center gap-1">
                       <button onClick={goPrevYear} className="p-1 hover:bg-gray-100 rounded text-gray-400" title="上一年">
@@ -223,8 +253,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         </div>
       </div>
 
-      {/* 日历网格 */}
-      <div className="grid grid-cols-7 gap-[2px]">
+      {/* 日历网格（relative z-[41] 使日期格子高于遮罩，点击可切换日期） */}
+      <div className="grid grid-cols-7 gap-[2px] relative z-[41]">
         {WEEKDAY_HEADERS.map((w) => (
           <div key={w} className="text-center text-[10px] text-gray-400 py-[2px]">{w}</div>
         ))}
@@ -242,6 +272,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           return (
             <div
               key={dayInfo.date}
+              ref={(el) => { dayRefs.current[dayInfo.date] = el }}
               onClick={(e) => handleDayClick(dayInfo, e)}
               className={`aspect-square flex flex-col items-center justify-center rounded cursor-pointer transition-colors ${cellBg} ${isSelected ? 'ring-2 ring-brand-500' : ''} hover:ring-1 hover:ring-gray-300 relative overflow-hidden ${!dayInfo.isCurrentMonth ? 'opacity-60' : ''}`}
             >
@@ -260,10 +291,11 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         })}
       </div>
 
-      {/* 点击弹出当天总资产（跟随日期） */}
+      {/* 点击弹出当天总资产（跟随日期，滚动时保持相对位置） */}
       {selectedDay && popupPos && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setSelectedDay(null)} />
+          {/* 遮罩在日历下方（z-40），点击非日期区域关闭；日期区域 z-[41] 优先响应 */}
+          <div className="fixed inset-0 z-40" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
           <div
             className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 px-3 py-2 text-center whitespace-nowrap pointer-events-none"
             style={{
