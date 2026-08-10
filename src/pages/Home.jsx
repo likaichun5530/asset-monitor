@@ -181,8 +181,8 @@ function HealthCard({ refreshKey }) {
     return { overCategories: overs, underCategories: unders, futureUsageRate: maxUsage }
   }, [holdings, total, targetData])
 
-  const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 65 ? '#eab308' : '#10b981'
-  const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 65 ? '警戒' : '正常'
+  const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
+  const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
 
   return (
     <div className="card w-full aspect-square flex flex-col px-3 pt-2 pb-4">

@@ -164,7 +164,7 @@ export default function Future({ refreshKey = 0 }) {
                       {h.price === null ? '—' : Math.round(h.price)}
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-600">{formatCurrency(holdingMarketValue(h))}</td>
-                    <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : usageRate > 65 ? 'text-yellow-500' : 'text-green-600'}`}>
+                    <td className={`py-2.5 px-2 text-right font-semibold ${usageRate > 75 ? 'text-red-500' : usageRate > 70 ? 'text-yellow-500' : 'text-green-600'}`}>
                       {usageRate.toFixed(1)}%
                     </td>
                   </tr>

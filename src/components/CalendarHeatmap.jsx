@@ -36,6 +36,7 @@ function prevDayStr(dateStr) {
 export default function CalendarHeatmap({ refreshKey = 0 }) {
   const history = useMemo(() => getHistory(), [refreshKey])
   const [selectedDay, setSelectedDay] = useState(null)
+  const [popupPos, setPopupPos] = useState(null)
   const [showMonthPicker, setShowMonthPicker] = useState(false)
   // 显示模式（记忆上次选择）
   const [displayMode, setDisplayMode] = useState(() => {
@@ -107,6 +108,12 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     if (!dayInfo.hasTotal) return
     if (selectedDay?.date === dayInfo.date) { setSelectedDay(null); return }
     setSelectedDay(dayInfo)
+    // 记录格子位置，让弹窗出现在日期旁边
+    const rect = event.currentTarget.getBoundingClientRect()
+    setPopupPos({
+      top: rect.top,
+      left: rect.left + rect.width / 2,
+    })
   }
 
   const selectMonth = (ym) => {
@@ -253,17 +260,24 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         })}
       </div>
 
-      {/* 点击弹出当天总资产 */}
-      {selectedDay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setSelectedDay(null)}>
-          <div className="fixed inset-0 bg-black/30" />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg px-3 py-2 text-center max-w-[180px]">
+      {/* 点击弹出当天总资产（跟随日期） */}
+      {selectedDay && popupPos && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setSelectedDay(null)} />
+          <div
+            className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 px-3 py-2 text-center whitespace-nowrap pointer-events-none"
+            style={{
+              top: popupPos.top - 8,
+              left: popupPos.left,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
             <div className="text-[10px] text-gray-500 dark:text-gray-400">{selectedDay.date}</div>
             <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatCurrency(selectedDay.total)}
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
