@@ -25,6 +25,7 @@ function emptyRow() {
     price: null,
     marketValue: null,
     marketValueCNY: 0,
+    priceMode: '-',
   }
 }
 
@@ -448,19 +449,15 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
                 <Field label="单价">
                   {isPlainAsset ? (
                     <div className="input flex items-center text-gray-400">—</div>
-                  ) : autoPrice != null ? (
-                    <div className="input flex items-center bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
-                      {formatNumber(autoPrice, autoPrice < 1 ? 6 : 2)}
-                    </div>
                   ) : (
-                    <input
+                    <select
                       className="input"
-                      type="number"
-                      step="any"
-                      value={editForm.price ?? ''}
-                      onChange={(e) => updateField('price', e.target.value)}
-                      placeholder="如：10.5"
-                    />
+                      value={editForm.priceMode === 'realtime' ? 'realtime' : '-'}
+                      onChange={(e) => updateField('priceMode', e.target.value)}
+                    >
+                      <option value="realtime">实时价格</option>
+                      <option value="-">-</option>
+                    </select>
                   )}
                 </Field>
               </div>

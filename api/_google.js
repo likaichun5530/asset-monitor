@@ -67,10 +67,11 @@ export async function getAccessToken() {
   return cachedToken
 }
 
-export async function readSheet(sheetName) {
+export async function readSheet(sheetName, opts = {}) {
   if (!isConfigured()) throw new Error('Google Sheets 未配置')
   const token = await getAccessToken()
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z`
+  const renderParam = opts.valueRenderOption ? `&valueRenderOption=${opts.valueRenderOption}` : ''
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z${renderParam}`
   const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
   if (!resp.ok) {
     const text = await resp.text()

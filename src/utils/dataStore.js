@@ -118,6 +118,7 @@ function normalizeHoldings(arr) {
       currency: r.currency || r.Currency || 'CNY',
       quantity: r.quantity ?? r.Quantity ?? null,
       price: r.price ?? r.Price ?? null,
+      priceMode: r.priceMode === 'realtime' ? 'realtime' : '-',
       marketValue: r.marketValue ?? r.MarketValue ?? null,
       marketValueCNY: r.marketValueCNY ?? r.MarketValueCNY ?? 0,
     }

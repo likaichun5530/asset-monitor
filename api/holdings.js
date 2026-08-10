@@ -37,18 +37,36 @@ export default async function handler(req, res) {
 
     try {
       const result = await readSheet('Holdings')
-      const holdings = (result.data || []).map((r, idx) => ({
-        assetType: mapAssetType(r.AssetType || r.assetType),
-        market: r.Market || r.market || '其他',
-        account: r.Account || r.account || '未知',
-        symbol: r.Symbol || r.symbol || '-',
-        name: r.Name || r.name || `项目${idx + 1}`,
-        currency: r.Currency || r.currency || 'CNY',
-        quantity: toNumber(r.Quantity ?? r.quantity) ?? null,
-        price: toNumber(r.Price ?? r.price) ?? null,
-        marketValue: toNumber(r.MarketValue ?? r.marketValue) ?? null,
-        marketValueCNY: toNumber(r.MarketValueCNY ?? r.marketValueCNY) ?? 0,
-      }))
+      // 读取 H 列公式，判断是否为实时价格（vlookup）
+      let realtimeRows = new Set()
+      try {
+        const formulaResult = await readSheet('Holdings', { valueRenderOption: 'FORMULA' })
+        formulaResult.rawRows.forEach((row, i) => {
+          const h = row[7]
+          if (h && String(h).trim().startsWith('=')) realtimeRows.add(i)
+        })
+      } catch { /* 公式读取失败则全部按普通值处理 */ }
+
+      const holdings = (result.data || []).map((r, idx) => {
+        const priceRaw = r.Price ?? r.price
+        const priceNum = toNumber(priceRaw)
+        let priceMode = '-'
+        if (realtimeRows.has(idx)) priceMode = 'realtime'
+        else if (priceNum !== null) priceMode = '-'
+        return {
+          assetType: mapAssetType(r.AssetType || r.assetType),
+          market: r.Market || r.market || '其他',
+          account: r.Account || r.account || '未知',
+          symbol: r.Symbol || r.symbol || '-',
+          name: r.Name || r.name || `项目${idx + 1}`,
+          currency: r.Currency || r.currency || 'CNY',
+          quantity: toNumber(r.Quantity ?? r.quantity) ?? null,
+          priceMode,
+          price: priceNum,
+          marketValue: toNumber(r.MarketValue ?? r.marketValue) ?? null,
+          marketValueCNY: toNumber(r.MarketValueCNY ?? r.marketValueCNY) ?? 0,
+        }
+      })
 
       res.writeHead(200, { 'Content-Type': 'application/json' })
       return res.end(JSON.stringify({ holdings, syncedAt: new Date().toISOString() }))
@@ -83,15 +101,18 @@ export default async function handler(req, res) {
 
     try {
       // 组装写入行：[表头 + 数据行]
-      // H列（Price）使用 vlookup 公式从 Market 表按 B 列代码动态获取
+      // H列（Price）按 priceMode 决定：
+      //   'realtime' → 写 vlookup 公式从 Market 表按 D 列代码动态获取
+      //   '-' 或其它 → 写 '-'（不用实时价格）
       const rows = [HEADERS]
       holdings.forEach((h, i) => {
         const rowNum = i + 2 // 第 1 行是表头
         const symbol = h.symbol || '-'
-        // 有代码时写 vlookup 公式；无代码（'-'）时留空
-        const priceFormula = symbol !== '-' && symbol
-          ? `=IFERROR(VLOOKUP($D${rowNum},Market!$B:$C,2,FALSE),"")`
-          : ''
+        const priceMode = h.priceMode || '-'
+        let priceCell = '-'
+        if (priceMode === 'realtime' && symbol !== '-' && symbol) {
+          priceCell = `=IFERROR(VLOOKUP($D${rowNum},Market!$B:$C,2,FALSE),"")`
+        }
         rows.push([
           toEnglishType(h.assetType || '其他'),
           h.market || '其他',
@@ -100,7 +121,7 @@ export default async function handler(req, res) {
           h.name || '未命名',
           h.currency || 'CNY',
           h.quantity ?? '',
-          priceFormula,
+          priceCell,
           h.marketValue ?? '',
           h.marketValueCNY ?? '',
         ])
