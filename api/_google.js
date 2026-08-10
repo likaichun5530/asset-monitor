@@ -122,6 +122,47 @@ export async function updateRows(sheetName, range, values) {
   return resp.ok
 }
 
+// 清空指定区域（用于整表重写）
+export async function clearRange(sheetName, range) {
+  if (!isConfigured()) throw new Error('Google Sheets 未配置')
+  const token = await getAccessToken()
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!${range}:clear`
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return resp.ok
+}
+
+// 整表重写：清空数据行后写回完整行数据（rows[0] 为表头）
+export async function writeSheetRows(sheetName, rows) {
+  if (!isConfigured()) throw new Error('Google Sheets 未配置')
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error('无数据可写')
+  const token = await getAccessToken()
+
+  // 1. 清空 A2:Z 数据区（保留表头）
+  const clearUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A2:Z:clear`
+  const clearResp = await fetch(clearUrl, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!clearResp.ok) throw new Error(`清空 ${sheetName} 失败: ${clearResp.status}`)
+
+  // 2. 写入完整数据（含表头）
+  const col = String.fromCharCode(64 + rows[0].length)
+  const writeUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A1:${col}${rows.length}?valueInputOption=USER_ENTERED`
+  const writeResp = await fetch(writeUrl, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ values: rows }),
+  })
+  if (!writeResp.ok) throw new Error(`写入 ${sheetName} 失败: ${writeResp.status}`)
+  return true
+}
+
 // 工具函数
 export function toNumber(val) {
   if (val === null || val === undefined || val === '') return null
