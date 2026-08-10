@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { updateHoldings } from '../utils/dataStore.js'
+import { exchangeRates } from '../data/holdings.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 
 // 筛选标签（股票按市场拆分）
@@ -139,6 +140,8 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
         clean[f] = Number.isNaN(n) ? null : n
       }
     }
+    // 人民币市值使用自动计算值（原币市值 × 汇率）
+    clean.marketValueCNY = calcMarketValueCNY
     clean._idx = undefined
     delete clean._idx
     delete clean.ratio
@@ -187,6 +190,20 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
 
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
   const demoMode = typeof window !== 'undefined' ? (localStorage.getItem('youshu-demo-mode') === 'true') : false
+
+  // 现金/债券：没有数量与单价概念
+  const isPlainAsset = editForm && ['现金', '债券'].includes(editForm.assetType)
+
+  // 人民币市值自动计算 = 原币市值 × 汇率
+  const calcMarketValueCNY = useMemo(() => {
+    if (!editForm) return null
+    const mv = editForm.marketValue
+    if (mv === null || mv === undefined || mv === '') return null
+    const num = Number(mv)
+    if (Number.isNaN(num)) return null
+    const rate = exchangeRates[editForm.currency] ?? 1
+    return Math.round(num * rate * 100) / 100
+  }, [editForm])
 
   return (
     <div className="space-y-[4px]">
@@ -325,7 +342,7 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 pb-24 sm:pb-5">
               {/* 表单字段 */}
               <Field label="名称" required>
                 <input
@@ -385,26 +402,35 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
                 </Field>
               </div>
 
+              {/* 现金/债券：数量、单价为只读 "—" */}
               <div className="grid grid-cols-2 gap-3">
                 <Field label="数量">
-                  <input
-                    className="input"
-                    type="number"
-                    step="any"
-                    value={editForm.quantity ?? ''}
-                    onChange={(e) => updateField('quantity', e.target.value)}
-                    placeholder="如：100"
-                  />
+                  {isPlainAsset ? (
+                    <div className="input flex items-center text-gray-400">—</div>
+                  ) : (
+                    <input
+                      className="input"
+                      type="number"
+                      step="any"
+                      value={editForm.quantity ?? ''}
+                      onChange={(e) => updateField('quantity', e.target.value)}
+                      placeholder="如：100"
+                    />
+                  )}
                 </Field>
                 <Field label="单价">
-                  <input
-                    className="input"
-                    type="number"
-                    step="any"
-                    value={editForm.price ?? ''}
-                    onChange={(e) => updateField('price', e.target.value)}
-                    placeholder="如：10.5"
-                  />
+                  {isPlainAsset ? (
+                    <div className="input flex items-center text-gray-400">—</div>
+                  ) : (
+                    <input
+                      className="input"
+                      type="number"
+                      step="any"
+                      value={editForm.price ?? ''}
+                      onChange={(e) => updateField('price', e.target.value)}
+                      placeholder="如：10.5"
+                    />
+                  )}
                 </Field>
               </div>
 
@@ -419,13 +445,10 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
                   />
                 </Field>
                 <Field label="人民币市值">
-                  <input
-                    className="input"
-                    type="number"
-                    step="any"
-                    value={editForm.marketValueCNY ?? ''}
-                    onChange={(e) => updateField('marketValueCNY', e.target.value)}
-                  />
+                  {/* 只读：自动计算 = 原币市值 × 汇率 */}
+                  <div className="input flex items-center bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    {calcMarketValueCNY !== null ? formatCurrency(calcMarketValueCNY) : '—'}
+                  </div>
                 </Field>
               </div>
 
