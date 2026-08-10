@@ -83,23 +83,30 @@ export default async function handler(req, res) {
 
     try {
       // 组装写入行：[表头 + 数据行]
+      // H列（Price）使用 vlookup 公式从 Market 表按 B 列代码动态获取
       const rows = [HEADERS]
-      for (const h of holdings) {
+      holdings.forEach((h, i) => {
+        const rowNum = i + 2 // 第 1 行是表头
+        const symbol = h.symbol || '-'
+        // 有代码时写 vlookup 公式；无代码（'-'）时留空
+        const priceFormula = symbol !== '-' && symbol
+          ? `=IFERROR(VLOOKUP($D${rowNum},Market!$B:$C,2,FALSE),"")`
+          : ''
         rows.push([
           toEnglishType(h.assetType || '其他'),
           h.market || '其他',
           h.account || '未知',
-          h.symbol || '-',
+          symbol,
           h.name || '未命名',
           h.currency || 'CNY',
           h.quantity ?? '',
-          h.price ?? '',
+          priceFormula,
           h.marketValue ?? '',
           h.marketValueCNY ?? '',
         ])
-      }
+      })
 
-      // 整表重写：清空 A2:J 后写入新数据
+      // 整表重写：清空 A2:J 后写入新数据（USER_ENTERED 会执行公式）
       await writeSheetRows('Holdings', rows)
 
       res.writeHead(200, { 'Content-Type': 'application/json' })

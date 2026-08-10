@@ -45,6 +45,24 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
   const total = useMemo(() => totalMarketValue(), [refreshKey])
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
 
+  // 从 Market 表缓存获取实时价格（symbol → price）
+  const marketPriceMap = useMemo(() => {
+    const map = new Map()
+    try {
+      const raw = localStorage.getItem('asset-monitor:market')
+      if (raw) {
+        const items = JSON.parse(raw)
+        for (const item of items) {
+          const code = item.symbol || item.name
+          if (code && item.price != null && !Number.isNaN(Number(item.price))) {
+            map.set(String(code).toUpperCase(), Number(item.price))
+          }
+        }
+      }
+    } catch { /* ignore */ }
+    return map
+  }, [refreshKey])
+
   const rows = useMemo(() => {
     let list = holdings.map((h, idx) => ({
       ...h,
@@ -204,6 +222,15 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
     const rate = exchangeRates[editForm.currency] ?? 1
     return Math.round(num * rate * 100) / 100
   }, [editForm])
+
+  // 从 Market 表自动获取单价（按代码匹配）
+  const autoPrice = useMemo(() => {
+    if (!editForm || !editForm.symbol) return null
+    const code = String(editForm.symbol).trim().toUpperCase()
+    if (!code || code === '-') return null
+    const p = marketPriceMap.get(code)
+    return p != null ? p : null
+  }, [editForm, marketPriceMap])
 
   return (
     <div className="space-y-[4px]">
@@ -421,6 +448,10 @@ export default function Holdings({ loading, refreshKey, onDataChange }) {
                 <Field label="单价">
                   {isPlainAsset ? (
                     <div className="input flex items-center text-gray-400">—</div>
+                  ) : autoPrice != null ? (
+                    <div className="input flex items-center bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      {formatNumber(autoPrice, autoPrice < 1 ? 6 : 2)}
+                    </div>
                   ) : (
                     <input
                       className="input"
