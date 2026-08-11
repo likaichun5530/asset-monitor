@@ -110,7 +110,7 @@ export default function Market({ refreshKey = 0 }) {
             {group.items.map((item, idx) => {
               const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null
-              const icon = getNameIcon(item.name)
+              const icon = group.name === '数字货币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
                   className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 aspect-square"
