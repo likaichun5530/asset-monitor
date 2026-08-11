@@ -111,22 +111,34 @@ function CurrencyCard() {
     return items.map(d => ({ ...d, ratio: totalVal ? (d.value / totalVal) * 100 : 0 }))
   }, [holdings, total])
 
+  // 半圆环：conic-gradient 从 180° 到 360°（上半圆），各币种按比例分角度
+  const halfGradient = useMemo(() => {
+    if (!pieData.length) return 'conic-gradient(from 0.5turn at 50% 100%, #e5e7eb 0deg 180deg)'
+    let acc = 0
+    const segments = pieData.map((d) => {
+      const startAngle = acc
+      const endAngle = acc + d.ratio * 1.8
+      acc = endAngle
+      return `${d.color} ${startAngle}deg ${endAngle}deg`
+    })
+    return `conic-gradient(from 0.5turn at 50% 100%, ${segments.join(',')})`
+  }, [pieData])
+
   return (
-    <div className="card w-full h-[210px] flex flex-col px-3 pt-2 pb-3">
+    <div className="card w-full h-[190px] flex flex-col px-3 pt-2 pb-2">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
-      <div className="flex-1 flex flex-col justify-center gap-3 min-h-0">
-        {/* 纵向堆叠条（各币种按比例分色段） */}
-        <div className="w-full h-4 rounded-full overflow-hidden flex bg-gray-100">
-          {pieData.map((d) => (
-            <div key={d.name} style={{ width: `${d.ratio}%`, backgroundColor: d.color }} />
-          ))}
+      <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
+        {/* 半圆堆叠环（上半圆） */}
+        <div className="relative w-32 h-16 overflow-hidden shrink-0">
+          <div className="absolute top-0 left-0 w-32 h-32 rounded-full" style={{ background: halfGradient }} />
+          <div className="absolute top-1.5 left-1.5 w-[116px] h-[116px] rounded-full bg-white dark:bg-gray-800" />
         </div>
-        {/* 图例 2×2 */}
-        <div className="w-full grid grid-cols-2 gap-y-1 gap-x-3">
+        {/* 图例（单列竖排） */}
+        <div className="w-full flex flex-col gap-0.5">
           {pieData.map((d) => (
             <div key={d.name} className="flex items-center justify-between text-[10px]">
               <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: d.color }} />
+                <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: d.color }} />
                 <span className="truncate">{d.name}</span>
               </span>
               <span className="text-gray-800 dark:text-gray-200 font-medium shrink-0">{Math.round(d.ratio)}%</span>
@@ -182,7 +194,7 @@ function HealthCard({ refreshKey }) {
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
 
   return (
-    <div className="card w-full h-[210px] flex flex-col px-3 pt-2 pb-3">
+    <div className="card w-full h-[190px] flex flex-col px-3 pt-2 pb-2">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
       <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
         <div className="text-gray-500">现金建议：</div>
