@@ -11,7 +11,7 @@ const ASSETS = [
   { key: 'hk', label: '港股', color: assetColors.港股, filter: (h) => h.assetType === '股票' && h.market === 'HK' },
   { key: 'jp', label: '日股', color: assetColors.日股, filter: (h) => h.assetType === '股票' && h.market === 'JP' },
   { key: 'bond', label: '债基', color: assetColors.债基, filter: (h) => h.assetType === '债券' },
-  { key: 'crypto', label: '数字货币', color: assetColors.数字货币, filter: (h) => h.assetType === '数字货币' },
+  { key: 'crypto', label: '虚拟币', color: assetColors.虚拟币, filter: (h) => h.assetType === '虚拟币' },
   { key: 'future', label: '期货', color: assetColors.期货, filter: (h) => h.assetType === '期货' },
   { key: 'gold', label: '黄金', color: assetColors.黄金, filter: (h) => h.assetType === '黄金' },
   { key: 'cash', label: '现金', color: assetColors.现金, filter: (h) => h.assetType === '现金' },

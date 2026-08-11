@@ -9,7 +9,7 @@ const colorMap = {
   A股: assetColors.A股,
   港股: assetColors.港股,
   日股: assetColors.日股,
-  数字货币: assetColors.数字货币,
+  虚拟币: assetColors.虚拟币,
   黄金: assetColors.黄金,
   债券: assetColors.债基,
   期货: assetColors.期货,
@@ -18,7 +18,7 @@ const colorMap = {
 
 const CATEGORY_ROUTE = {
   '美股': '/us', 'A股': '/cn', '港股': '/hk', '日股': '/jp',
-  '债基': '/bond', '数字货币': '/crypto', '期货': '/future', '黄金': '/gold', '现金': '/cash',
+  '债基': '/bond', '虚拟币': '/crypto', '期货': '/future', '黄金': '/gold', '现金': '/cash',
 }
 
 export default function Target({ refreshKey = 0 }) {

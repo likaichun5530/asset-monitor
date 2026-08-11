@@ -14,7 +14,7 @@ const navItems = [
   { to: '/hk', label: '港股', icon: GlobeIcon },
   { to: '/jp', label: '日股', icon: SunIcon },
   { to: '/bond', label: '债基', icon: ShieldIcon },
-  { to: '/crypto', label: '数字货币', icon: BitcoinIcon },
+  { to: '/crypto', label: '虚拟币', icon: BitcoinIcon },
   { to: '/future', label: '期货', icon: ZapIcon },
   { to: '/cash', label: '现金', icon: WalletIcon },
   { type: 'divider' },
@@ -33,7 +33,7 @@ const pageTitles = {
   '/hk': '港股',
   '/jp': '日股',
   '/bond': '债基',
-  '/crypto': '数字货币',
+  '/crypto': '虚拟币',
   '/future': '期货',
   '/cash': '现金',
 }

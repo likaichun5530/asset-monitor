@@ -94,7 +94,7 @@ export async function fetchHoldings() {
 function normalizeHoldings(arr) {
   return arr.map((r, idx) => {
     let t = r.assetType || r.AssetType || '其他'
-    const map = { Stock: '股票', stock: '股票', Crypto: '数字货币', crypto: '数字货币',
+    const map = { Stock: '股票', stock: '股票', Crypto: '虚拟币', crypto: '虚拟币', 虚拟币: '虚拟币', 数字货币: '虚拟币',
       Gold: '黄金', gold: '黄金', Cash: '现金', cash: '现金', Bond: '债券', bond: '债券',
       Future: '期货', future: '期货' }
     return {

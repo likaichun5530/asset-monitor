@@ -93,7 +93,7 @@ export default async function handler(req, res) {
 
     const sheetDate = toSheetDate(date)
 
-    // 3. 组装写入行：[日期, 总资产, 美股, 数字货币, 债券, 期货, A股, 黄金, 日股, 港股, 现金, 备注]
+    // 3. 组装写入行：[日期, 总资产, 美股, 虚拟币, 债券, 期货, A股, 黄金, 日股, 港股, 现金, 备注]
     const rowValues = [
       sheetDate,
       Math.round(total * 100) / 100,

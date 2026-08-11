@@ -86,12 +86,12 @@ function CurrencyCard() {
   const total = useMemo(() => totalMarketValue(), [])
 
   const pieData = useMemo(() => {
-    // 从持仓中计算数字货币总额（按 assetType），从法币中排除
-    const cryptoHoldings = holdings.filter(h => h.assetType === '数字货币')
+    // 从持仓中计算虚拟币总额（按 assetType），从法币中排除
+    const cryptoHoldings = holdings.filter(h => h.assetType === '虚拟币')
     const cryptoAmount = cryptoHoldings.reduce((s, h) => s + holdingMarketValue(h), 0)
 
-    // 法币金额：从所有持仓中排除数字货币后，按 currency 汇总
-    const fiatHoldings = holdings.filter(h => h.assetType !== '数字货币')
+    // 法币金额：从所有持仓中排除虚拟币后，按 currency 汇总
+    const fiatHoldings = holdings.filter(h => h.assetType !== '虚拟币')
     let cnyAmount = 0, usdAmount = 0, hkdAmount = 0
     for (const h of fiatHoldings) {
       const mv = holdingMarketValue(h)
@@ -104,7 +104,7 @@ function CurrencyCard() {
       { name: '人民币', value: Math.round(cnyAmount), color: '#ef4444' },
       { name: '美元', value: Math.round(usdAmount), color: '#3b82f6' },
       { name: '港币', value: Math.round(hkdAmount), color: '#8b5cf6' },
-      { name: '数字货币', value: Math.round(cryptoAmount), color: '#f97316' },
+      { name: '虚拟币', value: Math.round(cryptoAmount), color: '#f97316' },
     ].filter(d => d.value > 0).sort((a, b) => b.value - a.value)
 
     const totalVal = items.reduce((s, d) => s + d.value, 0)

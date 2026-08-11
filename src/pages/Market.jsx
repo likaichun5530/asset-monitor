@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 const CACHE_KEY = 'asset-monitor:market'
 
-const GROUP_ORDER = ['汇率', '数字货币', 'A股', '境外', '期货']
+const GROUP_ORDER = ['汇率', '虚拟币', 'A股', '境外', '期货']
 
 // 标的名 -> 图标映射
 function getNameIcon(name) {
@@ -106,7 +106,7 @@ export default function Market({ refreshKey = 0 }) {
             {group.items.map((item, idx) => {
               const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null
-              const icon = group.name === '数字货币' ? null : getNameIcon(item.name)
+              const icon = group.name === '虚拟币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
                   className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 lg:aspect-square min-h-[100px]"

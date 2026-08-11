@@ -9,7 +9,7 @@ function normalizeDate(s) {
 }
 
 // 9类资产对应的列索引（从0开始）：
-// A=0(日期), B=1(总资产), C=2(美股), D=3(数字货币), E=4(债券), F=5(期货),
+// A=0(日期), B=1(总资产), C=2(美股), D=3(虚拟币), E=4(债券), F=5(期货),
 // G=6(A股), H=7(黄金), I=8(日股), J=9(港股), K=10(现金), L=11(备注)
 const CATEGORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
 

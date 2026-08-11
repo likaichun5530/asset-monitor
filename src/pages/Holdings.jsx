@@ -4,14 +4,14 @@ import { holdingMarketValue, totalMarketValue, getActiveHoldings } from '../util
 import { formatCurrency, formatNumber } from '../utils/format.js'
 
 // 筛选标签（股票按市场拆分）
-const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '数字货币', '黄金', '现金', '债券', '期货']
+const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债券', '期货']
 
 const colorMap = {
   美股: assetColors.美股,
   A股: assetColors.A股,
   港股: assetColors.港股,
   日股: assetColors.日股,
-  数字货币: assetColors.数字货币,
+  虚拟币: assetColors.虚拟币,
   黄金: assetColors.黄金,
   债券: assetColors.债基,
   期货: assetColors.期货,

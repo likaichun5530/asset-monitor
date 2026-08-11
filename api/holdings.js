@@ -4,7 +4,7 @@ import { isConfigured, readSheet, toNumber } from './_google.js'
 function mapAssetType(t) {
   const s = String(t || '').toLowerCase()
   if (s === 'stock') return '股票'
-  if (s === 'crypto') return '数字货币'
+  if (s === 'crypto' || s === '虚拟币' || s === '数字货币') return '虚拟币'
   if (s === 'gold') return '黄金'
   if (s === 'cash') return '现金'
   if (s === 'bond') return '债券'

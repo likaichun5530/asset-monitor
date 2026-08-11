@@ -129,7 +129,7 @@ app.get('/api/target', async (req, res) => {
       if (cat === 'Stock') {
         cat = stockLabel(row[colIdx.Market])
       } else {
-        const map = { Crypto: '数字货币', Gold: '黄金', Cash: '现金', Bond: '债券', Future: '期货' }
+        const map = { Crypto: '虚拟币', Gold: '黄金', Cash: '现金', Bond: '债券', Future: '期货' }
         cat = map[cat] || cat
       }
       const mv = toNumber(row[colIdx.MarketValueCNY]) || 0
