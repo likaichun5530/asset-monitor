@@ -113,26 +113,29 @@ function CurrencyCard() {
   }, [holdings, total])
 
   return (
-    <div className="card w-full lg:aspect-square flex flex-col px-3 pt-2 pb-4 min-h-[180px]">
+    <div className="card w-full lg:aspect-square flex flex-col px-3 pt-2 pb-4 min-h-[220px]">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
-      <div className="flex-1 flex flex-col justify-center items-center min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={36} outerRadius={54}
-              startAngle={90} endAngle={-270} isAnimationActive={false}
-            >
-              {pieData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="w-full grid grid-cols-2 gap-x-4">
+      <div className="flex-1 flex flex-col justify-between items-center min-h-0">
+        {/* 饼图固定高度，避免小屏弹性收缩为 0 导致消失 */}
+        <div className="w-full h-32 shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={36} outerRadius={54}
+                startAngle={90} endAngle={-270} isAnimationActive={false}
+              >
+                {pieData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-y-0.5 sm:gap-x-4">
           {pieData.map((d) => (
             <div key={d.name} className="flex items-center justify-between text-[10px]">
-              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
                 <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: d.color }} />
-                {d.name}
+                <span className="truncate">{d.name}</span>
               </span>
-              <span className="text-gray-800 dark:text-gray-200 font-medium">{Math.round(d.ratio)}%</span>
+              <span className="text-gray-800 dark:text-gray-200 font-medium shrink-0">{Math.round(d.ratio)}%</span>
             </div>
           ))}
         </div>
@@ -185,7 +188,7 @@ function HealthCard({ refreshKey }) {
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
 
   return (
-    <div className="card w-full lg:aspect-square flex flex-col px-3 pt-2 pb-4 min-h-[180px]">
+    <div className="card w-full lg:aspect-square flex flex-col px-3 pt-2 pb-4 min-h-[220px]">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
       <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
         <div className="text-gray-500">现金建议：</div>
