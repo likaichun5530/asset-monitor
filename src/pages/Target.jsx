@@ -87,7 +87,7 @@ export default function Target({ refreshKey = 0 }) {
     <div className="space-y-[4px]">
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-[4px]">
           {overWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-red-400">
               <div className="text-sm font-medium text-red-500 flex items-center gap-1.5">

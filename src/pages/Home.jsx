@@ -148,7 +148,7 @@ function CurrencyCard() {
         {/* 图例（单列竖排，shrink-0 防止被压缩消失） */}
         <div className="w-full flex flex-col gap-0.5 shrink-0">
           {pieData.map((d) => (
-            <div key={d.name} className="flex items-center justify-between text-[10px]">
+            <div key={d.name} className="flex items-center gap-6 text-[10px]">
               <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
                 <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: d.color }} />
                 <span className="truncate">{d.name}</span>
