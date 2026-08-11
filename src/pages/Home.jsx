@@ -126,7 +126,7 @@ function CurrencyCard() {
   }, [pieData])
 
   return (
-    <div className="card w-full h-[190px] flex flex-col px-3 pt-2 pb-2">
+    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
         {/* 半圆堆叠环（上半圆，加粗 20px） */}
@@ -134,8 +134,8 @@ function CurrencyCard() {
           <div className="absolute top-0 left-0 w-36 h-36 rounded-full" style={{ background: halfGradient }} />
           <div className="absolute top-2.5 left-2.5 w-[124px] h-[124px] rounded-full bg-white dark:bg-gray-800" />
         </div>
-        {/* 图例（单列竖排） */}
-        <div className="w-full flex flex-col gap-0.5">
+        {/* 图例（单列竖排，shrink-0 防止被压缩消失） */}
+        <div className="w-full flex flex-col gap-0.5 shrink-0">
           {pieData.map((d) => (
             <div key={d.name} className="flex items-center justify-between text-[10px]">
               <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
@@ -195,7 +195,7 @@ function HealthCard({ refreshKey }) {
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
 
   return (
-    <div className="card w-full h-[190px] flex flex-col px-3 pt-2 pb-2">
+    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
       <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
         <div className="text-gray-500">现金建议：</div>
