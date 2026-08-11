@@ -83,42 +83,6 @@ function stockMarketLabel(market) {
   return '股票'
 }
 
-// 按市场聚合
-export function groupByMarket() {
-  const map = new Map()
-  for (const h of activeHoldings) {
-    const m = h.market || '其他'
-    if (!map.has(m)) map.set(m, { market: m, marketValue: 0, count: 0 })
-    const item = map.get(m)
-    item.marketValue += holdingMarketValue(h)
-    item.count += 1
-  }
-  return Array.from(map.values())
-    .map((item) => ({
-      ...item,
-      marketValue: Math.round(item.marketValue * 100) / 100,
-    }))
-    .sort((a, b) => b.marketValue - a.marketValue)
-}
-
-// 按账户/平台聚合
-export function groupByAccount() {
-  const map = new Map()
-  for (const h of activeHoldings) {
-    const a = h.account || '未知'
-    if (!map.has(a)) map.set(a, { account: a, marketValue: 0, count: 0 })
-    const item = map.get(a)
-    item.marketValue += holdingMarketValue(h)
-    item.count += 1
-  }
-  return Array.from(map.values())
-    .map((item) => ({
-      ...item,
-      marketValue: Math.round(item.marketValue * 100) / 100,
-    }))
-    .sort((a, b) => b.marketValue - a.marketValue)
-}
-
 // 按币种聚合
 export function groupByCurrency() {
   const map = new Map()

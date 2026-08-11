@@ -31,28 +31,28 @@ export default function TrendChart({ refreshKey = 0 }) {
   const allData = useMemo(() => getHistory(), [refreshKey])
   const peak = useMemo(() => getPeak(), [refreshKey])
 
-  const data = useMemo(() => {
+  // 按时间范围过滤，并添加 timestamp 数值字段（用于 X 轴时间刻度）
+  const chartData = useMemo(() => {
     if (!allData.length) return []
     const rangeCfg = RANGES.find((r) => r.key === range) || RANGES[2]
-    if (rangeCfg.days === Infinity) return allData
+    let filtered = allData
     const lastDate = allData[allData.length - 1].date
-    const lastMs = new Date(lastDate).getTime()
-    // 今年以来：从当年1月1日开始
-    if (rangeCfg.days === null) {
-      const yearStart = new Date(lastDate).getFullYear() + '-01-01'
-      return allData.filter((d) => d.date >= yearStart)
+    if (rangeCfg.days !== Infinity) {
+      const lastMs = new Date(lastDate).getTime()
+      // 今年以来：从当年1月1日开始
+      if (rangeCfg.days === null) {
+        const yearStart = new Date(lastDate).getFullYear() + '-01-01'
+        filtered = allData.filter((d) => d.date >= yearStart)
+      } else {
+        const targetMs = lastMs - rangeCfg.days * 24 * 60 * 60 * 1000
+        filtered = allData.filter((d) => new Date(d.date).getTime() >= targetMs)
+      }
     }
-    const targetMs = lastMs - rangeCfg.days * 24 * 60 * 60 * 1000
-    return allData.filter((d) => new Date(d.date).getTime() >= targetMs)
-  }, [allData, range])
-
-  // 给数据添加 timestamp 数值字段，用于 X 轴时间刻度
-  const chartData = useMemo(() => {
-    return data.map((d) => ({
+    return filtered.map((d) => ({
       ...d,
       timestamp: new Date(d.date).getTime(),
     }))
-  }, [data])
+  }, [allData, range])
 
   // 根据时间跨度生成 X 轴刻度（按月或按年）
   const xTicks = useMemo(() => {
@@ -98,8 +98,8 @@ export default function TrendChart({ refreshKey = 0 }) {
   }
 
   const yTicks = useMemo(() => {
-    if (!data.length) return []
-    const values = data.map((d) => d.total)
+    if (!chartData.length) return []
+    const values = chartData.map((d) => d.total)
     const min = Math.min(...values)
     const max = Math.max(...values)
     const range = max - min
@@ -120,7 +120,7 @@ export default function TrendChart({ refreshKey = 0 }) {
       ticks.push(Math.round(v))
     }
     return ticks
-  }, [data])
+  }, [chartData])
 
   const yDomain = useMemo(() => {
     if (!yTicks.length) return ['dataMin - 20000', 'dataMax + 20000']

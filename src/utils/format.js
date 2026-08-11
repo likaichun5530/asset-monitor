@@ -13,8 +13,7 @@ export function formatWan(value) {
   return (Number(value) / 10000).toFixed(2) + ' 万'
 }
 
-// 百分比：传 0.12 表示 0.12%，传 12 表示 12%
-// pctValue 为已是百分比形式的数值
+// 百分比格式化：pctValue 为已是百分比形式的数值（如 12 表示 12%）
 export function formatPercent(pctValue, { withSign = false } = {}) {
   if (pctValue === null || pctValue === undefined || Number.isNaN(Number(pctValue))) return '--'
   const num = Number(pctValue).toFixed(2)

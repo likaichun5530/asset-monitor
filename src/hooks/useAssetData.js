@@ -20,6 +20,7 @@ export function useAssetData() {
   const [refreshKey, setRefreshKey] = useState(0)
   const mountedRef = useRef(true)
   const firstLoadDone = useRef(false)
+  const refreshingRef = useRef(false) // 防重入锁
 
   useEffect(() => {
     mountedRef.current = true
@@ -29,6 +30,9 @@ export function useAssetData() {
   }, [])
 
   const doLoad = useCallback(async (isFirstLoad) => {
+    // 防重入：本次加载未完成时忽略新的触发
+    if (refreshingRef.current && !isFirstLoad) return
+    if (isFirstLoad) refreshingRef.current = true
     if (isFirstLoad) setLoading(true)
     if (!isFirstLoad) setRefreshing(true)
     setError(null)
@@ -41,6 +45,7 @@ export function useAssetData() {
       if (!mountedRef.current) return
       setError(e?.message || String(e))
     } finally {
+      refreshingRef.current = false
       if (mountedRef.current) {
         if (isFirstLoad) {
           setLoading(false)
@@ -74,10 +79,13 @@ export function useAssetData() {
     })
   }, [doLoad])
 
-  // 自动刷新：每 5 分钟刷新一次
+  // 自动刷新：每 5 分钟刷新一次（仅页面可见时，且首次加载完成后）
   useEffect(() => {
     const interval = 5 * 60 * 1000
     const id = setInterval(() => {
+      // 首次加载未完成或页面不可见时跳过
+      if (!firstLoadDone.current) return
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
       doLoad(false).then(() => {
         if (mountedRef.current) setRefreshKey((k) => k + 1)
       })

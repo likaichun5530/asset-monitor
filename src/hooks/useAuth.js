@@ -3,13 +3,27 @@ import { useState, useCallback, useMemo } from 'react'
 const AUTH_KEY = 'youshu-auth-token'
 const API_BASE = import.meta.env.VITE_API_BASE || (typeof window !== 'undefined' ? window.location.origin : '')
 
-function isTokenExpired(token) {
+// 解析 JWT payload（缓存避免重复解码）
+let cachedPayload = null
+let cachedToken = null
+
+function parseToken(token) {
+  if (!token) return null
+  if (cachedToken === token && cachedPayload) return cachedPayload
   try {
     const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-    return Date.now() / 1000 > payload.exp
+    cachedToken = token
+    cachedPayload = payload
+    return payload
   } catch {
-    return true
+    return null
   }
+}
+
+function isTokenExpired(token) {
+  const payload = parseToken(token)
+  if (!payload) return true
+  return Date.now() / 1000 > payload.exp
 }
 
 export function useAuth() {
@@ -25,16 +39,15 @@ export function useAuth() {
   const isLoggedIn = Boolean(token)
 
   const username = useMemo(() => {
-    if (!token) return null
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-      return payload.username || null
-    } catch { return null }
+    const payload = parseToken(token)
+    return payload?.username || null
   }, [token])
 
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY)
     localStorage.removeItem('youshu-demo-mode')
+    cachedToken = null
+    cachedPayload = null
     setToken(null)
   }, [])
 
@@ -52,6 +65,8 @@ export function useAuth() {
         throw new Error(err.error || '登录失败')
       }
       const data = await resp.json()
+      cachedToken = data.token
+      cachedPayload = null
       localStorage.setItem(AUTH_KEY, data.token)
       localStorage.setItem('youshu-demo-mode', 'false')
       setToken(data.token)

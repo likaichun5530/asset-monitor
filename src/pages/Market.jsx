@@ -5,10 +5,6 @@ const CACHE_KEY = 'asset-monitor:market'
 
 const GROUP_ORDER = ['汇率', '数字货币', 'A股', '境外', '期货']
 
-function adaptPrecision() {
-  return 2
-}
-
 // 标的名 -> 图标映射
 function getNameIcon(name) {
   if (name === '美元' || name === 'USD' || name === '纳斯达克指数') return <span>🇺🇸</span>
@@ -120,7 +116,7 @@ export default function Market({ refreshKey = 0 }) {
                     <span>{item.name}</span>
                   </div>
                   <div className="text-base font-semibold text-gray-900 mt-1">
-                    {item.price ? Number(item.price).toFixed(adaptPrecision(item.price)) : '—'}
+                    {item.price ? Number(item.price).toFixed(2) : '—'}
                   </div>
                   {spread !== null && (
                     <div className="text-sm text-gray-500 font-normal mt-0.5">
