@@ -111,29 +111,40 @@ function CurrencyCard() {
     return items.map(d => ({ ...d, ratio: totalVal ? (d.value / totalVal) * 100 : 0 }))
   }, [holdings, total])
 
-  // 半圆环：from 0.25turn 使 0% 起于正右方，0-180° 为可见上半圆，
-  // 各币种按比例分配角度，180°-360° 用 transparent 隐藏下半圆
-  const halfGradient = useMemo(() => {
-    if (!pieData.length) return 'conic-gradient(from 0.25turn at 50% 100%, #e5e7eb 0deg 180deg, transparent 180deg 360deg)'
+  // 半圆环（SVG 实现，跨浏览器可靠）：从左(180°)到右(0°)，各币种按比例用 dash 分段
+  const halfRing = useMemo(() => {
+    const r = 50
+    const halfCirc = Math.PI * r // 半圆周长 ≈ 157
     let acc = 0
     const segments = pieData.map((d) => {
-      const startAngle = acc
-      const endAngle = acc + d.ratio * 1.8
-      acc = endAngle
-      return `${d.color} ${startAngle}deg ${endAngle}deg`
+      const seg = { color: d.color, len: (d.ratio / 100) * halfCirc, offset: acc }
+      acc += seg.len
+      return seg
     })
-    return `conic-gradient(from 0.25turn at 50% 100%, ${segments.join(',')}, transparent ${acc}deg 360deg)`
+    return { segments, totalLen: acc || halfCirc }
   }, [pieData])
 
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        {/* 半圆堆叠环（上半圆，加粗 20px） */}
-        <div className="relative w-36 h-[72px] overflow-hidden shrink-0">
-          <div className="absolute top-0 left-0 w-36 h-36 rounded-full" style={{ background: halfGradient }} />
-          <div className="absolute top-2.5 left-2.5 w-[124px] h-[124px] rounded-full bg-white dark:bg-gray-800" />
-        </div>
+        {/* 半圆堆叠环（SVG，粗 14px） */}
+        <svg viewBox="0 0 128 64" className="w-32 h-16 shrink-0">
+          {/* 背景轨道 */}
+          <path d="M 14 60 A 50 50 0 0 1 114 60" fill="none" stroke="#e5e7eb" strokeWidth="14" />
+          {/* 各币种分段 */}
+          {halfRing.segments.map((s, i) => (
+            <path
+              key={i}
+              d="M 14 60 A 50 50 0 0 1 114 60"
+              fill="none"
+              stroke={s.color}
+              strokeWidth="14"
+              strokeDasharray={`${s.len} ${halfRing.totalLen - s.len}`}
+              strokeDashoffset={-s.offset}
+            />
+          ))}
+        </svg>
         {/* 图例（单列竖排，shrink-0 防止被压缩消失） */}
         <div className="w-full flex flex-col gap-0.5 shrink-0">
           {pieData.map((d) => (
