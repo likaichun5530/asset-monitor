@@ -49,6 +49,10 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
 
   // 存储每个日期格子的 DOM 引用，用于滚动时更新弹窗位置
   const dayRefs = useRef({})
+  // 组件根容器引用（用于判断点击是否在日历内部）
+  const wrapRef = useRef(null)
+  // 防止点击弹窗本体立即关闭的标记
+  const suppressCloseRef = useRef(false)
 
   // 当前选中年月
   const now = new Date()
@@ -114,7 +118,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     if (!el) return
     const rect = el.getBoundingClientRect()
     setPopupPos({
-      top: rect.top,
+      top: Math.max(rect.top - 8, 60),
       left: rect.left + rect.width / 2,
     })
   }, [selectedDay])
@@ -139,12 +143,28 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     if (selectedDay?.date === dayInfo.date) { setSelectedDay(null); setPopupPos(null); return }
     // 点击其他日期：直接切换为新的日期，并更新弹窗位置
     setSelectedDay(dayInfo)
+    suppressCloseRef.current = true
     const rect = event.currentTarget.getBoundingClientRect()
     setPopupPos({
-      top: rect.top,
+      top: Math.max(rect.top - 8, 60),
       left: rect.left + rect.width / 2,
     })
   }
+
+  // 点击日历外部时关闭弹窗（替代全屏遮罩，避免 z 堆叠问题）
+  useEffect(() => {
+    if (!selectedDay) return
+    const onDocClick = (e) => {
+      // 本次点击由日期格子触发时，跳过（避免刚打开就关闭）
+      if (suppressCloseRef.current) { suppressCloseRef.current = false; return }
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setSelectedDay(null)
+        setPopupPos(null)
+      }
+    }
+    document.addEventListener('click', onDocClick)
+    return () => document.removeEventListener('click', onDocClick)
+  }, [selectedDay])
 
   const selectMonth = (ym) => {
     const [y, m] = ym.split('-').map(Number)
@@ -174,7 +194,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="card relative">
+    <div className="card relative" ref={wrapRef}>
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-gray-800">收益日历</h3>
@@ -253,8 +273,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         </div>
       </div>
 
-      {/* 日历网格（relative z-[41] 使日期格子高于遮罩，点击可切换日期） */}
-      <div className="grid grid-cols-7 gap-[2px] relative z-[41]">
+      {/* 日历网格（无 z 堆叠，避免穿透底部导航栏） */}
+      <div className="grid grid-cols-7 gap-[2px]">
         {WEEKDAY_HEADERS.map((w) => (
           <div key={w} className="text-center text-[10px] text-gray-400 py-[2px]">{w}</div>
         ))}
@@ -291,25 +311,21 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         })}
       </div>
 
-      {/* 点击弹出当天总资产（跟随日期，滚动时保持相对位置） */}
+      {/* 点击弹出当天总资产（跟随日期，滚动时保持相对位置；点击日历外部关闭） */}
       {selectedDay && popupPos && (
-        <>
-          {/* 遮罩在日历下方（z-40），点击非日期区域关闭；日期区域 z-[41] 优先响应 */}
-          <div className="fixed inset-0 z-40" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
-          <div
-            className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 px-3 py-2 text-center whitespace-nowrap pointer-events-none"
-            style={{
-              top: popupPos.top - 8,
-              left: popupPos.left,
-              transform: 'translate(-50%, -100%)',
-            }}
-          >
-            <div className="text-[10px] text-gray-500 dark:text-gray-400">{selectedDay.date}</div>
-            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-              {formatCurrency(selectedDay.total)}
-            </div>
+        <div
+          className="fixed z-30 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 px-3 py-2 text-center whitespace-nowrap pointer-events-none"
+          style={{
+            top: popupPos.top,
+            left: popupPos.left,
+            transform: 'translate(-50%, -100%)',
+          }}
+        >
+          <div className="text-[10px] text-gray-500 dark:text-gray-400">{selectedDay.date}</div>
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
+            {formatCurrency(selectedDay.total)}
           </div>
-        </>
+        </div>
       )}
     </div>
   )

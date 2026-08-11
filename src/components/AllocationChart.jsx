@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { groupByCategory } from '../utils/asset.js'
 import { assetColors } from '../data/holdings.js'
-import { formatCurrency, formatWan } from '../utils/format.js'
+import { formatWan } from '../utils/format.js'
 
 const colorMap = {
   股票: '#3b82f6',
@@ -77,10 +77,6 @@ export default function AllocationChart({ refreshKey = 0 }) {
             </div>
           )
         })}
-      </div>
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-        <span className="text-gray-500 font-medium">合计</span>
-        <span className="text-gray-800 font-semibold">{formatCurrency(total)}</span>
       </div>
     </div>
   )
