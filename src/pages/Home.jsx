@@ -111,9 +111,10 @@ function CurrencyCard() {
     return items.map(d => ({ ...d, ratio: totalVal ? (d.value / totalVal) * 100 : 0 }))
   }, [holdings, total])
 
-  // 半圆环：conic-gradient 从 180° 到 360°（上半圆），各币种按比例分角度
+  // 半圆环：from 0.25turn 使 0% 起于正右方，0-180° 为可见上半圆，
+  // 各币种按比例分配角度，180°-360° 用 transparent 隐藏下半圆
   const halfGradient = useMemo(() => {
-    if (!pieData.length) return 'conic-gradient(from 0.5turn at 50% 100%, #e5e7eb 0deg 180deg)'
+    if (!pieData.length) return 'conic-gradient(from 0.25turn at 50% 100%, #e5e7eb 0deg 180deg, transparent 180deg 360deg)'
     let acc = 0
     const segments = pieData.map((d) => {
       const startAngle = acc
@@ -121,17 +122,17 @@ function CurrencyCard() {
       acc = endAngle
       return `${d.color} ${startAngle}deg ${endAngle}deg`
     })
-    return `conic-gradient(from 0.5turn at 50% 100%, ${segments.join(',')})`
+    return `conic-gradient(from 0.25turn at 50% 100%, ${segments.join(',')}, transparent ${acc}deg 360deg)`
   }, [pieData])
 
   return (
     <div className="card w-full h-[190px] flex flex-col px-3 pt-2 pb-2">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        {/* 半圆堆叠环（上半圆） */}
-        <div className="relative w-32 h-16 overflow-hidden shrink-0">
-          <div className="absolute top-0 left-0 w-32 h-32 rounded-full" style={{ background: halfGradient }} />
-          <div className="absolute top-1.5 left-1.5 w-[116px] h-[116px] rounded-full bg-white dark:bg-gray-800" />
+        {/* 半圆堆叠环（上半圆，加粗 20px） */}
+        <div className="relative w-36 h-[72px] overflow-hidden shrink-0">
+          <div className="absolute top-0 left-0 w-36 h-36 rounded-full" style={{ background: halfGradient }} />
+          <div className="absolute top-2.5 left-2.5 w-[124px] h-[124px] rounded-full bg-white dark:bg-gray-800" />
         </div>
         {/* 图例（单列竖排） */}
         <div className="w-full flex flex-col gap-0.5">
