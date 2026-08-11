@@ -63,18 +63,6 @@ async function apiPost(endpoint, body) {
   return resp.json()
 }
 
-async function apiPut(endpoint, body) {
-  if (!API_BASE) throw new Error('未配置 VITE_API_BASE')
-  const resp = await fetch(`${API_BASE}/api/${endpoint}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15000),
-  })
-  if (!resp.ok) throw new Error(`API ${endpoint} 返回 ${resp.status}`)
-  return resp.json()
-}
-
 // ===== Holdings =====
 
 export async function fetchHoldings() {
@@ -118,26 +106,10 @@ function normalizeHoldings(arr) {
       currency: r.currency || r.Currency || 'CNY',
       quantity: r.quantity ?? r.Quantity ?? null,
       price: r.price ?? r.Price ?? null,
-      priceMode: r.priceMode === 'realtime' ? 'realtime' : '-',
       marketValue: r.marketValue ?? r.MarketValue ?? null,
       marketValueCNY: r.marketValueCNY ?? r.MarketValueCNY ?? 0,
     }
   })
-}
-
-// 保存完整持仓到 Google Sheets（整表覆盖）
-export async function updateHoldings(holdings) {
-  if (readLocal('youshu-demo-mode', false)) {
-    throw new Error('演示模式下不可编辑持仓')
-  }
-  if (!API_BASE) {
-    throw new Error('未配置后端')
-  }
-  const result = await apiPut('holdings', { holdings })
-  // 更新本地缓存
-  writeLocal(KEYS.holdings, { holdings, syncedAt: result.syncedAt })
-  writeLocal(KEYS.lastSync, new Date().toISOString())
-  return result
 }
 
 // ===== History =====
