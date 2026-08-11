@@ -113,7 +113,7 @@ function CurrencyCard() {
   }, [holdings, total])
 
   return (
-    <div className="card w-full aspect-square flex flex-col px-3 pt-2 pb-4">
+    <div className="card w-full lg:aspect-square flex flex-col px-3 pt-2 pb-4 min-h-[180px]">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center min-h-0">
         <ResponsiveContainer width="100%" height="100%">
@@ -185,7 +185,7 @@ function HealthCard({ refreshKey }) {
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
 
   return (
-    <div className="card w-full aspect-square flex flex-col px-3 pt-2 pb-4">
+    <div className="card w-full lg:aspect-square flex flex-col px-3 pt-2 pb-4 min-h-[180px]">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
       <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
         <div className="text-gray-500">现金建议：</div>
@@ -347,7 +347,7 @@ export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
               <div className="mt-1 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
             </div>
             <button onClick={handleSnapshot} disabled={snapshotLoading}
-              className="inline-flex items-center justify-center gap-1 w-[30px] h-[30px] rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium transition-colors disabled:opacity-60 shrink-0"
+              className="inline-flex items-center justify-center gap-1 w-7 h-7 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium transition-colors disabled:opacity-60 shrink-0"
             >
               {snapshotLoading ? (
                 <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">

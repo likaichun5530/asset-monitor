@@ -106,7 +106,7 @@ export default function Holdings({ loading, refreshKey }) {
         <div className="overflow-x-auto max-w-full">
           <table className="w-full text-sm">
             <colgroup>
-              <col className="w-[120px] min-w-[120px]" />
+              <col className="w-[100px] min-w-[100px]" />
               <col />
               <col />
               <col />

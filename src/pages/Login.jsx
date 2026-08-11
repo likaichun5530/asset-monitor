@@ -29,7 +29,7 @@ export default function Login() {
 
   return (
     <div className="min-h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="w-full max-w-sm -mt-[72px] sm:mt-0">
+      <div className="w-full max-w-sm -mt-16 sm:mt-0">
         <div className="flex justify-center mb-8">
           <img src="/Transparent-Chinese.png" alt="有数" className="w-[108px] h-[40px] object-cover object-center block dark:hidden" />
           <img src="/white-Chinese.png" alt="有数" className="w-[108px] h-[40px] object-cover object-center hidden dark:block" />

@@ -109,7 +109,7 @@ export default function Market({ refreshKey = 0 }) {
               const icon = group.name === '数字货币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
-                  className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 aspect-square"
+                  className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 lg:aspect-square min-h-[100px]"
                 >
                   <div className="text-base text-gray-900 flex items-center gap-1">
                     {icon}
