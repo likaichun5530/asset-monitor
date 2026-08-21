@@ -43,14 +43,23 @@ export default async function handler(req, res) {
     getCellValue('B11', CONTRACT_FALLBACK[2]),
   ])
 
+  // 按交割日动态计算剩余天数（避免硬编码固定值）
+  function calcDaysToSettle(settleDate) {
+    if (!settleDate) return 0
+    const settleMs = new Date(settleDate).getTime()
+    if (Number.isNaN(settleMs)) return 0
+    return Math.max(0, Math.ceil((settleMs - Date.now()) / 86400000))
+  }
+
   const data = [
-    { type: '现货', code: 'CSI500', price: spot, spot, discount: 0, daysToSettle: 0, annualRate: null, settleDate: '' },
-    { type: '当月', code: 'IC2608', price: p0, spot, discount: spot - p0, daysToSettle: 25, annualRate: null, settleDate: '2026-08-21' },
-    { type: '次月', code: 'IC2609', price: p1, spot, discount: spot - p1, daysToSettle: 54, annualRate: null, settleDate: '2026-09-18' },
-    { type: '远月', code: 'IC2612', price: p2, spot, discount: spot - p2, daysToSettle: 145, annualRate: null, settleDate: '2026-12-18' },
+    { type: '现货', code: 'CSI500', price: spot, spot, discount: 0, annualRate: null, settleDate: '' },
+    { type: '当月', code: 'IC2608', price: p0, spot, discount: spot - p0, annualRate: null, settleDate: '2026-08-21' },
+    { type: '次月', code: 'IC2609', price: p1, spot, discount: spot - p1, annualRate: null, settleDate: '2026-09-18' },
+    { type: '远月', code: 'IC2612', price: p2, spot, discount: spot - p2, annualRate: null, settleDate: '2026-12-18' },
   ]
 
   for (const d of data) {
+    d.daysToSettle = calcDaysToSettle(d.settleDate)
     if (d.daysToSettle > 0 && d.price > 0 && d.discount > 0) {
       d.annualRate = Math.round((d.discount / d.price) * (365 / d.daysToSettle) * 10000) / 100
     }

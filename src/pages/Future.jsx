@@ -105,7 +105,10 @@ export default function Future({ refreshKey = 0 }) {
       const realPrice = marketPriceMap.get(code)
       const price = realPrice ?? d.price
       const spread = spot != null ? spot - price : null
-      const daysToSettle = d.daysToSettle ?? null
+      // 按交割日动态计算剩余天数（避免后端/缓存固定值过期）
+      const daysToSettle = d.settleDate
+        ? Math.max(0, Math.ceil((new Date(d.settleDate) - new Date()) / 86400000))
+        : (d.daysToSettle ?? null)
       // 年化率 = (贴水/价格) * (365/到期天数)，贴水正、升水负
       const annualRate = spread !== null && daysToSettle && daysToSettle > 0
         ? (spread / price) * (365 / daysToSettle) * 100
