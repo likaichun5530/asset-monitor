@@ -248,7 +248,8 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   const longPressTimer = useRef(null)
   const sortRef = useRef(null)
   const sortInstance = useRef(null)
-  const dragActive = useRef(false)
+  const longPressStart = useRef(null)
+  const cardConfigRef = useRef(cardConfig)
 
   const total = useMemo(() => currentTotal(), [refreshKey])
   const c7 = useMemo(() => change7d(), [refreshKey])
@@ -272,14 +273,37 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   }, [total, onSnapshot])
 
   const startLongPress = useCallback((e) => {
-    if (e?.target?.closest?.('.recharts-wrapper')) return
-    longPressTimer.current = setTimeout(() => { setEditMode(true) }, 2000)
+    if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input, .drag-handle')) return
+    const point = e.touches?.[0] || e
+    longPressStart.current = { x: point.clientX, y: point.clientY }
+    clearTimeout(longPressTimer.current)
+    longPressTimer.current = setTimeout(() => {
+      longPressTimer.current = null
+      longPressStart.current = null
+      setEditMode(true)
+    }, 2000)
+  }, [editMode])
+  const cancelLongPress = useCallback(() => {
+    clearTimeout(longPressTimer.current)
+    longPressTimer.current = null
+    longPressStart.current = null
   }, [])
-  const cancelLongPress = useCallback(() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null } }, [])
+  const handleLongPressMove = useCallback((e) => {
+    if (!longPressTimer.current || !longPressStart.current) return
+    const point = e.touches?.[0] || e
+    if (Math.hypot(point.clientX - longPressStart.current.x, point.clientY - longPressStart.current.y) > 8) {
+      cancelLongPress()
+    }
+  }, [cancelLongPress])
   useEffect(() => { return () => { if (longPressTimer.current) clearTimeout(longPressTimer.current) } }, [])
 
-  function toggleCard(key) { const next = { ...cardConfig, [key]: !cardConfig[key] }; setCardConfig(next); writeCardConfig(next) }
-  function exitEditMode() { setEditMode(false); document.body.style.overflow = '' }
+  function toggleCard(key) {
+    const next = { ...cardConfigRef.current, [key]: !cardConfigRef.current[key] }
+    cardConfigRef.current = next
+    setCardConfig(next)
+    writeCardConfig(next)
+  }
+  function exitEditMode() { setEditMode(false) }
 
   const visibleItems = useMemo(() => cardOrder.filter(k => cardConfig[k]), [cardOrder, cardConfig])
 
@@ -289,47 +313,52 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       if (sortInstance.current) { sortInstance.current.destroy(); sortInstance.current = null }
       return
     }
+    const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
     sortInstance.current = Sortable.create(sortRef.current, {
-      animation: 200,
+      animation: 120,
       easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
       handle: '.drag-handle',
       ghostClass: 'sortable-ghost',
       dragClass: 'sortable-drag',
+      fallbackClass: 'sortable-fallback',
+      forceFallback: coarsePointer,
+      fallbackOnBody: true,
+      fallbackTolerance: 3,
+      swapThreshold: 0.55,
+      invertSwap: true,
+      invertedSwapThreshold: 0.5,
+      scroll: true,
+      bubbleScroll: true,
+      scrollSensitivity: 70,
+      scrollSpeed: 12,
+      direction: (_evt, target, dragEl) => {
+        const containerWidth = sortRef.current?.clientWidth || 0
+        const targetWidth = target?.getBoundingClientRect().width || 0
+        const dragWidth = dragEl?.getBoundingClientRect().width || 0
+        return targetWidth > containerWidth * 0.75 || dragWidth > containerWidth * 0.75 ? 'vertical' : 'horizontal'
+      },
       filter: '.no-sort',
       preventOnFilter: false,
       onStart: () => {
-        dragActive.current = true
-        const scrollY = window.scrollY
-        document.body.dataset.scrollY = String(scrollY)
-        document.body.style.position = 'fixed'
-        document.body.style.top = `-${scrollY}px`
-        document.body.style.width = '100%'
-        document.body.style.overflow = 'hidden'
+        document.body.dataset.sortableDragging = 'true'
       },
-      onEnd: (evt) => {
-        dragActive.current = false
-        const scrollY = parseInt(document.body.dataset.scrollY || '0')
-        document.body.style.position = ''
-        document.body.style.top = ''
-        document.body.style.width = ''
-        document.body.style.overflow = ''
-        delete document.body.dataset.scrollY
-        window.scrollTo(0, scrollY)
-        if (evt.oldIndex === evt.newIndex) return
-        const visibleKeys = cardOrder.filter(k => cardConfig[k])
-        const [moved] = visibleKeys.splice(evt.oldIndex, 1)
-        visibleKeys.splice(evt.newIndex, 0, moved)
-        const result = []
-        let vi = 0
-        for (const k of cardOrder) {
-          if (cardConfig[k]) { result.push(visibleKeys[vi]); vi++ }
-          else result.push(k)
-        }
-        setCardOrder(result)
-        writeCardOrder(result)
+      onEnd: () => {
+        delete document.body.dataset.sortableDragging
+        const visibleKeys = sortInstance.current?.toArray() || []
+        setCardOrder((previous) => {
+          const expectedCount = previous.filter((key) => cardConfigRef.current[key]).length
+          if (visibleKeys.length !== expectedCount) return previous
+          let visibleIndex = 0
+          const result = previous.map((key) => cardConfigRef.current[key] ? visibleKeys[visibleIndex++] : key)
+          writeCardOrder(result)
+          return result
+        })
       },
     })
-    return () => { if (sortInstance.current) { sortInstance.current.destroy(); sortInstance.current = null } }
+    return () => {
+      delete document.body.dataset.sortableDragging
+      if (sortInstance.current) { sortInstance.current.destroy(); sortInstance.current = null }
+    }
   }, [editMode])
 
   function getStat(key) {
@@ -349,8 +378,9 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   }
 
   return (
-    <div className="space-y-[4px] sm:space-y-4" onTouchStart={startLongPress} onTouchEnd={cancelLongPress}
-      onMouseDown={startLongPress} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
+    <div className="space-y-[4px] sm:space-y-4" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
+      onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onMouseDown={startLongPress}
+      onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
       {editMode && (
         <div className="card py-2 px-4 flex items-center justify-between bg-brand-50 border-brand-200">
@@ -399,7 +429,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
                 <div className="relative">
                   {editMode && (
                     <>
-                      <div className="drag-handle absolute top-1 left-1 z-20 w-6 h-6 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
+                      <div className="drag-handle absolute top-1 left-1 z-20 w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="12" height="2" rx="1" /><rect x="6" y="9" width="12" height="2" rx="1" /><rect x="6" y="14" width="12" height="2" rx="1" /></svg>
                       </div>
                       <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -416,7 +446,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
                 <div className="relative">
                   {editMode && (
                     <>
-                      <div className="drag-handle absolute top-1 left-1 z-20 w-6 h-6 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
+                      <div className="drag-handle absolute top-1 left-1 z-20 w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="12" height="2" rx="1" /><rect x="6" y="9" width="12" height="2" rx="1" /><rect x="6" y="14" width="12" height="2" rx="1" /></svg>
                       </div>
                       <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -432,7 +462,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
               <div className="relative">
                 {editMode && (
                   <>
-                    <div className="drag-handle absolute top-2 left-2 z-20 w-7 h-7 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <div className="drag-handle absolute top-2 left-2 z-20 w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="12" height="2" rx="1" /><rect x="6" y="9" width="12" height="2" rx="1" /><rect x="6" y="14" width="12" height="2" rx="1" /></svg>
                     </div>
                     <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -457,7 +487,14 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
 
       <style>{`
         .sortable-ghost { opacity: 0.15; }
-        .sortable-drag { opacity: 1 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 12px; transform: scale(1.02); }
+        .sortable-drag, .sortable-fallback {
+          opacity: 0.97 !important;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+          border-radius: 12px;
+          pointer-events: none !important;
+          will-change: transform;
+          backface-visibility: hidden;
+        }
       `}</style>
     </div>
   )

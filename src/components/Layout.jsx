@@ -72,7 +72,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const contentRef = useRef(null)
-  const touchStartY = useRef(0)
+  const touchStartY = useRef(null)
   const refreshingRef = useRef(false)
   const pullingRef = useRef(false)
   const sloganTimerRef = useRef(null)
@@ -88,13 +88,18 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
   const handleTouchStart = useCallback((e) => {
     const scrollY = window.scrollY || document.documentElement.scrollTop
-    if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current) return
+    const dragGesture = document.body.dataset.sortableDragging === 'true' || e.target.closest?.('.drag-handle')
+    if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || dragGesture) {
+      touchStartY.current = null
+      pullingRef.current = false
+      return
+    }
     touchStartY.current = e.touches[0].clientY
     pullingRef.current = false
   }, [])
 
   const handleTouchMove = useCallback((e) => {
-    if (refreshingRef.current || window.innerWidth >= 640) return
+    if (refreshingRef.current || window.innerWidth >= 640 || touchStartY.current === null || document.body.dataset.sortableDragging === 'true') return
     const scrollY = window.scrollY || document.documentElement.scrollTop
     if (scrollY > 5) return
     const deltaY = e.touches[0].clientY - touchStartY.current
@@ -106,7 +111,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   }, [resetPull])
 
   const handleTouchEnd = useCallback(async () => {
-    if (refreshingRef.current || window.innerWidth >= 640 || !pullingRef.current) { pullingRef.current = false; return }
+    if (refreshingRef.current || window.innerWidth >= 640 || touchStartY.current === null || !pullingRef.current) {
+      touchStartY.current = null
+      pullingRef.current = false
+      return
+    }
+    touchStartY.current = null
     pullingRef.current = false
     const match = (contentRef.current?.style?.transform || '').match(/translateY\(([\d.]+)px\)/)
     const dist = match ? parseFloat(match[1]) : 0
