@@ -14,7 +14,7 @@ import { useAuth } from './hooks/useAuth.js'
 import Settings, { initTheme } from './pages/Settings.jsx'
 
 export default function App() {
-  const { loading, source, syncedAt, error, refresh, refreshKey, bumpRefreshKey } = useAssetData()
+  const { source, syncedAt, error, refresh, refreshKey, bumpRefreshKey } = useAssetData()
   const auth = useAuth()
 
   useEffect(() => { initTheme() }, [])
@@ -25,9 +25,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route element={isAuthenticated ? <Layout source={source} syncedAt={syncedAt} loading={loading} error={error} onRefresh={refresh} auth={auth} /> : <Navigate to="/login" replace />}>
-        <Route index element={<Home loading={loading} refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
-        <Route path="holdings" element={<Holdings loading={loading} refreshKey={refreshKey} />} />
+      <Route element={isAuthenticated ? <Layout source={source} syncedAt={syncedAt} error={error} onRefresh={refresh} auth={auth} /> : <Navigate to="/login" replace />}>
+        <Route index element={<Home refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
+        <Route path="holdings" element={<Holdings refreshKey={refreshKey} />} />
         <Route path="target" element={<Target refreshKey={refreshKey} />} />
         <Route path="settings" element={<Settings auth={auth} />} />
         <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
@@ -40,7 +40,7 @@ export default function App() {
         <Route path="future" element={<Future refreshKey={refreshKey} />} />
         <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
         <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
-        <Route path="*" element={<Home loading={loading} refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
+        <Route path="*" element={<Home refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
       </Route>
     </Routes>
   )

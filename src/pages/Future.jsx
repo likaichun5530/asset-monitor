@@ -1,8 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
-
-const API_BASE = import.meta.env.VITE_API_BASE || ''
+import { getApiJson } from '../utils/api.js'
 
 function getMultiplier(symbol) {
   if (!symbol) return 1
@@ -49,9 +48,7 @@ export default function Future({ refreshKey = 0 }) {
   })
 
   useEffect(() => {
-    if (!API_BASE) return
-    fetch(`${API_BASE}/api/futures`, { cache: 'no-store' })
-      .then((r) => r.json())
+    getApiJson('futures')
       .then((res) => {
         const data = res.futures || null
         setFuturesData(data)
@@ -64,9 +61,7 @@ export default function Future({ refreshKey = 0 }) {
 
   // 同时拉取行情数据获取实时价格
   useEffect(() => {
-    if (!API_BASE) return
-    fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
-      .then((r) => r.json())
+    getApiJson('market')
       .then((res) => {
         const data = res.market || []
         setMarketData(data)
@@ -228,7 +223,7 @@ export default function Future({ refreshKey = 0 }) {
           </div>
         ) : (
           <div className="text-sm text-gray-400 py-4 text-center">
-            {API_BASE ? '暂无数据' : '需要后端支持才能获取期货数据'}
+            暂无数据
           </div>
         )}
       </div>

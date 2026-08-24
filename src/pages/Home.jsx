@@ -239,7 +239,7 @@ function HealthCard({ refreshKey }) {
   )
 }
 
-export default function Home({ loading, refreshKey, onSnapshot, onRefresh }) {
+export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   const [snapshotLoading, setSnapshotLoading] = useState(false)
   const [snapshotMsg, setSnapshotMsg] = useState(null)
   const [cardConfig, setCardConfig] = useState(readCardConfig)

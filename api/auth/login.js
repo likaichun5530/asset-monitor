@@ -1,5 +1,6 @@
 // Vercel Function: POST /api/auth/login
 import crypto from 'crypto'
+import { readJsonBody } from '../_http.js'
 
 const AUTH_USERNAME = process.env.AUTH_USERNAME || ''
 const AUTH_PASSWORD = process.env.AUTH_PASSWORD || ''
@@ -30,9 +31,14 @@ export default async function handler(req, res) {
     return res.end(JSON.stringify({ error: '未配置登录凭据' }))
   }
 
-  let body = ''
-  for await (const chunk of req) body += chunk
-  const { username, password } = JSON.parse(body)
+  let credentials
+  try {
+    credentials = await readJsonBody(req)
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'application/json' })
+    return res.end(JSON.stringify({ error: '请求体必须是有效的 JSON' }))
+  }
+  const { username, password } = credentials
 
   if (username !== AUTH_USERNAME || password !== AUTH_PASSWORD) {
     res.writeHead(401, { 'Content-Type': 'application/json' })

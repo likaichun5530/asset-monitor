@@ -1,6 +1,6 @@
 # Asset Monitor · 个人资产管理
 
-一个响应式的个人资产管理 Web 应用，支持网页与手机查看。基于 React + Vite + Tailwind CSS + Recharts 构建。数据来源于 Google Sheets。
+一个响应式的个人资产管理应用，支持 Web、PWA 和 Capacitor Android。前端基于 React + Vite + Tailwind CSS + Recharts，实盘数据来自 Google Sheets。
 
 ## 功能特性
 
@@ -12,7 +12,7 @@
   - 较高点回撤金额与百分比
 - **资产趋势图**：历史资产快照曲线，支持「月 / 季 / 半年 / 年 / 全部」时间范围切换，标注历史高点，hover 显示金额与备注（如「付房款」「我爸给10w」）
 - **资产配置**：合并饼图与金额列表，支持三种维度切换：
-  - 按类别（股票 / 数字货币 / 黄金 / 现金 / 债券 / 期货）
+  - 按类别（股票 / 虚拟币 / 黄金 / 现金 / 债券 / 期货）
   - 按市场（美股 / A股 / 港股 / 日股 / 全球）
   - 按币种（人民币 / 美元 / 港币）
 - **账户分布**：按账户/平台（IBKR / Snowball / Binance 等）展示资产分布与进度条
@@ -22,8 +22,12 @@
 - 快照会立即追加到趋势图中（本地浏览器保存）
 - **可选**：配置后端后，可同步写入 Google Sheets 的「历史」表
 
+### 📈 行情 / 期货
+- **行情页**：展示汇率 / 虚拟币 / A 股 / 期货等行情（数据来自 Google Sheets「Market」表）
+- **期货页**：中证500期现贴水、到期天数与年化率（合约代码与价格来自 Market 表）
+
 ### 📋 持仓明细
-- 类别筛选（全部 / 股票 / 数字货币 / 黄金 / 现金 / 债券 / 期货）
+- 类别筛选（全部 / 股票 / 虚拟币 / 黄金 / 现金 / 债券 / 期货）
 - 桌面端表格：名称、代码、类别、市场、账户、币种、数量、单价、原币市值、人民币市值、占比，支持列排序
 - 移动端卡片式列表
 - 合计行汇总
@@ -41,7 +45,9 @@
 | React Router 6 | 路由 |
 | Tailwind CSS 3 | 原子化样式 |
 | Recharts 2 | 图表库 |
-| Express + googleapis | 可选后端，用于写入 Google Sheets |
+| Vercel Functions | 生产 API，读写 Google Sheets |
+| Express | 本地 API 容器，直接复用 Vercel Functions |
+| vite-plugin-pwa / Capacitor | PWA 与 Android 封装 |
 
 ## 快速开始
 
@@ -60,29 +66,33 @@ npm run build
 
 开发服务器启用了 `--host`，可在局域网内通过手机直接访问（例如 `http://<本机IP>:5173`）。
 
-### 后端（可选，用于「生成快照」写入 Google Sheets）
+### 本地 API
 
-**方式一：本地 Express 服务器**
+本地 Express 服务器：
 
 ```bash
-cd server
-cp .env.example .env
-# 编辑 .env 填入 Google Sheets 凭据
+cp server/.env.example server/.env
+# 编辑 server/.env，填入 Google Sheets 与登录凭据
 npm install
-npm start
+cd server && npm install && cd ..
+npm run dev
 ```
 
-然后在前端项目根目录创建 `.env.local`：
+在前端项目根目录创建 `.env.local`：
 
 ```
 VITE_API_BASE=http://localhost:8787
 ```
 
-**方式二：Vercel Serverless Functions（推荐生产环境）**
+`npm run dev` 会同时启动前端（5173）和本地 API（8787）。本地 Express 只负责 HTTP 服务，路由处理器直接复用 `api/` 中的 Vercel Functions，避免两套后端行为不一致。
+
+### Vercel Serverless Functions（推荐生产环境）
 
 无需额外运行服务器，API 路由位于 `api/` 目录下，部署到 Vercel 后自动生效。
 
-未配置后端时，「生成快照」按钮仍可用，快照会保存在浏览器 localStorage 中并实时更新趋势图。
+API 不可用时，应用会读取浏览器中最近一次成功同步的缓存；快照会先写入 localStorage，待 API 恢复后重试同步。
+
+> 登录用于前端实盘/演示模式切换。当前持仓等普通 API 没有校验该 JWT；如部署到公网并需要数据隔离，应在网关或 API 层另行增加访问控制。
 
 ## 🚀 部署上线（通过域名访问）
 
@@ -114,6 +124,10 @@ vercel
 | `SPREADSHEET_ID` | Google Sheets 文件 ID | `1abc...` |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | 服务账号邮箱 | `xxx@xxx.iam.gserviceaccount.com` |
 | `GOOGLE_PRIVATE_KEY` | 服务账号私钥 | `-----BEGIN PRIVATE KEY-----\n...` |
+| `JWT_SECRET` | JWT 签名密钥（生产环境应配置；代码中存在开发默认值） | 长随机字符串 |
+| `AUTH_USERNAME` | 登录用户名 | 自定义 |
+| `AUTH_PASSWORD` | 登录密码 | 自定义 |
+| `CRON_SECRET` | 自动快照 Cron 调用密钥 | 长随机字符串 |
 
 配置后重新部署使环境变量生效：
 
@@ -132,15 +146,15 @@ vercel --prod
 
 绑定成功后即可通过 `https://your-domain.com` 访问。
 
-#### 5. 配置生产环境前端 API 地址（可选）
+#### 5. 配置前端 API 地址（前后端分离时才需要）
 
-如果使用自定义域名，前端会自动使用同域名的 `/api/*` 路径，无需额外配置 `VITE_API_BASE`。
+同域部署会自动使用当前域名下的 `/api/*`，无需设置 `VITE_API_BASE`。
 
 如果前端和 API 分离部署，可在 Vercel 项目设置中添加环境变量 `VITE_API_BASE` 指向 API 地址，然后重新构建部署。
 
 ### 部署到其他平台（静态托管）
 
-项目是纯前端 SPA，API 通过 Vercel Serverless Functions 提供，也可以：
+前端可部署到任意静态托管平台，API 需继续部署在 Vercel 或其他兼容服务上：
 
 1. **构建生产版本**：
    ```bash
@@ -150,9 +164,7 @@ vercel --prod
 
 2. **部署 `dist/` 到任意静态托管**（如 Netlify、Cloudflare Pages、Nginx 等）
 
-3. **注意**：SPA 需要配置回退规则，将所有非文件请求指向 `index.html`：
-   - Vercel：已自动处理（`vercel.json` 中已配置）
-   - Nginx：`try_files $uri $uri/ /index.html;`
+3. 设置 `VITE_API_BASE` 指向独立部署的 API 地址后重新构建。项目使用 `HashRouter`，页面路由不依赖服务器回退规则。
 
 ## 目录结构
 
@@ -167,13 +179,21 @@ Asset-Monitor/
 ├── .env.example              # 前端环境变量示例
 ├── api/                       # Vercel Serverless Functions（生产环境 API）
 │   ├── _google.js             # Google Service Account JWT 认证（零外部依赖）
+│   ├── _http.js               # Serverless / Express 通用请求解析
+│   ├── _snapshot.js           # 手动与定时快照的共享逻辑
+│   ├── auth/
+│   │   └── login.js           # POST /api/auth/login（签发 JWT）
+│   ├── futures.js             # GET  /api/futures
 │   ├── health.js              # GET  /api/health
 │   ├── holdings.js            # GET  /api/holdings
 │   ├── history.js             # GET  /api/history
 │   ├── snapshot.js            # POST /api/snapshot
+│   ├── market.js              # GET  /api/market
+│   ├── snapshot-auto.js       # GET  /api/snapshot-auto（Vercel Cron）
 │   └── target.js              # GET  /api/target
 ├── public/
-│   └── favicon.svg
+│   ├── icon.png
+│   └── 品牌图片
 ├── src/
 │   ├── main.jsx
 │   ├── App.jsx
@@ -188,39 +208,43 @@ Asset-Monitor/
 │   │   ├── Home.jsx             # 首页（总资产 + 涨跌卡片 + 生成快照）
 │   │   ├── Holdings.jsx         # 持仓明细（表格 + 移动端卡片）
 │   │   ├── Target.jsx           # 配置目标（超配/低配提醒）
-│   │   ├── AssetDetail.jsx      # 资产详情（美股/A股/港股/日股/债基/数字货币/期货/黄金）
+│   │   ├── AssetDetail.jsx      # 资产详情（美股/A股/港股/日股/债基/虚拟币/期货/黄金）
 │   │   ├── Cash.jsx             # 现金分布
-│   │   ├── Profile.jsx          # "我的"页面
+│   │   ├── Login.jsx            # 登录页
+│   │   ├── Market.jsx           # 行情页
+│   │   ├── Future.jsx           # 期货页（期现贴水）
 │   │   └── Settings.jsx         # 设置（主题切换）
 │   ├── data/
-│   │   ├── holdings.js          # 持仓明细（对应 Holdings 表，静态兜底）
-│   │   └── history.js           # 历史快照（对应 History 表，静态兜底）
+│   │   ├── demo.js              # 演示模式数据
+│   │   └── holdings.js          # 分类、市场和币种的显示配置
 │   ├── hooks/
-│   │   └── useAssetData.js      # 数据加载/刷新/自动同步 hook
+│   │   ├── useAssetData.js      # 数据加载/刷新/自动同步 hook
+│   │   └── useAuth.js           # 登录状态 / JWT 管理
 │   └── utils/
 │       ├── asset.js             # 资产计算（聚合/涨跌/回撤）
 │       ├── dataStore.js         # 离线优先数据存储（Google Sheets + localStorage）
+│       ├── api.js               # API 地址统一生成
 │       ├── snapshot.js          # 快照内存缓存管理
-│       ├── format.js            # 数值/日期格式化
-│       └── googleSheets.js      # Google Sheets 直连（备选方案）
+│       └── format.js            # 数值/日期格式化
 ├── server/                      # 本地 Express 后端（开发环境可选）
 │   ├── index.js
 │   ├── package.json
+│   ├── setup-target.mjs        # target 表初始化脚本
 │   └── .env.example
-├── electron/                    # Electron 桌面端
+├── electron/                    # 历史 Electron 主进程代码（当前未配置打包依赖/脚本）
 │   └── main.cjs
 └── android/                     # Capacitor Android 原生项目
 ```
 
 ## 数据维护
 
-数据来源于 Google Sheets，已内置为前端示例数据，位于 `src/data/`。
+实盘数据来源于 Google Sheets；演示数据位于 `src/data/demo.js`。
 
-### 持仓数据 `holdings.js`（对应 `Holdings` 表）
+### 持仓数据（`Holdings` 表）
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `assetType` | string | 资产大类（股票 / 数字货币 / 黄金 / 现金 / 债券 / 期货） |
+| `assetType` | string | 资产大类（股票 / 虚拟币 / 黄金 / 现金 / 债券 / 期货） |
 | `market` | string | 市场（US / CN / HK / JP / GLOBAL） |
 | `account` | string | 账户/平台 |
 | `symbol` | string | 代码（现金类为 `-`） |
@@ -231,17 +255,11 @@ Asset-Monitor/
 | `marketValue` | number | 原币市值 |
 | `marketValueCNY` | number | 人民币市值 |
 
-文件底部还维护：`categoryOrder`、`categoryColors`、`exchangeRates`、`marketLabels`、`marketColors`、`marketOrder`、`currencyColors`、`currencyLabels`
+`src/data/holdings.js` 只维护资产颜色、市场颜色和市场标签，不包含实盘持仓。
 
-### 历史数据 `history.js`（对应 `历史` 表）
+### 历史数据（`History` 表）
 
-每日一条 `{ date, total, note? }` 快照：
-- `total`：当日资产总额（不含高风险资产）
-- `note`：可选备注
-
-文件底部维护 `peakValue` / `peakDate`（历史最高点）。
-
-> **注意**：通过「生成快照」按钮追加的快照保存在浏览器 localStorage 中，会覆盖同日静态数据。若需持久化到 Google Sheets，请配置后端。
+每日一条 `{ date, total, categories?, note? }` 快照。手动和定时快照都会从 `Holdings` 实时汇总总资产与九类资产数据；同日已有记录时覆盖并保留原备注，否则追加。
 
 ## 离线优先（Offline-First）架构
 
@@ -250,7 +268,7 @@ Asset-Monitor/
 ### 数据读取优先级
 1. **在线模式**：从后端 API（Google Sheets）拉取最新数据 → 更新本地缓存
 2. **离线模式**：使用本地缓存（localStorage）中的最近一次数据
-3. **首次使用**：使用内置静态数据（`src/data/*`）
+3. **无可用数据**：实盘模式显示空状态；演示模式使用 `src/data/demo.js`
 
 ### 数据写入策略（生成快照）
 1. **立即写入本地**：快照保存到 localStorage 的待同步队列，趋势图立即更新
@@ -258,7 +276,7 @@ Asset-Monitor/
 3. **自动重试**：下次成功连接后端时，自动重试推送待同步的快照
 
 ### 同步状态显示
-- 顶部导航栏显示数据来源徽章：🟢在线 / 🟡离线缓存 / ⚪示例数据
+- 顶部导航栏显示在线、离线缓存或演示状态
 - 首页快照按钮旁显示「N 条待同步」提示
 - 每 5 分钟自动刷新一次（在线时拉取最新数据）
 - 支持手动点击刷新按钮
@@ -279,11 +297,15 @@ Asset-Monitor/
 
 | 接口 | 方法 | 说明 |
 | --- | --- | --- |
+| `/api/auth/login` | POST | 登录，返回 JWT token |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET | 读取 Google Sheets「Holdings」表，返回 JSON 数组 |
 | `/api/history` | GET | 读取 Google Sheets「History」表，返回 JSON 数组 |
-| `/api/snapshot` | POST | 追加一条快照到「History」表，body: `{ date, total }` |
+| `/api/snapshot` | POST | 从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
+| `/api/snapshot-auto` | GET | 每日北京时间 23:00 自动快照（Vercel Cron；手动调用需 `CRON_SECRET`） |
 | `/api/target` | GET | 读取 target 表 + 实时持仓计算，返回目标配置对比数据 |
+| `/api/market` | GET | 读取 Market 表行情（公开） |
+| `/api/futures` | GET | 中证500股指期货贴水（公开） |
 
 ### Google Sheets 凭据获取
 

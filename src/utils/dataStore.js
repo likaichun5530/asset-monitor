@@ -3,16 +3,14 @@
 // 数据获取：
 //   1. Vercel API（在线，Google 凭据仅在服务端）
 //   2. localStorage 本地缓存
-//   3. 静态内置数据（src/data/*）
+//   3. 演示模式使用 src/data/demo.js
 //
 // Google 凭据通过 Vercel 环境变量注入，永远不会出现在浏览器中。
 
-import { demoHoldings, demoHistory, demoPeakValue, demoPeakDate, demoTarget } from '../data/demo.js'
+import { demoHoldings, demoHistory, demoTarget } from '../data/demo.js'
+import { API_BASE, apiUrl, getApiJson } from './api.js'
 
 // Vercel 部署时自动使用当前域名，本地开发时使用完整 URL
-const cfgBase = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '')
-const API_BASE = cfgBase || (typeof window !== 'undefined' ? window.location.origin : '')
-
 const KEYS = {
   holdings: 'asset-monitor:holdings',
   history: 'asset-monitor:history',
@@ -41,19 +39,9 @@ function writeLocal(key, value) {
 
 // ===== 通用 API 请求 =====
 
-async function apiGet(endpoint) {
-  if (!API_BASE) throw new Error('未配置 VITE_API_BASE')
-  const resp = await fetch(`${API_BASE}/api/${endpoint}`, {
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10000),
-  })
-  if (!resp.ok) throw new Error(`API ${endpoint} 返回 ${resp.status}`)
-  return resp.json()
-}
-
 async function apiPost(endpoint, body) {
   if (!API_BASE) throw new Error('未配置 VITE_API_BASE')
-  const resp = await fetch(`${API_BASE}/api/${endpoint}`, {
+  const resp = await fetch(apiUrl(endpoint), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -72,7 +60,7 @@ export async function fetchHoldings() {
 
   if (API_BASE) {
     try {
-      const data = await apiGet('holdings')
+      const data = await getApiJson('holdings')
       const holdings = normalizeHoldings(data.holdings || [])
       if (holdings.length) {
         writeLocal(KEYS.holdings, { holdings, syncedAt: data.syncedAt })
@@ -88,7 +76,7 @@ export async function fetchHoldings() {
   if (cached?.holdings?.length) {
     return { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
   }
-  return { holdings: [], source: 'static', syncedAt: null }
+  return { holdings: [], source: 'empty', syncedAt: null }
 }
 
 function normalizeHoldings(arr) {
@@ -121,7 +109,7 @@ export async function fetchHistory() {
 
   if (API_BASE) {
     try {
-      const data = await apiGet('history')
+      const data = await getApiJson('history')
       const history = (data.history || [])
         .filter((r) => r.date)
         .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -141,7 +129,7 @@ export async function fetchHistory() {
   const cached = readLocal(KEYS.history, null)
   const base = cached?.history?.length ? cached.history : []
   const merged = mergeHistory(base, pending)
-  return { history: merged, source: cached?.history?.length ? 'cache' : 'static', syncedAt: cached?.syncedAt || null }
+  return { history: merged, source: cached?.history?.length ? 'cache' : 'empty', syncedAt: cached?.syncedAt || null }
 }
 
 function mergeHistory(base, extra) {
@@ -187,7 +175,7 @@ export async function addSnapshot(total) {
 async function refreshHistoryFromBackend() {
   if (!API_BASE) return
   try {
-    const data = await apiGet('history')
+    const data = await getApiJson('history')
     const history = (data.history || [])
       .filter((r) => r.date)
       .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -227,7 +215,7 @@ export async function fetchTarget() {
 
   if (API_BASE) {
     try {
-      const data = await apiGet('target')
+      const data = await getApiJson('target')
       if (data.target?.length) {
         writeLocal('asset-monitor:target', { target: data.target, syncedAt: data.syncedAt })
         return { target: data.target, source: 'online', syncedAt: data.syncedAt }
@@ -248,7 +236,7 @@ export async function fetchTarget() {
     const h = await fetchHoldings()
     return { target: computeTargetLocal(h.holdings), source: h.source, syncedAt: h.syncedAt }
   } catch {
-    return { target: [], source: 'static', syncedAt: null }
+    return { target: [], source: 'empty', syncedAt: null }
   }
 }
 
@@ -297,21 +285,8 @@ export function hasBackend() {
   return Boolean(API_BASE)
 }
 
-export function getLastSyncAt() {
-  return readLocal(KEYS.lastSync, null)
-}
-
 export function getPendingCount() {
   return readLocal(KEYS.pending, []).length
-}
-
-export function getCurrentPeak() {
-  const cached = readLocal(KEYS.history, { history: [] })
-  let peak = { value: 0, date: '' }
-  for (const item of cached.history) {
-    if (item.total > peak.value) peak = { value: item.total, date: item.date }
-  }
-  return peak
 }
 
 function todayStr() {

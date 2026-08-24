@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
+import { getApiJson } from '../utils/api.js'
 
-const API_BASE = import.meta.env.VITE_API_BASE || ''
 const CACHE_KEY = 'asset-monitor:market'
 
 const GROUP_ORDER = ['汇率', '虚拟币', 'A股', '境外', '期货']
@@ -58,9 +58,7 @@ export default function Market({ refreshKey = 0 }) {
   const [loading, setLoading] = useState(!data.length)
 
   useEffect(() => {
-    if (!API_BASE) return
-    fetch(`${API_BASE}/api/market`, { cache: 'no-store' })
-      .then((r) => r.json())
+    getApiJson('market')
       .then((res) => {
         const marketData = res.market || []
         setData(marketData)

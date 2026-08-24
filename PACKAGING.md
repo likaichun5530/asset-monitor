@@ -1,8 +1,8 @@
 # 打包指南 · 有数
 
-## ✅ Mac 应用（已完成）
+## Mac 应用（历史产物）
 
-Mac 应用已打包完成，位于 `release/` 目录：
+`release/` 中可能保留既有 Mac 构建产物，但该目录被 Git 忽略。当前 `package.json` 没有声明 Electron、electron-builder 或 `electron:*` 脚本，因此当前仓库不能直接重新生成这些产物。
 
 ### 文件位置
 - **DMG 安装包**：`release/有数-1.0.0-arm64.dmg`（137MB）
@@ -16,16 +16,13 @@ Mac 应用已打包完成，位于 `release/` 目录：
 
 > ⚠️ 首次打开可能提示"无法验证开发者"，右键点击 → 打开 → 确认打开即可。
 
-### 重新打包
-```bash
-npm run electron:build
-```
-
-### 工作原理
+### 现有主进程代码
 - Electron 内嵌前端页面（`dist/`）+ 后端服务器（`server/`）
 - 启动时自动启动后端服务器（localhost:8787）
 - 前端通过 `VITE_API_BASE=http://localhost:8787` 连接后端
 - 后端通过 Google Sheets API 读写数据
+
+如需恢复 Electron 打包，需要先补充 Electron/electron-builder 开发依赖、`main`/`build` 配置和对应 npm scripts；这些配置目前不属于可用构建流程。
 
 ---
 
@@ -84,7 +81,7 @@ cd android
 2. 菜单 → 添加到主屏幕
 3. 从桌面打开
 
-> PWA 模式需要后端服务器在线运行。
+> API 不可用时 PWA 可以读取已有本地缓存，但无法获取最新实盘数据或同步快照。
 
 ---
 
@@ -92,9 +89,9 @@ cd android
 
 ```
 Asset-Monitor/
-├── electron/main.js          # Electron 主进程
+├── electron/main.cjs         # Electron 主进程（历史代码）
 ├── capacitor.config.json     # Capacitor 配置（Android）
-├── public/manifest.json      # PWA manifest
+├── vite.config.js            # 构建时生成 PWA manifest / Service Worker
 ├── release/                  # Mac 打包输出
 │   ├── 有数-1.0.0-arm64.dmg
 │   └── mac-arm64/有数.app
@@ -107,7 +104,7 @@ Asset-Monitor/
 |------|------|
 | `npm run dev` | 启动开发服务器 |
 | `npm run build` | 构建前端 |
-| `npm run electron:dev` | Electron 开发模式 |
-| `npm run electron:build` | 打包 Mac 应用 |
+| `npm run dev:server` | 仅启动本地 API |
+| `npm run preview` | 预览生产构建 |
 | `npx cap sync android` | 同步前端到 Android |
 | `npx cap open android` | 打开 Android Studio |

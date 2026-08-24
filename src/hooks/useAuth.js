@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
+import { apiUrl } from '../utils/api.js'
 
 const AUTH_KEY = 'youshu-auth-token'
-const API_BASE = import.meta.env.VITE_API_BASE || (typeof window !== 'undefined' ? window.location.origin : '')
 
 // 解析 JWT payload（缓存避免重复解码）
 let cachedPayload = null
@@ -11,7 +11,9 @@ function parseToken(token) {
   if (!token) return null
   if (cachedToken === token && cachedPayload) return cachedPayload
   try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    const encoded = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')
+    const payload = JSON.parse(atob(padded))
     cachedToken = token
     cachedPayload = payload
     return payload
@@ -55,7 +57,7 @@ export function useAuth() {
     setLoading(true)
     setError(null)
     try {
-      const resp = await fetch(`${API_BASE}/api/auth/login`, {
+      const resp = await fetch(apiUrl('auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

@@ -34,7 +34,7 @@ function getColor(h) {
   return colorMap[cat] || '#94a3b8'
 }
 
-export default function Holdings({ loading, refreshKey }) {
+export default function Holdings({ refreshKey }) {
   const [activeCategory, setActiveCategory] = useState('全部')
   const [sortBy, setSortBy] = useState('marketValueCNY')
   const [sortDir, setSortDir] = useState('desc')

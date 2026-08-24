@@ -1,11 +1,8 @@
 // 资产计算工具
-// 支持两种模式：
-//   1. 静态模式（默认）：直接读取 src/data/* 的内置数据
-//   2. 动态模式：通过 loadAll() 从 dataStore（Google Sheets + 本地缓存）加载
+// 实盘模式从 API / 本地缓存加载，演示模式使用内置 demo 数据。
 
-import { categoryOrder } from '../data/holdings.js'
 import { getMergedHistory, getCurrentPeak, setCachedHistory } from './snapshot.js'
-import { fetchHoldings, fetchHistory, addSnapshot, retryPendingSync, hasBackend, getLastSyncAt, getPendingCount } from './dataStore.js'
+import { fetchHoldings, fetchHistory, addSnapshot, retryPendingSync, hasBackend, getPendingCount } from './dataStore.js'
 
 // 检查是否演示模式
 function isDemoMode() {
@@ -26,7 +23,7 @@ function getCachedHoldings() {
   return null
 }
 
-// 当前生效的持仓数据（优先用缓存，否则用静态数据）
+// 当前生效的持仓数据（优先使用上次缓存）
 let activeHoldings = getCachedHoldings() || []
 
 // 设置当前生效的持仓数据
@@ -277,4 +274,4 @@ export async function generateSnapshot(total) {
   return result
 }
 
-export { hasBackend, getLastSyncAt, getPendingCount, retryPendingSync }
+export { hasBackend, getPendingCount, retryPendingSync }

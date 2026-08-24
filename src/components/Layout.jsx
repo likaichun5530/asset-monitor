@@ -61,10 +61,11 @@ function SettingsIcon({ className }) { return <svg className={className} viewBox
 const sourceLabels = {
   online: '在线',
   cache: '离线',
-  static: '刷新中',
+  demo: '演示',
+  empty: '无数据',
 }
 
-export default function Layout({ source = 'static', syncedAt, loading, error, onRefresh, auth } = {}) {
+export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
   const location = useLocation()
   const pageTitle = pageTitles[location.pathname] || '有数'
   const displayLabel = sourceLabels[source] || source
@@ -177,7 +178,7 @@ export default function Layout({ source = 'static', syncedAt, loading, error, on
                 <span className="text-sm text-gray-500 dark:text-gray-400">{auth.username}</span>
               )}
               <span className={`text-xs ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                {source === 'online' ? '在线' : source === 'cache' ? '离线' : '刷新中'}
+                {displayLabel}
                 {syncedAt && <span className="text-gray-400 ml-1">· {formatDateLong(syncedAt.slice(0, 10))}</span>}
               </span>
               <NavLink to="/settings" className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">设置</NavLink>

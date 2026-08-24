@@ -1,20 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { loadAll } from '../utils/asset.js'
-import { retryPendingSync, hasBackend } from '../utils/dataStore.js'
 
 // 数据加载与刷新的统一 hook
 // 返回:
-//   loading: 是否正在加载（仅首次为 true，后续无感刷新不触发）
-//   refreshing: 是否正在后台刷新
-//   source: 数据来源 'online' | 'cache' | 'static'
+//   source: 数据来源 'online' | 'cache' | 'demo' | 'empty'
 //   syncedAt: 最后同步时间
 //   error: 错误信息
 //   refresh: 手动刷新（完成后 bump refreshKey 触发组件更新）
 //   bumpRefreshKey: 触发依赖 refreshKey 的组件刷新（用于快照后）
 export function useAssetData() {
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [source, setSource] = useState('static')
+  const [source, setSource] = useState('empty')
   const [syncedAt, setSyncedAt] = useState(null)
   const [error, setError] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -33,8 +28,6 @@ export function useAssetData() {
     // 防重入：本次加载未完成时忽略新的触发
     if (refreshingRef.current && !isFirstLoad) return
     if (isFirstLoad) refreshingRef.current = true
-    if (isFirstLoad) setLoading(true)
-    if (!isFirstLoad) setRefreshing(true)
     setError(null)
     try {
       const result = await loadAll()
@@ -47,11 +40,7 @@ export function useAssetData() {
     } finally {
       refreshingRef.current = false
       if (mountedRef.current) {
-        if (isFirstLoad) {
-          setLoading(false)
-          firstLoadDone.current = true
-        }
-        setRefreshing(false)
+        if (isFirstLoad) firstLoadDone.current = true
       }
     }
   }, [])
@@ -93,5 +82,5 @@ export function useAssetData() {
     return () => clearInterval(id)
   }, [doLoad])
 
-  return { loading, refreshing, source, syncedAt, error, refresh, refreshKey, bumpRefreshKey }
+  return { source, syncedAt, error, refresh, refreshKey, bumpRefreshKey }
 }

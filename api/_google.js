@@ -103,7 +103,11 @@ export async function appendRows(sheetName, values) {
     },
     body: JSON.stringify({ values }),
   })
-  return resp.ok
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`写入 ${sheetName} 失败: ${resp.status} ${text}`)
+  }
+  return true
 }
 
 // 更新指定行
@@ -119,7 +123,11 @@ export async function updateRows(sheetName, range, values) {
     },
     body: JSON.stringify({ values }),
   })
-  return resp.ok
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`更新 ${sheetName} 失败: ${resp.status} ${text}`)
+  }
+  return true
 }
 
 // 工具函数

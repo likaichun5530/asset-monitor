@@ -1,7 +1,4 @@
-// 资产大类展示顺序与中文映射
-// 颜色 / 标签 / 汇率等常量（仅在资产页面使用）
-
-export const categoryOrder = ['股票', '虚拟币', '黄金', '现金', '债券', '期货', '其他']
+// 资产页面使用的颜色与标签。
 
 export const categoryColors = {
   股票: '#3b82f6',
@@ -26,13 +23,6 @@ export const assetColors = {
   现金: '#6b7280',
 }
 
-// 汇率（来自 Currency 表）
-export const exchangeRates = {
-  CNY: 1,
-  USD: 6.77325054,
-  HKD: 0.8638716,
-}
-
 // 市场中文映射
 export const marketLabels = {
   US: '美股',
@@ -49,21 +39,4 @@ export const marketColors = {
   HK: '#8b5cf6',
   JP: '#f59e0b',
   GLOBAL: '#10b981',
-}
-
-// 市场展示顺序
-export const marketOrder = ['US', 'CN', 'HK', 'JP', 'GLOBAL']
-
-// 币种颜色
-export const currencyColors = {
-  CNY: '#ef4444',
-  USD: '#3b82f6',
-  HKD: '#8b5cf6',
-}
-
-// 币种中文名
-export const currencyLabels = {
-  CNY: '人民币',
-  USD: '美元',
-  HKD: '港币',
 }

@@ -11,33 +11,30 @@ export default async function handler(req, res) {
     return res.end(JSON.stringify({ error: 'Method not allowed' }))
   }
 
+  if (!isConfigured()) {
+    res.writeHead(503, { 'Content-Type': 'application/json' })
+    return res.end(JSON.stringify({ error: 'Google Sheets 未配置' }))
+  }
+
   try {
-    let market = []
-    if (isConfigured()) {
-      try {
-        const token = await getAccessToken()
-        const sheetName = encodeURIComponent('Market')
-        // 读取 A:G 列
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}!A:G`
-        const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-        if (!resp.ok) throw new Error(`读取失败: ${resp.status}`)
-        const result = await resp.json()
-        const rows = result.values || []
-        for (const row of rows) {
-          // G列（index 6）：显示标识，必须是 y 才显示
-          const show = (row[6] || '').toString().trim().toLowerCase()
-          if (show !== 'y') continue
-          const name = (row[0] || '').toString().trim()  // A列：标的名称
-          if (!name) continue
-          const symbol = (row[1] || '').toString().trim()  // B列：代码
-          const raw = String(row[2] || '').replace(/,/g, '').replace(/"/g, '').trim()  // C列：价格
-          const price = parseFloat(raw)
-          const group = (row[5] || '').toString().trim() || '其他'  // F列：类别
-          market.push({ name, symbol, price: isNaN(price) ? null : price, group })
-        }
-      } catch (e) {
-        console.warn('[market] Google Sheets 读取失败', e)
-      }
+    const market = []
+    const token = await getAccessToken()
+    const sheetName = encodeURIComponent('Market')
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}!A:G`
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (!resp.ok) throw new Error(`读取失败: ${resp.status}`)
+    const result = await resp.json()
+    const rows = result.values || []
+    for (const row of rows) {
+      const show = (row[6] || '').toString().trim().toLowerCase()
+      if (show !== 'y') continue
+      const name = (row[0] || '').toString().trim()
+      if (!name) continue
+      const symbol = (row[1] || '').toString().trim()
+      const raw = String(row[2] || '').replace(/,/g, '').replace(/"/g, '').trim()
+      const price = parseFloat(raw)
+      const group = (row[5] || '').toString().trim() || '其他'
+      market.push({ name, symbol, price: isNaN(price) ? null : price, group })
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json' })

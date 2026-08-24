@@ -3,7 +3,7 @@
 // 此文件保留是为了 asset.js 中 getMergedHistory/getCurrentPeak 的引用
 
 import { demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
-import { fetchHistory, addSnapshot as dsAddSnapshot, hasBackend, retryPendingSync, getLastSyncAt, getPendingCount } from './dataStore.js'
+import { fetchHistory, addSnapshot as dsAddSnapshot } from './dataStore.js'
 
 // 从 localStorage 同步读取缓存的历史数据
 function getCachedHistoryFromStorage() {
@@ -23,7 +23,6 @@ function getCachedHistoryFromStorage() {
 
 // 缓存最新加载的历史数据（由 loadAll 触发更新，优先从 localStorage 同步读取）
 let cachedHistory = getCachedHistoryFromStorage()
-let historyLoadPromise = null
 
 // 同步获取合并后的历史数据（从缓存读取，初始回退到本地缓存或静态数据）
 export function getMergedHistory() {
@@ -39,17 +38,6 @@ export function getMergedHistory() {
     return cached
   }
   return []
-}
-
-// 动态加载历史数据（异步）
-export async function loadHistory() {
-  if (historyLoadPromise) return historyLoadPromise
-  historyLoadPromise = (async () => {
-    const result = await fetchHistory()
-    cachedHistory = result.history
-    return result
-  })()
-  return historyLoadPromise
 }
 
 // 更新内存缓存（供 loadAll 后调用）
@@ -99,5 +87,3 @@ export async function addSnapshot(total) {
   }
   return result
 }
-
-export { hasBackend, retryPendingSync, getLastSyncAt, getPendingCount }
