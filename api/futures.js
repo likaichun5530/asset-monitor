@@ -1,7 +1,10 @@
 // Vercel Function: GET /api/futures
 // 中证500股指期货贴水数据，从 Market 表动态读取
 // Market 表按名称识别：中证500（现货）、当月/近月/远月（期货）
-import { isConfigured, readSheet, toNumber } from './_google.js'
+// A列=标的名称，B列=代码，C列=价格，F列=类别（与 /api/market 解析一致）
+import { isConfigured, getAccessToken, toNumber } from './_google.js'
+
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID || ''
 
 // 按交割日动态计算剩余天数
 function calcDaysToSettle(settleDate) {
@@ -11,7 +14,7 @@ function calcDaysToSettle(settleDate) {
   return Math.max(0, Math.ceil((settleMs - Date.now()) / 86400000))
 }
 
-// 根据合约代码（如 IC2608）推断交割日：中金所股指期货为每月第三个周五
+// 根据合约代码（如 IC2609）推断交割日：中金所股指期货为每月第三个周五
 function inferSettleDate(symbol) {
   const m = String(symbol || '').match(/(\d{2})(\d{2})/)
   if (!m) return ''
@@ -40,43 +43,45 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 读取 Market 全表（包含 name/symbol/price/group）
-    const result = await readSheet('Market')
-    const market = result.data || []
+    // 直接读取 Market 表 A:G，按列索引解析
+    const token = await getAccessToken()
+    const sheetName = encodeURIComponent('Market')
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetName}!A:G`
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (!resp.ok) throw new Error(`读取失败: ${resp.status}`)
+    const result = await resp.json()
+    const rows = result.values || []
 
-    // 提取市场中的期货合约与现货
-    const futures = market.filter((m) => {
-      const name = String(m.name || '')
-      const group = String(m.group || '')
-      return group === '期货' || name.includes('当月') || name.includes('近月') || name.includes('远月') || name.includes('IC')
-    })
+    const items = rows
+      .slice(1) // 跳过表头行
+      .map((row) => ({
+        name: (row[0] || '').toString().trim(), // A列：标的名称
+        symbol: (row[1] || '').toString().trim(), // B列：代码
+        price: toNumber(row[2]), // C列：价格
+        group: (row[5] || '').toString().trim() || '其他', // F列：类别
+      }))
+      .filter((m) => m.name)
 
-    // 按名称定位三个档位：当月、近月（次月）、远月
-    const findContract = (keyword) => futures.find((m) => String(m.name || '').includes(keyword))
+    // 期货合约：类别为「期货」
+    const contracts = items.filter((m) => m.group === '期货')
 
-    const mContract = findContract('当月')
-    const nContract = findContract('近月')
-    const fContract = findContract('远月')
-
-    // 现货：名称含「中证500」且非期货
-    const spotItem = market.find((m) => {
-      const name = String(m.name || '')
-      return name.includes('中证500') && !name.includes('期货') && !name.includes('IC')
-    })
-
-    // 组装三个合约（symbol 取自 Market 的 B 列，price 取自 C 列）
+    // 按名称定位三档合约：当月、近月、远月
+    const findContract = (keyword) => contracts.find((m) => m.name.includes(keyword))
     const contractRows = [
-      { type: '当月', item: mContract },
-      { type: '近月', item: nContract },
-      { type: '远月', item: fContract },
+      { type: '当月', item: findContract('当月') },
+      { type: '近月', item: findContract('近月') },
+      { type: '远月', item: findContract('远月') },
     ]
 
-    const spotPrice = spotItem ? toNumber(spotItem.price) : null
+    // 现货：名称含「中证500」且类别非期货
+    const spotItem = items.find((m) => m.name.includes('中证500') && m.group !== '期货')
+    const spotPrice = spotItem ? spotItem.price : null
+
     const data = [
       {
         type: '现货',
-        code: spotItem?.symbol || 'CSI500',
-        name: '中证500',
+        code: spotItem?.symbol || 'sh000905',
+        name: spotItem?.name || '中证500',
         price: spotPrice,
         spot: spotPrice,
         discount: 0,
@@ -87,14 +92,14 @@ export default async function handler(req, res) {
 
     for (const { type, item } of contractRows) {
       if (!item) continue
-      const code = String(item.symbol || '').trim() || String(item.name || '').trim()
-      const price = toNumber(item.price)
+      const code = item.symbol || item.name
+      const price = item.price
       // 交割日由合约代码推算（每月第三个周五），可随合约换月自动更新
       const settleDate = inferSettleDate(code)
       data.push({
         type,
         code,
-        name: item.name || type,
+        name: item.name,
         price,
         spot: spotPrice,
         discount: spotPrice != null && price != null ? spotPrice - price : null,
