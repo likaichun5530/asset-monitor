@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { NavLink, Outlet } from 'react-router-dom'
 import { formatDateLong } from '../utils/format.js'
+import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
 
 const navItems = [
   { to: '/', label: '总览', icon: HomeIcon, end: true },
@@ -88,8 +89,11 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
   const handleTouchStart = useCallback((e) => {
     const scrollY = window.scrollY || document.documentElement.scrollTop
-    const dragGesture = document.body.dataset.sortableDragging === 'true' || e.target.closest?.('.drag-handle')
-    if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || dragGesture) {
+    const ignoredGesture = document.body.dataset.sortableDragging === 'true'
+      || document.body.dataset.modalOpen === 'true'
+      || e.target.closest?.('.drag-handle')
+      || shouldIgnorePullRefresh(e.target)
+    if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || ignoredGesture) {
       touchStartY.current = null
       pullingRef.current = false
       return
@@ -99,6 +103,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   }, [])
 
   const handleTouchMove = useCallback((e) => {
+    if (document.body.dataset.modalOpen === 'true' || shouldIgnorePullRefresh(e.target)) {
+      touchStartY.current = null
+      pullingRef.current = false
+      resetPull()
+      return
+    }
     if (refreshingRef.current || window.innerWidth >= 640 || touchStartY.current === null || document.body.dataset.sortableDragging === 'true') return
     const scrollY = window.scrollY || document.documentElement.scrollTop
     if (scrollY > 5) return
@@ -129,6 +139,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       try { await onRefresh() } finally { refreshingRef.current = false; setIsRefreshing(false) }
     }, 1000)
   }, [onRefresh, resetPull])
+
+  const handleTouchCancel = useCallback(() => {
+    touchStartY.current = null
+    pullingRef.current = false
+    resetPull()
+  }, [resetPull])
 
   useEffect(() => { return () => { clearTimeout(sloganTimerRef.current) } }, [])
 
@@ -196,7 +212,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
           </div>
         </header>
 
-        <div className="relative flex-1 flex flex-col" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="relative flex-1 flex flex-col" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
           <div ref={contentRef} className="flex-1 flex flex-col relative">
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
