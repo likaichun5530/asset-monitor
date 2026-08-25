@@ -3,6 +3,7 @@ import { categoryColors, marketLabels, marketColors, assetColors } from '../data
 import { holdingMarketValue, totalMarketValue, getActiveHoldings } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import HoldingEditor from '../components/HoldingEditor.jsx'
+import { clearHoldingEditorDraft, readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
 
 // 筛选标签（股票按市场拆分）
 const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债基', '期货']
@@ -35,12 +36,15 @@ function getColor(h) {
   return colorMap[cat] || '#94a3b8'
 }
 
-export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
+export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLoggedIn = false }) {
+  const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
+  const canEdit = isLoggedIn && !demoMode
+  const restoredDraft = canEdit ? readHoldingEditorDraft() : null
   const [activeCategory, setActiveCategory] = useState('全部')
   const [sortBy, setSortBy] = useState('marketValueCNY')
   const [sortDir, setSortDir] = useState('desc')
-  const [editorOpen, setEditorOpen] = useState(false)
-  const [editingHolding, setEditingHolding] = useState(null)
+  const [editorOpen, setEditorOpen] = useState(() => Boolean(restoredDraft))
+  const [editingHolding, setEditingHolding] = useState(() => restoredDraft?.holding || null)
   const [success, setSuccess] = useState('')
 
   const total = useMemo(() => totalMarketValue(), [refreshKey])
@@ -78,17 +82,18 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
   }
 
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
-  const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
-  const canEdit = source === 'online' && !demoMode
 
   function openCreate() {
     setEditingHolding(null)
+    writeHoldingEditorDraft({ holding: null, form: null })
     setEditorOpen(true)
     setSuccess('')
   }
 
   function openEdit(holding) {
-    setEditingHolding({ ...holding, category: getCategory(holding) })
+    const editable = { ...holding, category: getCategory(holding) }
+    setEditingHolding(editable)
+    writeHoldingEditorDraft({ holding: editable, form: null })
     setEditorOpen(true)
     setSuccess('')
   }
@@ -96,6 +101,11 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
   async function handleSaved() {
     await onRefresh?.()
     setSuccess(editingHolding ? '持仓已更新' : '持仓已新增')
+  }
+
+  function closeEditor() {
+    clearHoldingEditorDraft()
+    setEditorOpen(false)
   }
 
   return (
@@ -109,7 +119,7 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
               type="button"
               onClick={openCreate}
               disabled={!canEdit}
-              title={!canEdit ? '仅在线实盘模式可以新增持仓' : '新增持仓'}
+              title={!canEdit ? '请登录实盘账户后操作' : '新增持仓'}
               className="h-9 px-3 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ＋ 新增
@@ -118,7 +128,8 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
         </div>
 
         {success && <div className="mb-3 rounded-lg bg-green-50 dark:bg-green-500/10 px-3 py-2 text-sm text-green-600 dark:text-green-400">{success}</div>}
-        {!canEdit && <div className="mb-3 text-xs text-gray-400">新增和编辑仅在在线实盘模式下可用</div>}
+        {!canEdit && <div className="mb-3 text-xs text-gray-400">新增和编辑仅在登录后的实盘模式下可用</div>}
+        {canEdit && source !== 'online' && <div className="mb-3 rounded-lg bg-yellow-50 dark:bg-yellow-500/10 px-3 py-2 text-xs text-yellow-700 dark:text-yellow-400">当前使用缓存数据，可以填写表单；保存时需要恢复网络连接。</div>}
 
         {/* 类别筛选 */}
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
@@ -223,7 +234,7 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
         open={editorOpen}
         holding={editingHolding}
         total={total}
-        onClose={() => setEditorOpen(false)}
+        onClose={closeEditor}
         onSaved={handleSaved}
       />
 

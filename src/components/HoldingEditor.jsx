@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchHoldingEditorData, saveHolding } from '../utils/dataStore.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
+import { readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
 
 const CATEGORIES = ['债基', '黄金', '虚拟币', '美股', 'A股', '港股', '日股', '现金', '期货']
 const STOCK_MARKETS = { 美股: 'US', A股: 'CN', 港股: 'HK', 日股: 'JP' }
@@ -48,19 +49,29 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
 
   useEffect(() => {
     if (!open) return undefined
-    const next = initialForm(holding)
+    const base = initialForm(holding)
+    const draft = readHoldingEditorDraft()
+    const sameHolding = holding
+      ? draft?.holding?.rowNumber === holding.rowNumber
+      : !draft?.holding
+    const next = sameHolding && draft?.form ? { ...base, ...draft.form } : base
     setForm(next)
-    setInitial(next)
+    setInitial(base)
     setError('')
     setLoadingOptions(true)
     fetchHoldingEditorData()
       .then((result) => setOptions({ ...EMPTY_OPTIONS, ...(result.editorOptions || {}) }))
-      .catch((e) => setError(e?.message || '无法加载持仓编辑数据'))
+      .catch(() => setError('无法加载在线行情和选项，表单草稿已保留，请检查网络后重试'))
       .finally(() => setLoadingOptions(false))
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = previousOverflow }
   }, [open, holding])
+
+  useEffect(() => {
+    if (!open) return
+    writeHoldingEditorDraft({ holding: holding || null, form })
+  }, [open, holding, form])
 
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
   const isCash = form.category === '现金'
@@ -153,7 +164,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   const priceMissing = !isCash && !isFuture && form.symbol.trim() && !loadingOptions && !marketItem
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onMouseDown={(e) => { if (e.target === e.currentTarget) requestClose() }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
       <div role="dialog" aria-modal="true" aria-label={holding ? '编辑持仓' : '新增持仓'} className="w-full sm:max-w-xl max-h-[92vh] bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{holding ? '编辑持仓' : '新增持仓'}</h2>

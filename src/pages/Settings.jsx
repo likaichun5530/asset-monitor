@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { apiUrl } from '../utils/api.js'
+import packageJson from '../../package.json'
 
 const THEME_KEY = 'youshu-theme'
 
@@ -143,7 +144,7 @@ export default function Settings({ auth } = {}) {
         <h3 className="text-base font-semibold text-gray-800 mb-4">关于</h3>
         <div className="space-y-[4px] text-sm">
           <div className="flex justify-between"><span className="text-gray-500">应用名称</span><span className="text-gray-800 font-medium">有数</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">版本</span><span className="text-gray-800">1.2.2</span></div>
+          <div className="flex justify-between"><span className="text-gray-500">版本</span><span className="text-gray-800">{packageJson.version}</span></div>
           <div className="flex justify-between"><span className="text-gray-500">Slogan</span><span className="text-gray-800">资产配置，心中有数</span></div>
         </div>
       </div>

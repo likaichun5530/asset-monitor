@@ -115,15 +115,20 @@ export async function saveHolding(holding, { editing = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘持仓')
   const token = localStorage.getItem('youshu-auth-token') || ''
   if (!token) throw new Error('请重新登录后再操作')
-  const resp = await fetch(apiUrl('holdings'), {
-    method: editing ? 'PUT' : 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(holding),
-    signal: AbortSignal.timeout(15000),
-  })
+  let resp
+  try {
+    resp = await fetch(apiUrl('holdings'), {
+      method: editing ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(holding),
+      signal: AbortSignal.timeout(15000),
+    })
+  } catch {
+    throw new Error('网络不可用，表单草稿已保留，请联网后重试')
+  }
   const data = await resp.json().catch(() => ({}))
   if (!resp.ok) throw new Error(data.error || `保存持仓失败（${resp.status}）`)
   return data
