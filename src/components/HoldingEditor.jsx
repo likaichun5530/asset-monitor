@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { fetchHoldingEditorData, saveHolding } from '../utils/dataStore.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import { readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
@@ -176,15 +177,24 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
 
   const priceMissing = !isCash && !isFuture && form.symbol.trim() && !loadingOptions && !marketItem
 
-  return (
-    <div data-pull-refresh-ignore="true" className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 overscroll-contain">
-      <div role="dialog" aria-modal="true" aria-label={holding ? '编辑持仓' : '新增持仓'} className="w-full sm:max-w-xl max-h-[92vh] bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+  const stopTouchPropagation = (event) => event.stopPropagation()
+
+  return createPortal(
+    <div
+      data-pull-refresh-ignore="true"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden bg-black/40 overscroll-none"
+      onTouchStart={stopTouchPropagation}
+      onTouchMove={stopTouchPropagation}
+      onTouchEnd={stopTouchPropagation}
+      onTouchCancel={stopTouchPropagation}
+    >
+      <div role="dialog" aria-modal="true" aria-label={holding ? '编辑持仓' : '新增持仓'} className="w-full sm:max-w-xl max-h-[92dvh] min-h-0 bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
+        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{holding ? '编辑持仓' : '新增持仓'}</h2>
           <button type="button" onClick={requestClose} className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="关闭">×</button>
         </div>
 
-        <form onSubmit={submit} className="overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+        <form onSubmit={submit} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
           <Field label="类别" required>
             <select value={form.category} onChange={(e) => changeCategory(e.target.value)} className="input-style" required>
               <option value="">请选择类别</option>
@@ -265,7 +275,8 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
