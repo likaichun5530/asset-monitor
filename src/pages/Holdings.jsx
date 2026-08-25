@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react'
 import { categoryColors, marketLabels, marketColors, assetColors } from '../data/holdings.js'
 import { holdingMarketValue, totalMarketValue, getActiveHoldings } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
+import HoldingEditor from '../components/HoldingEditor.jsx'
 
 // 筛选标签（股票按市场拆分）
-const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债券', '期货']
+const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债基', '期货']
 
 const colorMap = {
   美股: assetColors.美股,
@@ -13,7 +14,7 @@ const colorMap = {
   日股: assetColors.日股,
   虚拟币: assetColors.虚拟币,
   黄金: assetColors.黄金,
-  债券: assetColors.债基,
+  债基: assetColors.债基,
   期货: assetColors.期货,
   现金: assetColors.现金,
 }
@@ -34,10 +35,13 @@ function getColor(h) {
   return colorMap[cat] || '#94a3b8'
 }
 
-export default function Holdings({ refreshKey }) {
+export default function Holdings({ refreshKey, onRefresh, source = 'empty' }) {
   const [activeCategory, setActiveCategory] = useState('全部')
   const [sortBy, setSortBy] = useState('marketValueCNY')
   const [sortDir, setSortDir] = useState('desc')
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editingHolding, setEditingHolding] = useState(null)
+  const [success, setSuccess] = useState('')
 
   const total = useMemo(() => totalMarketValue(), [refreshKey])
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
@@ -74,14 +78,47 @@ export default function Holdings({ refreshKey }) {
   }
 
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
+  const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
+  const canEdit = source === 'online' && !demoMode
+
+  function openCreate() {
+    setEditingHolding(null)
+    setEditorOpen(true)
+    setSuccess('')
+  }
+
+  function openEdit(holding) {
+    setEditingHolding({ ...holding, category: getCategory(holding) })
+    setEditorOpen(true)
+    setSuccess('')
+  }
+
+  async function handleSaved() {
+    await onRefresh?.()
+    setSuccess(editingHolding ? '持仓已更新' : '持仓已新增')
+  }
 
   return (
     <div className="space-y-[4px]">
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-gray-800">明细</h2>
-          <span className="text-sm text-gray-500">共 {rows.length} 项</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500">共 {rows.length} 项</span>
+            <button
+              type="button"
+              onClick={openCreate}
+              disabled={!canEdit}
+              title={!canEdit ? '仅在线实盘模式可以新增持仓' : '新增持仓'}
+              className="h-9 px-3 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ＋ 新增
+            </button>
+          </div>
         </div>
+
+        {success && <div className="mb-3 rounded-lg bg-green-50 dark:bg-green-500/10 px-3 py-2 text-sm text-green-600 dark:text-green-400">{success}</div>}
+        {!canEdit && <div className="mb-3 text-xs text-gray-400">新增和编辑仅在在线实盘模式下可用</div>}
 
         {/* 类别筛选 */}
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
@@ -115,6 +152,7 @@ export default function Holdings({ refreshKey }) {
               <col />
               <col />
               <col />
+              <col className="w-[64px]" />
               <col />
               <col />
             </colgroup>
@@ -131,6 +169,7 @@ export default function Holdings({ refreshKey }) {
                 <Th label="原币市值" field="marketValue" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="人民币市值" field="marketValueCNY" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="占比" field="ratio" sortBy={sortBy} sortDir={sortDir} onSort={toggleSort} align="right" />
+                <th className="py-2 px-1.5 font-medium text-center whitespace-nowrap">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -160,6 +199,9 @@ export default function Holdings({ refreshKey }) {
                     </td>
                     <td className="py-2 px-1.5 text-right text-gray-600">{formatCurrency(h.marketValueCNY)}</td>
                     <td className="py-2 px-1.5 text-right text-gray-600">{h.ratio.toFixed(2)}%</td>
+                    <td className="py-2 px-1.5 text-center">
+                      <button type="button" onClick={() => openEdit(h)} disabled={!canEdit} className="h-8 px-2 rounded text-sm text-brand-600 hover:bg-brand-50 disabled:text-gray-300 disabled:cursor-not-allowed">编辑</button>
+                    </td>
                   </tr>
                 )
               })}
@@ -170,11 +212,20 @@ export default function Holdings({ refreshKey }) {
                 <td className="py-2 px-1.5 text-gray-600" colSpan={8}>—</td>
                 <td className="py-2 px-1.5 text-right text-gray-600">{formatCurrency(sumMarketValue)}</td>
                 <td className="py-2 px-1.5 text-right text-gray-600">100%</td>
+                <td className="py-2 px-1.5">—</td>
               </tr>
             </tfoot>
           </table>
         </div>
       </div>
+
+      <HoldingEditor
+        open={editorOpen}
+        holding={editingHolding}
+        total={total}
+        onClose={() => setEditorOpen(false)}
+        onSaved={handleSaved}
+      />
 
     </div>
   )

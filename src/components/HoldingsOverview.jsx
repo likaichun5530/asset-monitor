@@ -13,7 +13,7 @@ const colorMap = {
 }
 
 // 筛选标签（股票按市场拆分）
-const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债券', '期货']
+const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债基', '期货']
 
 export default function HoldingsOverview({ refreshKey = 0 }) {
   const navigate = useNavigate()

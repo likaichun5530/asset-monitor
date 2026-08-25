@@ -18,7 +18,7 @@ const ASSET_CONFIG = {
   hk: { label: '港股', filter: (h) => h.assetType === '股票' && h.market === 'HK', color: assetColors.港股, showOriginal: true },
   jp: { label: '日股', filter: (h) => h.assetType === '股票' && h.market === 'JP', color: assetColors.日股, showOriginal: false },
   crypto: { label: '虚拟币', filter: (h) => h.assetType === '虚拟币', color: assetColors.虚拟币, showOriginal: true },
-  bond: { label: '债基', filter: (h) => h.assetType === '债券', color: assetColors.债基, showOriginal: false },
+  bond: { label: '债基', filter: (h) => h.assetType === '债基', color: assetColors.债基, showOriginal: false },
   future: { label: '期货', filter: (h) => h.assetType === '期货', color: assetColors.期货, showOriginal: false },
   gold: { label: '黄金', filter: (h) => h.assetType === '黄金', color: assetColors.黄金, showOriginal: false },
   cash: { label: '现金', filter: (h) => h.assetType === '现金', color: assetColors.现金, showOriginal: false },

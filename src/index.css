@@ -79,6 +79,12 @@ html.dark .bg-gray-100 { background-color: #1e293b; }
 /* 暗夜下 hover 背景 */
 html.dark .hover\:bg-gray-50:hover { background-color: #1e293b; }
 
+@layer components {
+  .input-style {
+    @apply w-full h-10 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 disabled:cursor-not-allowed;
+  }
+}
+
 /* 暗夜下边框 */
 html.dark .border-gray-100 { border-color: #374151; }
 

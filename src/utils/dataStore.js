@@ -74,7 +74,7 @@ export async function fetchHoldings() {
 
   const cached = readLocal(KEYS.holdings, null)
   if (cached?.holdings?.length) {
-    return { holdings: cached.holdings, source: 'cache', syncedAt: cached.syncedAt }
+    return { holdings: normalizeHoldings(cached.holdings), source: 'cache', syncedAt: cached.syncedAt }
   }
   return { holdings: [], source: 'empty', syncedAt: null }
 }
@@ -83,7 +83,7 @@ function normalizeHoldings(arr) {
   return arr.map((r, idx) => {
     let t = r.assetType || r.AssetType || '其他'
     const map = { Stock: '股票', stock: '股票', Crypto: '虚拟币', crypto: '虚拟币', 虚拟币: '虚拟币', 数字货币: '虚拟币',
-      Gold: '黄金', gold: '黄金', Cash: '现金', cash: '现金', Bond: '债券', bond: '债券',
+      Gold: '黄金', gold: '黄金', Cash: '现金', cash: '现金', Bond: '债基', bond: '债基', 债券: '债基',
       Future: '期货', future: '期货' }
     return {
       assetType: map[t] || t,
@@ -96,8 +96,37 @@ function normalizeHoldings(arr) {
       price: r.price ?? r.Price ?? null,
       marketValue: r.marketValue ?? r.MarketValue ?? null,
       marketValueCNY: r.marketValueCNY ?? r.MarketValueCNY ?? 0,
+      marketValueExpression: r.marketValueExpression ?? null,
+      rowNumber: r.rowNumber ?? null,
+      rowVersion: r.rowVersion ?? null,
     }
   })
+}
+
+export async function fetchHoldingEditorData() {
+  const data = await getApiJson('holdings?editor=1')
+  return {
+    holdings: normalizeHoldings(data.holdings || []),
+    editorOptions: data.editorOptions || {},
+  }
+}
+
+export async function saveHolding(holding, { editing = false } = {}) {
+  if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘持仓')
+  const token = localStorage.getItem('youshu-auth-token') || ''
+  if (!token) throw new Error('请重新登录后再操作')
+  const resp = await fetch(apiUrl('holdings'), {
+    method: editing ? 'PUT' : 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(holding),
+    signal: AbortSignal.timeout(15000),
+  })
+  const data = await resp.json().catch(() => ({}))
+  if (!resp.ok) throw new Error(data.error || `保存持仓失败（${resp.status}）`)
+  return data
 }
 
 // ===== History =====
@@ -217,8 +246,9 @@ export async function fetchTarget() {
     try {
       const data = await getApiJson('target')
       if (data.target?.length) {
-        writeLocal('asset-monitor:target', { target: data.target, syncedAt: data.syncedAt })
-        return { target: data.target, source: 'online', syncedAt: data.syncedAt }
+        const target = normalizeTarget(data.target)
+        writeLocal('asset-monitor:target', { target, syncedAt: data.syncedAt })
+        return { target, source: 'online', syncedAt: data.syncedAt }
       }
     } catch (e) {
       console.warn('[dataStore] API 拉取 target 失败', e)
@@ -228,7 +258,7 @@ export async function fetchTarget() {
   // 优先读缓存
   const cachedTarget = readLocal('asset-monitor:target', null)
   if (cachedTarget?.target?.length) {
-    return { target: cachedTarget.target, source: 'cache', syncedAt: cachedTarget.syncedAt }
+    return { target: normalizeTarget(cachedTarget.target), source: 'cache', syncedAt: cachedTarget.syncedAt }
   }
 
   // 回退：从已加载的 holdings 本地计算
@@ -238,6 +268,10 @@ export async function fetchTarget() {
   } catch {
     return { target: [], source: 'empty', syncedAt: null }
   }
+}
+
+function normalizeTarget(rows) {
+  return rows.map((row) => row.category === '债券' ? { ...row, category: '债基' } : row)
 }
 
 function computeTargetLocal(holdings) {

@@ -27,7 +27,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route element={isAuthenticated ? <Layout source={source} syncedAt={syncedAt} error={error} onRefresh={refresh} auth={auth} /> : <Navigate to="/login" replace />}>
         <Route index element={<Home refreshKey={refreshKey} onSnapshot={bumpRefreshKey} onRefresh={refresh} />} />
-        <Route path="holdings" element={<Holdings refreshKey={refreshKey} />} />
+        <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={refresh} source={source} />} />
         <Route path="target" element={<Target refreshKey={refreshKey} />} />
         <Route path="settings" element={<Settings auth={auth} />} />
         <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />

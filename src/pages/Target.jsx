@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget } from '../utils/dataStore.js'
+import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -11,7 +12,7 @@ const colorMap = {
   日股: assetColors.日股,
   虚拟币: assetColors.虚拟币,
   黄金: assetColors.黄金,
-  债券: assetColors.债基,
+  债基: assetColors.债基,
   期货: assetColors.期货,
   现金: assetColors.现金,
 }
@@ -27,7 +28,7 @@ export default function Target({ refreshKey = 0 }) {
     // 优先读缓存，实现即时渲染
     try {
       const cached = JSON.parse(localStorage.getItem('asset-monitor:target') || 'null')
-      if (cached?.target?.length) return cached.target
+      if (cached?.target?.length) return cached.target.map((row) => row.category === '债券' ? { ...row, category: '债基' } : row)
     } catch { /* ignore */ }
     return null
   })
@@ -57,9 +58,8 @@ export default function Target({ refreshKey = 0 }) {
   const totalRow = (data || []).find((r) => r.isTotal)
 
   // 统计超配/低配
-  const overWeight = rows.filter((r) => r.targetRatio !== null && r.diff > 0.02)
-  const underWeight = rows.filter((r) => r.targetRatio !== null && r.diff < -0.02)
-  const balanced = rows.filter((r) => r.targetRatio !== null && Math.abs(r.diff) <= 0.02)
+  const overWeight = rows.filter((r) => getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'over')
+  const underWeight = rows.filter((r) => getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'under')
   const noTarget = rows.filter((r) => r.targetRatio === null)
 
   if (loading) {
@@ -166,8 +166,9 @@ export default function Target({ refreshKey = 0 }) {
                 const color = colorMap[r.category] || '#94a3b8'
                 const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined
                 const diffPct = hasTarget ? r.diff * 100 : null
-                const isOver = diffPct !== null && diffPct > 2
-                const isUnder = diffPct !== null && diffPct < -2
+                const status = getTargetAllocationStatus(r.currentRatio, r.targetRatio).status
+                const isOver = status === 'over'
+                const isUnder = status === 'under'
 
                 return (
                     <tr key={idx} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
@@ -218,8 +219,9 @@ export default function Target({ refreshKey = 0 }) {
             const color = colorMap[r.category] || '#94a3b8'
             const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined
             const diffPct = hasTarget ? r.diff * 100 : null
-                const isOver = diffPct !== null && diffPct > 2
-                const isUnder = diffPct !== null && diffPct < -2
+            const status = getTargetAllocationStatus(r.currentRatio, r.targetRatio).status
+            const isOver = status === 'over'
+            const isUnder = status === 'under'
             return (
               <div key={idx} className="border border-gray-100 rounded-lg p-3 cursor-pointer hover:border-gray-300" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
                 <div className="flex items-center justify-between">
@@ -258,7 +260,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-400">
-          💡 差值超过 ±2% 时提醒
+          💡 相对目标偏离达到 ±40%，或绝对偏离达到 ±2 个百分点时提醒
         </div>
       </div>
     </div>

@@ -17,7 +17,11 @@ function getCachedHoldings() {
     const raw = localStorage.getItem('asset-monitor:holdings')
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (parsed?.holdings?.length) return parsed.holdings
+      if (parsed?.holdings?.length) {
+        return parsed.holdings.map((holding) => holding.assetType === '债券'
+          ? { ...holding, assetType: '债基' }
+          : holding)
+      }
     }
   } catch { /* ignore */ }
   return null

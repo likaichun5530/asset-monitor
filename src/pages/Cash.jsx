@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import { fetchTarget } from '../utils/dataStore.js'
+import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
 const pieColors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#6366f1', '#14b8a6']
 
@@ -51,7 +52,9 @@ export default function Cash({ refreshKey = 0 }) {
     if (!targetData.length) return { underWeight: [], totalDeficit: 0 }
 
     const under = targetData
-      .filter((r) => !r.isTotal && r.targetRatio !== null && r.diff !== null && r.diff < -0.02 && r.category !== '现金')
+      .filter((r) => !r.isTotal
+        && r.category !== '现金'
+        && getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'under')
       .sort((a, b) => a.diff - b.diff)
 
     const totalDeficit = under.reduce((sum, r) => sum + total * Math.abs(r.diff), 0)

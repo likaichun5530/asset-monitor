@@ -11,6 +11,7 @@ import {
 } from '../utils/asset.js'
 import { getPendingCount, fetchTarget } from '../utils/dataStore.js'
 import { formatCurrency, formatPercent, formatChange, formatDateLong, formatDateMid, formatNumber } from '../utils/format.js'
+import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
@@ -182,8 +183,9 @@ function HealthCard({ refreshKey }) {
     if (targetData.length) {
       for (const r of targetData) {
         if (r.isTotal || r.targetRatio === null || r.diff === null) continue
-        if (r.diff > 0.02) overs.push(r.category)
-        if (r.diff < -0.02) unders.push(r.category)
+        const { status } = getTargetAllocationStatus(r.currentRatio, r.targetRatio)
+        if (status === 'over') overs.push(r.category)
+        if (status === 'under') unders.push(r.category)
       }
     }
 

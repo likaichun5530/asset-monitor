@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       if (cat === 'Stock') {
         cat = stockLabel(row.Market)
       } else {
-        const map = { Crypto: '虚拟币', Gold: '黄金', Cash: '现金', Bond: '债基', Future: '期货' }
+        const map = { Crypto: '虚拟币', Gold: '黄金', Cash: '现金', Bond: '债基', Future: '期货', 债券: '债基' }
         cat = map[cat] || cat
       }
       const mv = toNumber(row.MarketValueCNY) || 0
@@ -56,7 +56,8 @@ export default async function handler(req, res) {
       const valCol = tHeaders.find(h => h && (h.includes('目标') || h.includes('比例'))) || tHeaders[1]
       for (let i = 0; i < tData.length; i++) {
         const row = tData[i]
-        const cat = String(row[catCol] || '').trim()
+        const rawCat = String(row[catCol] || '').trim()
+        const cat = rawCat === '债券' ? '债基' : rawCat
         if (!cat || cat.includes('合计')) continue
         const target = toNumber(row[valCol])
         if (target !== null) targetMap.set(cat, target)

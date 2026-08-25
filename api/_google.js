@@ -67,10 +67,11 @@ export async function getAccessToken() {
   return cachedToken
 }
 
-export async function readSheet(sheetName) {
+export async function readSheet(sheetName, { valueRenderOption } = {}) {
   if (!isConfigured()) throw new Error('Google Sheets 未配置')
   const token = await getAccessToken()
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z`
+  const query = valueRenderOption ? `?valueRenderOption=${encodeURIComponent(valueRenderOption)}` : ''
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z${query}`
   const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
   if (!resp.ok) {
     const text = await resp.text()
@@ -107,7 +108,7 @@ export async function appendRows(sheetName, values) {
     const text = await resp.text()
     throw new Error(`写入 ${sheetName} 失败: ${resp.status} ${text}`)
   }
-  return true
+  return resp.json()
 }
 
 // 更新指定行
@@ -127,7 +128,7 @@ export async function updateRows(sheetName, range, values) {
     const text = await resp.text()
     throw new Error(`更新 ${sheetName} 失败: ${resp.status} ${text}`)
   }
-  return true
+  return resp.json()
 }
 
 // 工具函数
