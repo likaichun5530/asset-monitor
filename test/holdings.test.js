@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  default as holdingsHandler,
   parseInput,
   buildRow,
   rowVersion,
@@ -17,6 +18,20 @@ const market = [
   { rowNumber: 3, name: '苹果', symbol: 'AAPL', price: 200 },
   { rowNumber: 4, name: '中证期货', symbol: 'IC2612', price: 6000 },
 ]
+
+test('持仓接口接受浏览器 OPTIONS 预检请求', async () => {
+  let status = null
+  let ended = false
+  await holdingsHandler(
+    { method: 'OPTIONS', headers: {} },
+    {
+      writeHead(code) { status = code },
+      end() { ended = true },
+    },
+  )
+  assert.equal(status, 204)
+  assert.equal(ended, true)
+})
 
 test('股票按类别锁定市场并生成行情、市值和汇率公式', () => {
   const input = parseInput({

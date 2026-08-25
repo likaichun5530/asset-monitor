@@ -252,6 +252,10 @@ async function loadHoldings({ includeMarket = false } = {}) {
 }
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204)
+    return res.end()
+  }
   if (!['GET', 'POST', 'PUT'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
   if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
 
