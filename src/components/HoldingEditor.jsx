@@ -14,7 +14,7 @@ const CATEGORY_DEFAULTS = {
   A股: { market: 'CN', currency: 'CNY' },
   港股: { market: 'HK', currency: 'HKD' },
   日股: { market: 'JP', currency: 'JPY' },
-  现金: { market: 'CN', currency: 'CNY' },
+  现金: { market: '', currency: 'CNY' },
   期货: { market: 'CN', currency: 'CNY' },
 }
 

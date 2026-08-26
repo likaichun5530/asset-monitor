@@ -2,11 +2,16 @@ import { readSheet, appendRows, updateRows, toNumber } from './_google.js'
 
 export const CATEGORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
 
-function classifyAsset(row) {
+export function classifySnapshotCategories(row) {
   const type = String(row.AssetType ?? row.assetType ?? '').toLowerCase()
   const market = String(row.Market ?? row.market ?? '').toUpperCase()
-  if (type === 'stock') return { US: 'us', CN: 'cn', HK: 'hk', JP: 'jp' }[market] || null
-  return { crypto: 'crypto', bond: 'bond', future: 'future', gold: 'gold', cash: 'cash' }[type] || null
+  if (type === 'stock') {
+    const category = { US: 'us', CN: 'cn', HK: 'hk', JP: 'jp' }[market]
+    return category ? [category] : []
+  }
+  if (type === 'cash') return market === 'US' ? ['cash', 'us'] : ['cash']
+  const category = { crypto: 'crypto', bond: 'bond', future: 'future', gold: 'gold' }[type]
+  return category ? [category] : []
 }
 
 function toSheetDate(isoDate) {
@@ -21,20 +26,26 @@ function isSameDate(a, b) {
   return left[1] === right[1] && Number(left[2]) === Number(right[2]) && Number(left[3]) === Number(right[3])
 }
 
-export async function calculateSnapshot() {
-  const { data = [] } = await readSheet('Holdings')
+export function aggregateSnapshotRows(data = []) {
   const categories = {}
   let total = 0
 
   for (const row of data) {
     const value = toNumber(row.MarketValueCNY ?? row.marketValueCNY)
-    const category = classifyAsset(row)
-    if (value === null || !category) continue
-    categories[category] = (categories[category] || 0) + value
+    const rowCategories = classifySnapshotCategories(row)
+    if (value === null || rowCategories.length === 0) continue
+    for (const category of rowCategories) {
+      categories[category] = (categories[category] || 0) + value
+    }
     total += value
   }
 
   return { categories, total }
+}
+
+export async function calculateSnapshot() {
+  const { data = [] } = await readSheet('Holdings')
+  return aggregateSnapshotRows(data)
 }
 
 export async function saveSnapshot(date, total, categories) {
