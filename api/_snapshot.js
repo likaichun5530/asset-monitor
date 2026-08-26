@@ -9,7 +9,10 @@ export function classifySnapshotCategories(row) {
     const category = { US: 'us', CN: 'cn', HK: 'hk', JP: 'jp' }[market]
     return category ? [category] : []
   }
-  if (type === 'cash') return market === 'US' ? ['cash', 'us'] : ['cash']
+  if (type === 'cash') {
+    const accountCategory = { US: 'us', CN: 'cn', HK: 'hk' }[market]
+    return accountCategory ? ['cash', accountCategory] : ['cash']
+  }
   const category = { crypto: 'crypto', bond: 'bond', future: 'future', gold: 'gold' }[type]
   return category ? [category] : []
 }
