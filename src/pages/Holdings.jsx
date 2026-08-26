@@ -98,9 +98,9 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
     setSuccess('')
   }
 
-  async function handleSaved() {
+  async function handleSaved(action) {
     await onRefresh?.()
-    setSuccess(editingHolding ? '持仓已更新' : '持仓已新增')
+    setSuccess(action === 'deleted' ? '持仓整行已删除' : action === 'updated' ? '持仓已更新' : '持仓已新增')
   }
 
   function closeEditor() {

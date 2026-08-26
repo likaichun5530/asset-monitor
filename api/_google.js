@@ -131,6 +131,47 @@ export async function updateRows(sheetName, range, values) {
   return resp.json()
 }
 
+// 物理删除指定工作表中的一行，其下方数据会自动上移
+export async function deleteSheetRow(sheetName, rowNumber) {
+  if (!isConfigured()) throw new Error('Google Sheets 未配置')
+  const token = await getAccessToken()
+  const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties(sheetId,title)`
+  const metadataResp = await fetch(metadataUrl, { headers: { Authorization: `Bearer ${token}` } })
+  if (!metadataResp.ok) {
+    const text = await metadataResp.text()
+    throw new Error(`读取工作表信息失败: ${metadataResp.status} ${text}`)
+  }
+  const metadata = await metadataResp.json()
+  const sheet = metadata.sheets?.find(({ properties }) => properties?.title === sheetName)
+  if (!sheet) throw new Error(`找不到工作表 ${sheetName}`)
+
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}:batchUpdate`
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      requests: [{
+        deleteDimension: {
+          range: {
+            sheetId: sheet.properties.sheetId,
+            dimension: 'ROWS',
+            startIndex: rowNumber - 1,
+            endIndex: rowNumber,
+          },
+        },
+      }],
+    }),
+  })
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`删除 ${sheetName} 行失败: ${resp.status} ${text}`)
+  }
+  return resp.json()
+}
+
 // 工具函数
 export function toNumber(val) {
   if (val === null || val === undefined || val === '') return null

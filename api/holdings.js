@@ -1,6 +1,6 @@
 // Vercel Function: GET / POST / PUT /api/holdings
 import crypto from 'crypto'
-import { isConfigured, readSheet, appendRows, updateRows, toNumber } from './_google.js'
+import { isConfigured, readSheet, appendRows, updateRows, deleteSheetRow, toNumber } from './_google.js'
 import { readJsonBody } from './_http.js'
 import { requireAuth } from './_auth.js'
 
@@ -210,6 +210,20 @@ function buildRow(headers, rowNumber, input, baseRow = []) {
   return row
 }
 
+function findVersionedRow(body, loaded) {
+  const rowNumber = Number(body.rowNumber)
+  if (!Number.isInteger(rowNumber) || rowNumber < 2) throw httpError(400, '持仓行号无效')
+  const idx = rowNumber - 2
+  const evaluatedRow = loaded.evaluated.rawRows?.[idx]
+  const formulaRow = loaded.formulas.rawRows?.[idx]
+  if (!evaluatedRow) throw httpError(404, '该持仓已不存在，请刷新后重试')
+  const currentVersion = rowVersion(formulaRow)
+  if (!body.rowVersion || body.rowVersion !== currentVersion) {
+    throw httpError(409, '持仓数据已经变化，请刷新后重新操作')
+  }
+  return { rowNumber, formulaRow }
+}
+
 function editorOptions(holdings, rows) {
   const fxRates = { CNY: 1 }
   for (const currency of Object.keys(FX_NAMES)) {
@@ -234,6 +248,7 @@ export {
   computedFormulas,
   buildRow,
   marketRows,
+  findVersionedRow,
 }
 
 async function loadHoldings({ includeMarket = false } = {}) {
@@ -256,7 +271,7 @@ export default async function handler(req, res) {
     res.writeHead(204)
     return res.end()
   }
-  if (!['GET', 'POST', 'PUT'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
+  if (!['GET', 'POST', 'PUT', 'DELETE'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
   if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
 
   try {
@@ -272,7 +287,14 @@ export default async function handler(req, res) {
 
     requireAuth(req)
     const body = await readJsonBody(req)
-    const loaded = await loadHoldings({ includeMarket: true })
+    const loaded = await loadHoldings({ includeMarket: req.method !== 'DELETE' })
+
+    if (req.method === 'DELETE') {
+      const { rowNumber } = findVersionedRow(body, loaded)
+      await deleteSheetRow('Holdings', rowNumber)
+      return json(res, 200, { ok: true, action: 'deleted', rowNumber })
+    }
+
     const input = parseInput(body, loaded.market)
     const headers = loaded.evaluated.headers
     const lastColumn = columnLetter(headers.length - 1)
@@ -287,16 +309,9 @@ export default async function handler(req, res) {
       const row = buildRow(headers, rowNumber, input)
       await updateRows('Holdings', `A${rowNumber}:${lastColumn}${rowNumber}`, [row])
     } else {
-      rowNumber = Number(body.rowNumber)
-      if (!Number.isInteger(rowNumber) || rowNumber < 2) throw httpError(400, '持仓行号无效')
-      const idx = rowNumber - 2
-      const evaluatedRow = loaded.evaluated.rawRows?.[idx]
-      const formulaRow = loaded.formulas.rawRows?.[idx]
-      if (!evaluatedRow) throw httpError(404, '该持仓已不存在，请刷新后重试')
-      const currentVersion = rowVersion(formulaRow)
-      if (!body.rowVersion || body.rowVersion !== currentVersion) {
-        throw httpError(409, '持仓数据已经变化，请刷新后重新编辑')
-      }
+      const current = findVersionedRow(body, loaded)
+      rowNumber = current.rowNumber
+      const formulaRow = current.formulaRow
       const row = buildRow(headers, rowNumber, input, formulaRow)
       await updateRows('Holdings', `A${rowNumber}:${lastColumn}${rowNumber}`, [row])
     }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { fetchHoldingEditorData, saveHolding } from '../utils/dataStore.js'
+import { deleteHolding, fetchHoldingEditorData, saveHolding } from '../utils/dataStore.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import { readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
 
@@ -46,6 +46,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   const [options, setOptions] = useState(EMPTY_OPTIONS)
   const [loadingOptions, setLoadingOptions] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
   const restoringFormRef = useRef(null)
 
@@ -141,7 +142,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   }
 
   function requestClose() {
-    if (saving) return
+    if (saving || deleting) return
     if (dirty && !window.confirm('尚有未保存的修改，确定关闭吗？')) return
     onClose()
   }
@@ -166,12 +167,29 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
         payload.rowVersion = holding.rowVersion
       }
       await saveHolding(payload, { editing: Boolean(holding) })
-      await onSaved()
+      await onSaved(holding ? 'updated' : 'created')
       onClose()
     } catch (e) {
       setError(e?.message || '保存失败')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function remove() {
+    if (!holding || saving || deleting) return
+    const confirmed = window.confirm(`确定删除“${holding.name}”整行持仓吗？此操作无法撤销。`)
+    if (!confirmed) return
+    setError('')
+    setDeleting(true)
+    try {
+      await deleteHolding({ rowNumber: holding.rowNumber, rowVersion: holding.rowVersion })
+      await onSaved('deleted')
+      onClose()
+    } catch (e) {
+      setError(e?.message || '删除失败')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -268,8 +286,9 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
           {error && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
           <div className="sticky bottom-0 bg-white dark:bg-gray-800 pt-2 pb-1 flex gap-3">
-            <button type="button" onClick={requestClose} className="flex-1 h-11 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300">取消</button>
-            <button type="submit" disabled={saving || loadingOptions || !form.category || priceMissing} className="flex-1 h-11 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50">
+            {holding && <button type="button" onClick={remove} disabled={saving || deleting} className="flex-1 h-11 rounded-lg border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 disabled:opacity-50">{deleting ? '删除中…' : '删除'}</button>}
+            <button type="button" onClick={requestClose} disabled={saving || deleting} className="flex-1 h-11 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 disabled:opacity-50">取消</button>
+            <button type="submit" disabled={saving || deleting || loadingOptions || !form.category || priceMissing} className="flex-1 h-11 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50">
               {saving ? '保存中…' : holding ? '保存修改' : '新增持仓'}
             </button>
           </div>

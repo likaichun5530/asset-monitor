@@ -30,7 +30,7 @@
 - 类别筛选（全部 / 股票 / 虚拟币 / 黄金 / 现金 / 债基 / 期货）
 - 桌面端表格：名称、代码、类别、市场、账户、币种、数量、单价、原币市值、人民币市值、占比，支持列排序
 - 移动端卡片式列表
-- 在线实盘模式支持新增和编辑持仓，按类别动态显示可填写字段
+- 在线实盘模式支持新增、编辑和整行删除持仓，按类别动态显示可填写字段
 - 债基、黄金、虚拟币和股票根据 `Market` 表中的代码自动计算单价与市值；现金按汇率换算；期货原币市值支持 Google Sheets 公式
 - 合计行汇总
 
@@ -99,7 +99,7 @@ VITE_API_BASE=http://localhost:8787
 
 API 不可用时，应用会读取浏览器中最近一次成功同步的缓存；快照会先写入 localStorage，待 API 恢复后重试同步。
 
-> 登录用于前端实盘/演示模式切换。持仓新增和编辑接口会校验该 JWT；行情等只读 API 仍为公开读取，如部署到公网并需要完整数据隔离，应继续在网关或 API 层增加访问控制。
+> 登录用于前端实盘/演示模式切换。持仓新增、编辑和删除接口会校验该 JWT；行情等只读 API 仍为公开读取，如部署到公网并需要完整数据隔离，应继续在网关或 API 层增加访问控制。
 
 ## 🚀 部署上线（通过域名访问）
 
@@ -306,7 +306,7 @@ Asset-Monitor/
 | --- | --- | --- |
 | `/api/auth/login` | POST | 登录，返回 JWT token |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
-| `/api/holdings` | GET / POST / PUT | 读取、新增或编辑 Google Sheets「Holdings」持仓；写操作需要登录令牌 |
+| `/api/holdings` | GET / POST / PUT / DELETE | 读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓；写操作需要登录令牌及行版本校验 |
 | `/api/history` | GET | 读取 Google Sheets「History」表，返回 JSON 数组 |
 | `/api/snapshot` | POST | 从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
 | `/api/snapshot-auto` | GET | 每日北京时间 23:00 自动快照（Vercel Cron；手动调用需 `CRON_SECRET`） |

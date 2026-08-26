@@ -134,6 +134,29 @@ export async function saveHolding(holding, { editing = false } = {}) {
   return data
 }
 
+export async function deleteHolding({ rowNumber, rowVersion }) {
+  if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘持仓')
+  const token = localStorage.getItem('youshu-auth-token') || ''
+  if (!token) throw new Error('请重新登录后再操作')
+  let resp
+  try {
+    resp = await fetch(apiUrl('holdings'), {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ rowNumber, rowVersion }),
+      signal: AbortSignal.timeout(15000),
+    })
+  } catch {
+    throw new Error('网络不可用，无法删除持仓，请联网后重试')
+  }
+  const data = await resp.json().catch(() => ({}))
+  if (!resp.ok) throw new Error(data.error || `删除持仓失败（${resp.status}）`)
+  return data
+}
+
 // ===== History =====
 
 export async function fetchHistory() {

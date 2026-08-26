@@ -6,6 +6,7 @@ import {
   buildRow,
   rowVersion,
   mapAssetType,
+  findVersionedRow,
 } from '../api/holdings.js'
 
 const headers = [
@@ -85,4 +86,24 @@ test('债券旧名称归一为债基，行版本只随输入或公式变化', ()
   assert.equal(mapAssetType('债券'), '债基')
   assert.equal(rowVersion(['Bond']), rowVersion(['Bond']))
   assert.notEqual(rowVersion(['Bond']), rowVersion(['Cash']))
+})
+
+test('删除和更新都必须通过行号及行版本校验', () => {
+  const formulaRow = ['Stock', 'US', 'IBKR', 'AAPL']
+  const loaded = {
+    evaluated: { rawRows: [['Stock', 'US', 'IBKR', 'AAPL']] },
+    formulas: { rawRows: [formulaRow] },
+  }
+  assert.deepEqual(
+    findVersionedRow({ rowNumber: 2, rowVersion: rowVersion(formulaRow) }, loaded),
+    { rowNumber: 2, formulaRow },
+  )
+  assert.throws(
+    () => findVersionedRow({ rowNumber: 2, rowVersion: 'stale' }, loaded),
+    /数据已经变化/,
+  )
+  assert.throws(
+    () => findVersionedRow({ rowNumber: 3, rowVersion: 'missing' }, loaded),
+    /已不存在/,
+  )
 })
