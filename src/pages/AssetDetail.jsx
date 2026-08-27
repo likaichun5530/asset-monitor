@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue, getCategoryHistory } from '../utils/asset.js'
-import { isHkAccountHolding, isUsAccountHolding } from '../utils/holdingScope.js'
+import { isUsAccountHolding } from '../utils/holdingScope.js'
 import { formatCurrency, formatNumber, formatDateShort, formatDateMid } from '../utils/format.js'
 import { assetColors } from '../data/holdings.js'
 import { useNavigate } from 'react-router-dom'
@@ -16,7 +16,7 @@ import {
 const ASSET_CONFIG = {
   us: { label: '美股账户', filter: isUsAccountHolding, color: assetColors.美股, showOriginal: true },
   cn: { label: 'A股', filter: (h) => h.assetType === '股票' && h.market === 'CN', color: assetColors.A股, showOriginal: false },
-  hk: { label: '港股账户', filter: isHkAccountHolding, color: assetColors.港股, showOriginal: true },
+  hk: { label: '港股', filter: (h) => h.assetType === '股票' && h.market === 'HK', color: assetColors.港股, showOriginal: true },
   jp: { label: '日股', filter: (h) => h.assetType === '股票' && h.market === 'JP', color: assetColors.日股, showOriginal: false },
   crypto: { label: '虚拟币', filter: (h) => h.assetType === '虚拟币', color: assetColors.虚拟币, showOriginal: true },
   bond: { label: '债基', filter: (h) => h.assetType === '债基', color: assetColors.债基, showOriginal: false },

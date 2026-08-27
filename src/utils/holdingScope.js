@@ -7,7 +7,3 @@ export function isMarketAccountHolding(holding, market) {
 export function isUsAccountHolding(holding) {
   return isMarketAccountHolding(holding, 'US')
 }
-
-export function isHkAccountHolding(holding) {
-  return isMarketAccountHolding(holding, 'HK')
-}
