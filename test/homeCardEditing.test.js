@@ -18,9 +18,12 @@ test('首页编辑卡片在拖动过程中仍保持抖动', () => {
 })
 
 test('拖动目标根据卡片实际重叠面积判定', () => {
-  assert.match(homeSource, /swapThreshold: 1/)
-  assert.match(homeSource, /onMove: \(evt, originalEvent\)/)
-  assert.match(homeSource, /getCardOverlapRatio\(movingRect, evt\.relatedRect\) < 0\.5/)
+  assert.match(homeSource, /sort: false/)
+  assert.match(homeSource, /requestAnimationFrame\(checkCardCollision\)/)
+  assert.match(homeSource, /best\.ratio < 0\.5/)
+  assert.match(homeSource, /best\.ratio < 0\.35/)
+  assert.match(homeSource, /sortInstance\.current\.sort\(nextOrder, true\)/)
+  assert.doesNotMatch(homeSource, /onMove:/)
   assert.doesNotMatch(homeSource, /invertSwap:/)
   assert.match(homeSource, /sortable-drop-target/)
 })

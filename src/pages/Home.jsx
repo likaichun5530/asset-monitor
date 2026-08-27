@@ -12,7 +12,7 @@ import {
 import { getPendingCount, fetchTarget } from '../utils/dataStore.js'
 import { formatCurrency, formatPercent, formatChange, formatDateLong, formatDateMid, formatNumber } from '../utils/format.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
-import { getCardInsertDirection, getCardOverlapRatio } from '../utils/cardSort.js'
+import { findBestCardOverlap, getCardInsertDirection, reorderCardIds } from '../utils/cardSort.js'
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
@@ -319,12 +319,63 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
     }
     const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
     let dropTarget = null
-    let lastPointer = null
+    let draggedId = null
+    let collisionFrame = null
+    let previousDragRect = null
+    let latchedPlacement = null
+    let lastReorderAt = 0
     const clearDropTarget = () => {
       dropTarget?.classList.remove('sortable-drop-target')
       dropTarget = null
     }
+    const stopCollisionLoop = () => {
+      if (collisionFrame !== null) cancelAnimationFrame(collisionFrame)
+      collisionFrame = null
+      previousDragRect = null
+      latchedPlacement = null
+      clearDropTarget()
+    }
+    const checkCardCollision = () => {
+      if (!draggedId || !sortInstance.current || !sortRef.current) return
+      const fallback = document.querySelector('.sortable-fallback')
+      const movingRect = fallback?.getBoundingClientRect()
+      if (movingRect) {
+        const candidates = Array.from(sortRef.current.querySelectorAll(':scope > [data-id]'))
+          .filter((element) => element.dataset.id !== draggedId)
+          .map((element) => ({ id: element.dataset.id, element, rect: element.getBoundingClientRect() }))
+        const best = findBestCardOverlap(movingRect, candidates)
+        const movement = previousDragRect
+          ? { x: movingRect.left - previousDragRect.left, y: movingRect.top - previousDragRect.top }
+          : { x: 0, y: 0 }
+        previousDragRect = movingRect
+
+        if (!best || best.ratio < 0.35) latchedPlacement = null
+        if (!best || best.ratio < 0.5) {
+          clearDropTarget()
+        } else {
+          if (dropTarget !== best.element) {
+            clearDropTarget()
+            dropTarget = best.element
+            dropTarget.classList.add('sortable-drop-target')
+          }
+          const now = performance.now()
+          const direction = getCardInsertDirection(movingRect, best.rect, movement)
+          const placement = `${best.id}:${direction}`
+          if (latchedPlacement !== placement && now - lastReorderAt >= 80) {
+            const currentOrder = sortInstance.current.toArray()
+            const nextOrder = reorderCardIds(currentOrder, draggedId, best.id, direction)
+            if (nextOrder.some((id, index) => id !== currentOrder[index])) {
+              sortInstance.current.sort(nextOrder, true)
+              lastReorderAt = now
+            }
+            latchedPlacement = placement
+          }
+        }
+      }
+      collisionFrame = requestAnimationFrame(checkCardCollision)
+    }
     sortInstance.current = Sortable.create(sortRef.current, {
+      sort: false,
       animation: 100,
       easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
       draggable: '[data-id]',
@@ -338,55 +389,21 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       forceFallback: coarsePointer,
       fallbackOnBody: true,
       fallbackTolerance: 3,
-      swapThreshold: 1,
       scroll: true,
       bubbleScroll: true,
       scrollSensitivity: 70,
       scrollSpeed: 12,
-      direction: (_evt, target, dragEl) => {
-        const containerWidth = sortRef.current?.clientWidth || 0
-        const targetWidth = target?.getBoundingClientRect().width || 0
-        const dragWidth = dragEl?.getBoundingClientRect().width || 0
-        return targetWidth > containerWidth * 0.75 || dragWidth > containerWidth * 0.75 ? 'vertical' : 'horizontal'
-      },
       filter: 'button, a, input, select, textarea, .no-sort',
       preventOnFilter: false,
-      onMove: (evt, originalEvent) => {
-        const pointer = originalEvent?.touches?.[0] || originalEvent?.changedTouches?.[0] || originalEvent
-        const point = { x: pointer?.clientX, y: pointer?.clientY }
-        const movement = lastPointer && Number.isFinite(point.x) && Number.isFinite(point.y)
-          ? { x: point.x - lastPointer.x, y: point.y - lastPointer.y }
-          : { x: 0, y: 0 }
-        if (Number.isFinite(point.x) && Number.isFinite(point.y)) lastPointer = point
-
-        const fallbackRect = document.querySelector('.sortable-fallback')?.getBoundingClientRect()
-        const sourceRect = evt.draggedRect
-        const movingRect = fallbackRect || (Number.isFinite(point.x) && Number.isFinite(point.y) && sourceRect
-          ? {
-              left: point.x - sourceRect.width / 2,
-              right: point.x + sourceRect.width / 2,
-              top: point.y - sourceRect.height / 2,
-              bottom: point.y + sourceRect.height / 2,
-            }
-          : sourceRect)
-
-        if (getCardOverlapRatio(movingRect, evt.relatedRect) < 0.5) {
-          clearDropTarget()
-          return false
-        }
-        if (dropTarget !== evt.related) {
-          clearDropTarget()
-          dropTarget = evt.related
-          dropTarget?.classList.add('sortable-drop-target')
-        }
-        return getCardInsertDirection(movingRect, evt.relatedRect, movement) ?? undefined
-      },
-      onStart: () => {
-        lastPointer = null
+      onStart: (evt) => {
+        draggedId = evt.item?.dataset.id || null
+        lastReorderAt = 0
         document.body.dataset.sortableDragging = 'true'
+        collisionFrame = requestAnimationFrame(checkCardCollision)
       },
       onEnd: () => {
-        clearDropTarget()
+        stopCollisionLoop()
+        draggedId = null
         delete document.body.dataset.sortableDragging
         const visibleKeys = sortInstance.current?.toArray() || []
         setCardOrder((previous) => {
@@ -400,7 +417,8 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       },
     })
     return () => {
-      clearDropTarget()
+      stopCollisionLoop()
+      draggedId = null
       delete document.body.dataset.sortableDragging
       if (sortInstance.current) { sortInstance.current.destroy(); sortInstance.current = null }
     }
