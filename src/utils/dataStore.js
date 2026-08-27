@@ -97,6 +97,7 @@ function normalizeHoldings(arr) {
       marketValue: r.marketValue ?? r.MarketValue ?? null,
       marketValueCNY: r.marketValueCNY ?? r.MarketValueCNY ?? 0,
       marketValueExpression: r.marketValueExpression ?? null,
+      valuationMode: r.valuationMode || ((map[t] || t) === '期货' ? 'formula' : (r.symbol || r.Symbol) && (r.symbol || r.Symbol) !== '-' ? 'tracked' : 'amount'),
       rowNumber: r.rowNumber ?? null,
       rowVersion: r.rowVersion ?? null,
     }

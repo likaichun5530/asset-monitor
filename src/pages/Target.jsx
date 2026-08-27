@@ -260,7 +260,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-400">
-          💡 相对目标偏离达到 ±40%，或绝对偏离达到 ±2 个百分点时提醒
+          💡 偏离比例达到±40%，或偏离数值达到±2%时提醒。
         </div>
       </div>
     </div>

@@ -18,6 +18,8 @@ const market = [
   { rowNumber: 2, name: '美元', symbol: 'USD', price: 7.1 },
   { rowNumber: 3, name: '苹果', symbol: 'AAPL', price: 200 },
   { rowNumber: 4, name: '中证期货', symbol: 'IC2612', price: 6000 },
+  { rowNumber: 5, name: '港币', symbol: 'HKD', price: 0.91 },
+  { rowNumber: 6, name: '日元', symbol: 'JPY', price: 0.048 },
 ]
 
 test('持仓接口接受浏览器 OPTIONS 预检请求', async () => {
@@ -60,6 +62,45 @@ test('现金只写入原币市值并自动生成人民币市值公式', () => {
   assert.match(row[9], /I9/)
 })
 
+test('证券账户现金保持 Stock 归属，但按金额估值', () => {
+  const input = parseInput({
+    category: '美股', valuationMode: 'amount', name: '美元现金',
+    account: 'IBKR', currency: 'USD', marketValueInput: '2500',
+  }, market)
+  const row = buildRow(headers, 12, input)
+  assert.equal(row[0], 'Stock')
+  assert.equal(row[1], 'US')
+  assert.equal(row[3], '-')
+  assert.equal(row[7], '')
+  assert.equal(row[8], 2500)
+  assert.ok(row[9].includes('Market!$C$2'))
+})
+
+test('日股账户现金保持 Stock + JP 归属', () => {
+  const input = parseInput({
+    category: '日股', valuationMode: 'amount', name: '日元现金',
+    account: 'IBKR', currency: 'JPY', marketValueInput: '50000',
+  }, market)
+  const row = buildRow(headers, 14, input)
+  assert.equal(row[0], 'Stock')
+  assert.equal(row[1], 'JP')
+  assert.equal(row[3], '-')
+  assert.equal(row[8], 50000)
+  assert.ok(row[9].includes('Market!$C$6'))
+})
+
+test('直接填金额的债基保持 Bond 归属', () => {
+  const input = parseInput({
+    category: '债基', valuationMode: 'amount', name: '港币现金', market: 'HK',
+    account: '汇丰', currency: 'HKD', marketValueInput: '10000',
+  }, market)
+  const row = buildRow(headers, 13, input)
+  assert.equal(row[0], 'Bond')
+  assert.equal(row[1], 'HK')
+  assert.equal(row[3], '-')
+  assert.equal(row[8], 10000)
+})
+
 test('期货保留合法公式并拒绝外部数据公式', () => {
   const base = {
     category: '期货', name: '期货', symbol: 'IC2612', market: 'CN',
@@ -80,6 +121,13 @@ test('没有 Market 行情时禁止新增普通资产', () => {
     category: '债基', name: '债基', symbol: 'BOND', market: 'CN',
     account: '账户', currency: 'CNY', quantity: 1,
   }, market), /Market 表中找不到/)
+})
+
+test('黄金等跟踪型资产不允许绕过行情直接填市值', () => {
+  assert.throws(() => parseInput({
+    category: '黄金', valuationMode: 'amount', name: '黄金', market: 'GLOBAL',
+    account: '银行', currency: 'CNY', marketValueInput: 1000,
+  }, market), /不支持直接填写/)
 })
 
 test('债券旧名称归一为债基，行版本只随输入或公式变化', () => {

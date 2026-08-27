@@ -77,11 +77,13 @@ function rowVersion(formulaRow) {
 
 function normalizeHolding(row, idx, formulaRow) {
   const marketValueRaw = formulaRow?.MarketValue
+  const symbol = String(row.Symbol || row.symbol || '').trim()
+  const assetType = mapAssetType(row.AssetType || row.assetType)
   return {
-    assetType: mapAssetType(row.AssetType || row.assetType),
+    assetType,
     market: row.Market || row.market || '其他',
     account: row.Account || row.account || '未知',
-    symbol: row.Symbol || row.symbol || '-',
+    symbol: symbol || '-',
     name: row.Name || row.name || `项目${idx + 1}`,
     currency: row.Currency || row.currency || 'CNY',
     quantity: toNumber(row.Quantity ?? row.quantity) ?? null,
@@ -91,6 +93,7 @@ function normalizeHolding(row, idx, formulaRow) {
     marketValueExpression: typeof marketValueRaw === 'string' && marketValueRaw.startsWith('=')
       ? marketValueRaw
       : null,
+    valuationMode: assetType === '期货' ? 'formula' : symbol && symbol !== '-' ? 'tracked' : 'amount',
     rowNumber: idx + 2,
   }
 }
@@ -159,20 +162,31 @@ function parseInput(body, rows) {
   const market = config.market || cleanText(body.market, '市场', { max: 20 }).toUpperCase()
   const isCash = category === '现金'
   const isFuture = category === '期货'
-  const symbol = isCash ? '-' : cleanText(body.symbol, '代码', { max: 40 }).toUpperCase()
-  const quantity = isCash ? '' : positiveNumber(body.quantity, '数量')
-  const originalValue = isCash
-    ? parseMarketValueInput(body.marketValueInput, false)
+  const requestedMode = String(body.valuationMode || '').trim().toLowerCase()
+  const valuationMode = isCash
+    ? 'amount'
     : isFuture
+      ? 'formula'
+      : requestedMode || (String(body.symbol || '').trim() ? 'tracked' : 'amount')
+  if (!['tracked', 'amount', 'formula'].includes(valuationMode)) throw httpError(400, '不支持该估值方式')
+  if (valuationMode === 'formula' && !isFuture) throw httpError(400, '只有期货可使用公式估值')
+  if (valuationMode === 'amount' && !['现金', '债基', '美股', 'A股', '港股', '日股'].includes(category)) {
+    throw httpError(400, '该资产类别不支持直接填写市值')
+  }
+  const symbol = valuationMode === 'amount' ? '-' : cleanText(body.symbol, '代码', { max: 40 }).toUpperCase()
+  const quantity = valuationMode === 'amount' ? '' : positiveNumber(body.quantity, '数量')
+  const originalValue = valuationMode === 'amount'
+    ? parseMarketValueInput(body.marketValueInput, false)
+    : valuationMode === 'formula'
       ? parseMarketValueInput(body.marketValueInput, true)
       : null
 
-  const priceRow = isCash ? null : findMarketPrice(rows, symbol)
-  if (!isCash && !isFuture && !priceRow) throw httpError(400, `Market 表中找不到代码 ${symbol} 的有效价格`)
+  const priceRow = valuationMode === 'tracked' ? findMarketPrice(rows, symbol) : null
+  if (valuationMode === 'tracked' && !priceRow) throw httpError(400, `Market 表中找不到代码 ${symbol} 的有效价格`)
   const fxRow = findFxRow(rows, currency)
   if (currency !== 'CNY' && !fxRow) throw httpError(400, `Market 表中找不到 ${currency} 的人民币汇率`)
 
-  return { category, config, name, account, currency, market, symbol, quantity, originalValue, priceRow, fxRow }
+  return { category, config, valuationMode, name, account, currency, market, symbol, quantity, originalValue, priceRow, fxRow }
 }
 
 function computedFormulas(headers, rowNumber, input) {
@@ -181,12 +195,12 @@ function computedFormulas(headers, rowNumber, input) {
   const quantityCell = cell('Quantity')
   const originalCell = cell('MarketValue')
   const symbolCell = cell('Symbol')
-  const isCash = input.category === '现金'
-  const isFuture = input.category === '期货'
+  const isTracked = input.valuationMode === 'tracked'
+  const hasAutomaticPrice = isTracked || input.valuationMode === 'formula'
 
   return {
-    Price: isCash ? '' : `=IFERROR(INDEX(Market!$C:$C,MATCH(${symbolCell},Market!$B:$B,0)),"")`,
-    MarketValue: isCash || isFuture ? input.originalValue : `=IF(OR(${quantityCell}="",${priceCell}=""),"",${quantityCell}*${priceCell})`,
+    Price: hasAutomaticPrice ? `=IFERROR(INDEX(Market!$C:$C,MATCH(${symbolCell},Market!$B:$B,0)),"")` : '',
+    MarketValue: isTracked ? `=IF(OR(${quantityCell}="",${priceCell}=""),"",${quantityCell}*${priceCell})` : input.originalValue,
     MarketValueCNY: input.currency === 'CNY'
       ? `=IF(${originalCell}="","",${originalCell})`
       : `=IF(${originalCell}="","",${originalCell}*Market!$C$${input.fxRow.rowNumber})`,

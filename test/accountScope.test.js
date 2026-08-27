@@ -3,24 +3,25 @@ import assert from 'node:assert/strict'
 import { getMarketCashName, isUsAccountHolding } from '../src/utils/holdingScope.js'
 import { aggregateSnapshotRows, classifySnapshotCategories } from '../api/_snapshot.js'
 
-test('美股详情包含 US 股票和 US 现金，但不吞并其他市场现金', () => {
+test('证券账户详情按 Stock + Market 归属，不按名称判断现金', () => {
   assert.equal(isUsAccountHolding({ assetType: '股票', market: 'US' }), true)
-  assert.equal(isUsAccountHolding({ assetType: '现金', market: 'US' }), true)
+  assert.equal(isUsAccountHolding({ assetType: '股票', market: 'US', name: '美元现金', symbol: '-' }), true)
+  assert.equal(isUsAccountHolding({ assetType: '现金', market: 'US' }), false)
   assert.equal(isUsAccountHolding({ assetType: '现金', market: 'CN' }), false)
   assert.equal(isUsAccountHolding({ assetType: '债基', market: 'US' }), false)
 })
 
-test('US 现金在快照中同时进入现金配置和美股账户，且总资产只应累加一次', () => {
-  assert.deepEqual(classifySnapshotCategories({ AssetType: 'Cash', Market: 'US' }), ['cash', 'us'])
+test('快照严格按 AssetType 归类，同一笔资金只进入一类', () => {
+  assert.deepEqual(classifySnapshotCategories({ AssetType: 'Cash', Market: 'US' }), ['cash'])
   assert.deepEqual(classifySnapshotCategories({ AssetType: 'Cash', Market: 'CN' }), ['cash'])
   assert.deepEqual(classifySnapshotCategories({ AssetType: 'Stock', Market: 'US' }), ['us'])
 
   const snapshot = aggregateSnapshotRows([
     { AssetType: 'Stock', Market: 'US', MarketValueCNY: 800 },
-    { AssetType: 'Cash', Market: 'US', MarketValueCNY: 200 },
+    { AssetType: 'Stock', Market: 'US', Symbol: '-', MarketValueCNY: 200 },
   ])
   assert.equal(snapshot.categories.us, 1000)
-  assert.equal(snapshot.categories.cash, 200)
+  assert.equal(snapshot.categories.cash, undefined)
   assert.equal(snapshot.total, 1000)
 })
 
@@ -34,5 +35,6 @@ test('证券账户现金使用固定名称', () => {
   assert.equal(getMarketCashName('A股'), '人民币现金')
   assert.equal(getMarketCashName('美股'), '美元现金')
   assert.equal(getMarketCashName('港股'), '港币现金')
+  assert.equal(getMarketCashName('日股'), '日元现金')
   assert.equal(getMarketCashName('现金'), '')
 })

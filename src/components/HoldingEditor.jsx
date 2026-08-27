@@ -6,19 +6,19 @@ import { readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdin
 import { getMarketCashName } from '../utils/holdingScope.js'
 
 const CATEGORIES = [
-  { value: '债基', label: '债基' },
-  { value: '黄金', label: '黄金' },
-  { value: '虚拟币', label: '虚拟币' },
   { value: '美股', label: '美股' },
   { value: 'A股', label: 'A股' },
   { value: '港股', label: '港股' },
   { value: '日股', label: '日股' },
-  { value: '现金', label: '其他现金（非证券账户）' },
+  { value: '债基', label: '债基' },
+  { value: '现金', label: '现金' },
+  { value: '黄金', label: '黄金' },
+  { value: '虚拟币', label: '虚拟币' },
   { value: '期货', label: '期货' },
 ]
-const MARKET_CATEGORIES = new Set(['美股', 'A股', '港股'])
+const ACCOUNT_CASH_CATEGORIES = new Set(['美股', 'A股', '港股', '日股'])
+const FORM_CATEGORIES = new Set([...ACCOUNT_CASH_CATEGORIES, '债基'])
 const STOCK_MARKETS = { 美股: 'US', A股: 'CN', 港股: 'HK', 日股: 'JP' }
-const MARKET_CATEGORIES_BY_CODE = { US: '美股', CN: 'A股', HK: '港股' }
 const CATEGORY_DEFAULTS = {
   债基: { market: 'CN', currency: 'CNY' },
   黄金: { market: 'GLOBAL', currency: 'CNY' },
@@ -27,7 +27,7 @@ const CATEGORY_DEFAULTS = {
   A股: { market: 'CN', currency: 'CNY' },
   港股: { market: 'HK', currency: 'HKD' },
   日股: { market: 'JP', currency: 'JPY' },
-  现金: { market: 'GLOBAL', currency: 'CNY' },
+  现金: { market: 'CN', currency: 'CNY' },
   期货: { market: 'CN', currency: 'CNY' },
 }
 
@@ -40,16 +40,18 @@ const EMPTY_OPTIONS = {
 }
 
 function initialForm(holding) {
-  let category = holding?.category || ''
-  let positionType = MARKET_CATEGORIES.has(category) ? '股票' : ''
-  if (category === '现金' && MARKET_CATEGORIES_BY_CODE[holding?.market]) {
-    category = MARKET_CATEGORIES_BY_CODE[holding.market]
-    positionType = '现金'
-  }
-  const name = positionType === '现金' ? getMarketCashName(category) : holding?.name || ''
+  const category = holding?.category || ''
+  const valuationMode = holding?.valuationMode
+    || (category === '期货' ? 'formula' : holding?.symbol && holding.symbol !== '-' ? 'tracked' : 'amount')
+  const holdingForm = ACCOUNT_CASH_CATEGORIES.has(category)
+    ? valuationMode === 'amount' ? 'accountCash' : 'security'
+    : category === '债基'
+      ? valuationMode === 'amount' ? 'amount' : 'tracked'
+      : ''
+  const name = holdingForm === 'accountCash' ? getMarketCashName(category) : holding?.name || ''
   return {
     category,
-    positionType,
+    holdingForm,
     name,
     symbol: holding?.symbol === '-' ? '' : holding?.symbol || '',
     market: holding?.market || CATEGORY_DEFAULTS[category]?.market || '',
@@ -78,7 +80,11 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
       ? draft?.holding?.rowNumber === holding.rowNumber
       : !draft?.holding
     const next = sameHolding && draft?.form ? { ...base, ...draft.form } : base
-    if (next.positionType === '现金' && getMarketCashName(next.category)) {
+    if (!next.holdingForm && next.positionType) {
+      next.holdingForm = next.positionType === '现金' ? 'accountCash' : 'security'
+    }
+    delete next.positionType
+    if (next.holdingForm === 'accountCash' && getMarketCashName(next.category)) {
       next.name = getMarketCashName(next.category)
     }
     restoringFormRef.current = JSON.stringify(next)
@@ -112,13 +118,14 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   }, [open, holding, form])
 
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
-  const isMarketCategory = MARKET_CATEGORIES.has(form.category)
-  const isMarketCash = isMarketCategory && form.positionType === '现金'
-  const marketCashName = isMarketCash ? getMarketCashName(form.category) : ''
-  const isCash = form.category === '现金' || isMarketCash
+  const needsHoldingForm = FORM_CATEGORIES.has(form.category)
+  const isAccountCash = ACCOUNT_CASH_CATEGORIES.has(form.category) && form.holdingForm === 'accountCash'
+  const accountCashName = isAccountCash ? getMarketCashName(form.category) : ''
+  const isAmount = form.category === '现金' || isAccountCash || (form.category === '债基' && form.holdingForm === 'amount')
   const isFuture = form.category === '期货'
+  const isTracked = Boolean(form.category) && !isAmount && !isFuture
   const portfolioMarket = STOCK_MARKETS[form.category]
-  const fixedMarket = portfolioMarket || (form.category === '现金' ? 'GLOBAL' : '')
+  const fixedMarket = portfolioMarket || ''
 
   const marketItem = useMemo(() => {
     const symbol = form.symbol.trim().toLowerCase()
@@ -129,7 +136,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   const preview = useMemo(() => {
     const fx = options.fxRates[form.currency]
     let original = null
-    if (isCash) {
+    if (isAmount) {
       const value = Number(String(form.marketValueInput).replace(/,/g, ''))
       if (Number.isFinite(value)) original = value
     } else if (isFuture) {
@@ -145,7 +152,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     const adjustedTotal = cny === null ? null : total - Number(holding?.marketValueCNY || 0) + cny
     const ratio = adjustedTotal > 0 && cny !== null ? (cny / adjustedTotal) * 100 : null
     return { original, cny, ratio }
-  }, [form.currency, form.marketValueInput, form.quantity, holding?.marketValueCNY, isCash, isFuture, marketItem, options.fxRates, total])
+  }, [form.currency, form.marketValueInput, form.quantity, holding?.marketValueCNY, isAmount, isFuture, marketItem, options.fxRates, total])
 
   if (!open) return null
 
@@ -159,7 +166,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     setForm((current) => ({
       ...current,
       category,
-      positionType: '',
+      holdingForm: '',
       name: '',
       market: defaults.market || '',
       currency: defaults.currency || 'CNY',
@@ -170,12 +177,12 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     setError('')
   }
 
-  function changePositionType(positionType) {
+  function changeHoldingForm(holdingForm) {
     const defaults = CATEGORY_DEFAULTS[form.category] || {}
     setForm((current) => ({
       ...current,
-      positionType,
-      name: positionType === '现金' ? getMarketCashName(form.category) : '',
+      holdingForm,
+      name: holdingForm === 'accountCash' ? getMarketCashName(form.category) : '',
       market: defaults.market || '',
       currency: defaults.currency || 'CNY',
       symbol: '',
@@ -197,8 +204,9 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     setSaving(true)
     try {
       const payload = {
-        category: isMarketCash ? '现金' : form.category,
-        name: marketCashName || form.name,
+        category: form.category,
+        valuationMode: isAmount ? 'amount' : isFuture ? 'formula' : 'tracked',
+        name: accountCashName || form.name,
         symbol: form.symbol,
         market: fixedMarket || form.market,
         account: form.account,
@@ -237,7 +245,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     }
   }
 
-  const priceMissing = !isCash && !isFuture && form.symbol.trim() && !loadingOptions && !marketItem
+  const priceMissing = isTracked && form.symbol.trim() && !loadingOptions && !marketItem
 
   const stopTouchPropagation = (event) => event.stopPropagation()
 
@@ -257,31 +265,47 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
         </div>
 
         <form onSubmit={submit} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-          <Field label="归属/类别" required>
+          <Field label="资产归属" required hint="决定这笔资金计入哪类资产">
             <select value={form.category} onChange={(e) => changeCategory(e.target.value)} className="input-style" required>
               <option value="">请选择类别</option>
               {CATEGORIES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
             </select>
           </Field>
 
-          {isMarketCategory && (
-            <Field label="资产形态" required>
-              <select value={form.positionType} onChange={(e) => changePositionType(e.target.value)} className="input-style" required>
-                <option value="">请选择股票或现金</option>
-                <option value="股票">股票</option>
-                <option value="现金">现金</option>
+          {form.category === '现金' && (
+            <p className="-mt-2 text-xs leading-5 text-gray-400">
+              仅用于可消费或自由调配的资金。证券账户中未买入证券的资金，请选择对应股票市场后再选“账户现金”。
+            </p>
+          )}
+
+          {ACCOUNT_CASH_CATEGORIES.has(form.category) && (
+            <Field label="当前形式" required hint="两者都归属该证券账户">
+              <select value={form.holdingForm} onChange={(e) => changeHoldingForm(e.target.value)} className="input-style" required>
+                <option value="">请选择持有形式</option>
+                <option value="security">证券持仓（代码 × 数量）</option>
+                <option value="accountCash">账户现金（直接填金额）</option>
               </select>
             </Field>
           )}
 
-          {form.category && (!isMarketCategory || form.positionType) && (
+          {form.category === '债基' && (
+            <Field label="估值方式" required hint="两者都归属债基，不计入可用现金">
+              <select value={form.holdingForm} onChange={(e) => changeHoldingForm(e.target.value)} className="input-style" required>
+                <option value="">请选择估值方式</option>
+                <option value="tracked">按代码和数量计算</option>
+                <option value="amount">直接填写原币市值</option>
+              </select>
+            </Field>
+          )}
+
+          {form.category && (!needsHoldingForm || form.holdingForm) && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="名称" required>
-                  <input value={marketCashName || form.name} onChange={(e) => setField('name', e.target.value)} className={`input-style ${isMarketCash ? 'bg-gray-50 dark:bg-gray-700 text-gray-500' : ''}`} maxLength={80} disabled={isMarketCash} required />
+                  <input value={accountCashName || form.name} onChange={(e) => setField('name', e.target.value)} className={`input-style ${isAccountCash ? 'bg-gray-50 dark:bg-gray-700 text-gray-500' : ''}`} maxLength={80} disabled={isAccountCash} required />
                 </Field>
 
-                {!isCash && (
+                {(isTracked || isFuture) && (
                   <Field label="代码" required>
                     <input value={form.symbol} onChange={(e) => setField('symbol', e.target.value.toUpperCase())} className="input-style" maxLength={40} required />
                   </Field>
@@ -309,13 +333,13 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
                   </select>
                 </Field>
 
-                {!isCash && (
+                {(isTracked || isFuture) && (
                   <Field label="数量" required>
                     <input type="number" inputMode="decimal" min="0" step="any" value={form.quantity} onChange={(e) => setField('quantity', e.target.value)} className="input-style" required />
                   </Field>
                 )}
 
-                {(isCash || isFuture) && (
+                {(isAmount || isFuture) && (
                   <Field label="原币市值" required hint={isFuture ? '可填写数字或以 = 开头的公式' : ''}>
                     <input value={form.marketValueInput} inputMode={isFuture ? 'text' : 'decimal'} onChange={(e) => setField('marketValueInput', e.target.value)} className="input-style" placeholder={isFuture ? '=价格*数量*乘数' : ''} required />
                   </Field>
@@ -323,12 +347,12 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
               </div>
 
               {priceMissing && <p className="text-sm text-red-500">Market 表中暂未找到代码 {form.symbol.trim().toUpperCase()}，补充行情后才能保存。</p>}
-              {!isCash && marketItem && <p className="text-xs text-gray-400">已匹配行情：{marketItem.name} · {formatNumber(marketItem.price, 6)}</p>}
+              {(isTracked || isFuture) && marketItem && <p className="text-xs text-gray-400">已匹配行情：{marketItem.name} · {formatNumber(marketItem.price, 6)}</p>}
 
               <div className="rounded-xl bg-gray-50 dark:bg-gray-900/50 p-3">
                 <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">自动计算预览</div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <Preview label="单价" value={isCash ? '—' : marketItem ? formatNumber(marketItem.price, 6) : '待匹配'} />
+                  <Preview label="单价" value={isAmount ? '—' : marketItem ? formatNumber(marketItem.price, 6) : isFuture ? '保存后计算' : '待匹配'} />
                   <Preview label="原币市值" value={preview.original === null ? (isFuture && String(form.marketValueInput).trim().startsWith('=') ? '保存后计算' : '—') : formatNumber(preview.original, 2)} />
                   <Preview label="人民币市值" value={preview.cny === null ? '保存后计算' : formatCurrency(preview.cny)} />
                   <Preview label="预计占比" value={preview.ratio === null ? '保存后计算' : `${preview.ratio.toFixed(2)}%`} />
@@ -342,7 +366,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
           <div className="sticky bottom-0 bg-white dark:bg-gray-800 pt-2 pb-1 flex gap-3">
             {holding && <button type="button" onClick={remove} disabled={saving || deleting} className="flex-1 h-11 rounded-lg border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 disabled:opacity-50">{deleting ? '删除中…' : '删除'}</button>}
             <button type="button" onClick={requestClose} disabled={saving || deleting} className="flex-1 h-11 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 disabled:opacity-50">取消</button>
-            <button type="submit" disabled={saving || deleting || loadingOptions || !form.category || (isMarketCategory && !form.positionType) || priceMissing} className="flex-1 h-11 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50">
+            <button type="submit" disabled={saving || deleting || loadingOptions || !form.category || (needsHoldingForm && !form.holdingForm) || priceMissing} className="flex-1 h-11 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50">
               {saving ? '保存中…' : holding ? '保存修改' : '新增持仓'}
             </button>
           </div>
