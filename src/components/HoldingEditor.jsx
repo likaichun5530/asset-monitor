@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { deleteHolding, fetchHoldingEditorData, saveHolding } from '../utils/dataStore.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import { readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
+import { getMarketCashName } from '../utils/holdingScope.js'
 
 const CATEGORIES = [
   { value: '债基', label: '债基' },
@@ -12,7 +13,7 @@ const CATEGORIES = [
   { value: 'A股', label: 'A股' },
   { value: '港股', label: '港股' },
   { value: '日股', label: '日股' },
-  { value: '现金', label: '独立现金' },
+  { value: '现金', label: '其他现金（非证券账户）' },
   { value: '期货', label: '期货' },
 ]
 const MARKET_CATEGORIES = new Set(['美股', 'A股', '港股'])
@@ -45,10 +46,11 @@ function initialForm(holding) {
     category = MARKET_CATEGORIES_BY_CODE[holding.market]
     positionType = '现金'
   }
+  const name = positionType === '现金' ? getMarketCashName(category) : holding?.name || ''
   return {
     category,
     positionType,
-    name: holding?.name || '',
+    name,
     symbol: holding?.symbol === '-' ? '' : holding?.symbol || '',
     market: holding?.market || CATEGORY_DEFAULTS[category]?.market || '',
     account: holding?.account || '',
@@ -76,6 +78,9 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
       ? draft?.holding?.rowNumber === holding.rowNumber
       : !draft?.holding
     const next = sameHolding && draft?.form ? { ...base, ...draft.form } : base
+    if (next.positionType === '现金' && getMarketCashName(next.category)) {
+      next.name = getMarketCashName(next.category)
+    }
     restoringFormRef.current = JSON.stringify(next)
     setForm(next)
     setInitial(base)
@@ -109,6 +114,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
   const isMarketCategory = MARKET_CATEGORIES.has(form.category)
   const isMarketCash = isMarketCategory && form.positionType === '现金'
+  const marketCashName = isMarketCash ? getMarketCashName(form.category) : ''
   const isCash = form.category === '现金' || isMarketCash
   const isFuture = form.category === '期货'
   const portfolioMarket = STOCK_MARKETS[form.category]
@@ -154,6 +160,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
       ...current,
       category,
       positionType: '',
+      name: '',
       market: defaults.market || '',
       currency: defaults.currency || 'CNY',
       symbol: '',
@@ -168,6 +175,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     setForm((current) => ({
       ...current,
       positionType,
+      name: positionType === '现金' ? getMarketCashName(form.category) : '',
       market: defaults.market || '',
       currency: defaults.currency || 'CNY',
       symbol: '',
@@ -190,7 +198,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
     try {
       const payload = {
         category: isMarketCash ? '现金' : form.category,
-        name: form.name,
+        name: marketCashName || form.name,
         symbol: form.symbol,
         market: fixedMarket || form.market,
         account: form.account,
@@ -270,7 +278,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="名称" required>
-                  <input value={form.name} onChange={(e) => setField('name', e.target.value)} className="input-style" maxLength={80} required />
+                  <input value={marketCashName || form.name} onChange={(e) => setField('name', e.target.value)} className={`input-style ${isMarketCash ? 'bg-gray-50 dark:bg-gray-700 text-gray-500' : ''}`} maxLength={80} disabled={isMarketCash} required />
                 </Field>
 
                 {!isCash && (

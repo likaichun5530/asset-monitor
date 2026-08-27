@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { isUsAccountHolding } from '../src/utils/holdingScope.js'
+import { getMarketCashName, isUsAccountHolding } from '../src/utils/holdingScope.js'
 import { aggregateSnapshotRows, classifySnapshotCategories } from '../api/_snapshot.js'
 
 test('美股详情包含 US 股票和 US 现金，但不吞并其他市场现金', () => {
@@ -28,4 +28,11 @@ test('A股和港股现金只进入现金配置', () => {
   assert.deepEqual(classifySnapshotCategories({ AssetType: 'Cash', Market: 'CN' }), ['cash'])
   assert.deepEqual(classifySnapshotCategories({ AssetType: 'Cash', Market: 'HK' }), ['cash'])
   assert.deepEqual(classifySnapshotCategories({ AssetType: 'Cash', Market: 'GLOBAL' }), ['cash'])
+})
+
+test('证券账户现金使用固定名称', () => {
+  assert.equal(getMarketCashName('A股'), '人民币现金')
+  assert.equal(getMarketCashName('美股'), '美元现金')
+  assert.equal(getMarketCashName('港股'), '港币现金')
+  assert.equal(getMarketCashName('现金'), '')
 })
