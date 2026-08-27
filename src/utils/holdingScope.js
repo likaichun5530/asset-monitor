@@ -8,10 +8,6 @@ export function isUsAccountHolding(holding) {
   return isMarketAccountHolding(holding, 'US')
 }
 
-export function isCnAccountHolding(holding) {
-  return isMarketAccountHolding(holding, 'CN')
-}
-
 export function isHkAccountHolding(holding) {
   return isMarketAccountHolding(holding, 'HK')
 }
