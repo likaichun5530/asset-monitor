@@ -275,7 +275,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   }, [total, onSnapshot])
 
   const startLongPress = useCallback((e) => {
-    if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input, .drag-handle')) return
+    if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input')) return
     const point = e.touches?.[0] || e
     longPressStart.current = { x: point.clientX, y: point.clientY }
     clearTimeout(longPressTimer.current)
@@ -283,6 +283,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       longPressTimer.current = null
       longPressStart.current = null
       setEditMode(true)
+      navigator.vibrate?.(20)
     }, 2000)
   }, [editMode])
   const cancelLongPress = useCallback(() => {
@@ -317,10 +318,14 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
     }
     const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
     sortInstance.current = Sortable.create(sortRef.current, {
-      animation: 120,
+      animation: 100,
       easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-      handle: '.drag-handle',
+      draggable: '[data-id]',
+      delay: coarsePointer ? 160 : 0,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 4,
       ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
       dragClass: 'sortable-drag',
       fallbackClass: 'sortable-fallback',
       forceFallback: coarsePointer,
@@ -339,7 +344,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         const dragWidth = dragEl?.getBoundingClientRect().width || 0
         return targetWidth > containerWidth * 0.75 || dragWidth > containerWidth * 0.75 ? 'vertical' : 'horizontal'
       },
-      filter: '.no-sort',
+      filter: 'button, a, input, select, textarea, .no-sort',
       preventOnFilter: false,
       onStart: () => {
         document.body.dataset.sortableDragging = 'true'
@@ -386,7 +391,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
     >
       {editMode && (
         <div className="card py-2 px-4 flex items-center justify-between bg-brand-50 border-brand-200">
-          <span className="text-xs text-brand-700 font-medium">编辑模式 — 拖拽 ≡ 手柄调整顺序</span>
+          <span className="text-xs text-brand-700 font-medium">编辑模式 — 按住卡片拖动调整顺序</span>
           <button onClick={exitEditMode} className="text-xs text-brand-600 font-medium">完成</button>
         </div>
       )}
@@ -427,15 +432,10 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
-              <div key={key} data-id={key} className="w-1/3 lg:w-1/4 px-0.5 sm:px-2 mb-[4px] sm:mb-4">
-                <div className="relative">
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`w-1/3 lg:w-1/4 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+                <div className={`relative ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
-                    <>
-                      <div className="drag-handle absolute top-1 left-1 z-20 w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="12" height="2" rx="1" /><rect x="6" y="9" width="12" height="2" rx="1" /><rect x="6" y="14" width="12" height="2" rx="1" /></svg>
-                      </div>
-                      <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
-                    </>
+                    <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
                   )}
                   <StatMini label={CARD_LABELS[key]} change={s.change} changePct={s.changePct} />
                 </div>
@@ -444,15 +444,10 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
           }
           if (HALF_KEYS.includes(key)) {
             return (
-              <div key={key} data-id={key} className="w-1/2 px-0.5 sm:px-2 mb-[4px] sm:mb-4">
-                <div className="relative">
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`w-1/2 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+                <div className={`relative ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
-                    <>
-                      <div className="drag-handle absolute top-1 left-1 z-20 w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="12" height="2" rx="1" /><rect x="6" y="9" width="12" height="2" rx="1" /><rect x="6" y="14" width="12" height="2" rx="1" /></svg>
-                      </div>
-                      <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
-                    </>
+                    <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
                   )}
                   {renderCard(key)}
                 </div>
@@ -460,15 +455,10 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
             )
           }
           return (
-            <div key={key} data-id={key} className="w-full lg:w-1/2 px-1 sm:px-2 mb-[4px] sm:mb-4">
-              <div className="relative">
+            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`w-full lg:w-1/2 px-1 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div className={`relative ${editMode ? 'home-card-wobble' : ''}`}>
                 {editMode && (
-                  <>
-                    <div className="drag-handle absolute top-2 left-2 z-20 w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing rounded bg-white dark:bg-gray-700 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-300 touch-none hover:bg-gray-50 dark:hover:bg-gray-600">
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="12" height="2" rx="1" /><rect x="6" y="9" width="12" height="2" rx="1" /><rect x="6" y="14" width="12" height="2" rx="1" /></svg>
-                    </div>
-                    <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>
-                  </>
+                  <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>
                 )}
                 {renderCard(key)}
               </div>
@@ -488,6 +478,25 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       )}
 
       <style>{`
+        @keyframes home-card-wiggle {
+          0%, 100% { transform: rotate(-0.45deg); }
+          50% { transform: rotate(0.45deg); }
+        }
+        .home-card-wobble {
+          animation: home-card-wiggle 0.34s ease-in-out infinite;
+          transform-origin: center;
+          will-change: transform;
+        }
+        .home-card-sortable:nth-child(2n) > .home-card-wobble {
+          animation-delay: -0.17s;
+          animation-direction: reverse;
+        }
+        .sortable-chosen > .home-card-wobble,
+        .sortable-drag > .home-card-wobble,
+        .sortable-fallback > .home-card-wobble {
+          animation: none;
+          transform: none;
+        }
         .sortable-ghost { opacity: 0.15; }
         .sortable-drag, .sortable-fallback {
           opacity: 0.97 !important;
@@ -496,6 +505,9 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
           pointer-events: none !important;
           will-change: transform;
           backface-visibility: hidden;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .home-card-wobble { animation: none; }
         }
       `}</style>
     </div>

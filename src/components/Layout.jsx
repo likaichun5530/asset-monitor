@@ -91,7 +91,6 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
     const scrollY = window.scrollY || document.documentElement.scrollTop
     const ignoredGesture = document.body.dataset.sortableDragging === 'true'
       || document.body.dataset.modalOpen === 'true'
-      || e.target.closest?.('.drag-handle')
       || shouldIgnorePullRefresh(e.target)
     if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || ignoredGesture) {
       touchStartY.current = null
