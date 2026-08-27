@@ -56,6 +56,8 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
   if (!config) return <div className="text-gray-400 dark:text-gray-500 text-center py-10">未知资产类型</div>
 
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
+  const accountCount = new Set(rows.map((row) => row.account).filter(Boolean)).size
+  const largestHolding = rows[0]
   const showToggle = config.showOriginal
   const showOriginalMode = showToggle && displayMode === 'original'
 
@@ -139,7 +141,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
   }, [chartData])
 
   return (
-    <div className="space-y-[4px]">
+    <div className="space-y-[4px] sm:space-y-5">
       {/* 移动端返回按钮 */}
       <button
         onClick={() => navigate('/my')}
@@ -150,27 +152,37 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
         </svg>
         返回
       </button>
-      <div className="card dark:bg-gray-800 dark:border-gray-700 py-3 px-4 flex items-center justify-between">
-        <div>
+      <div className="card dark:bg-gray-800 dark:border-gray-700 py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
+        <div className="sm:p-6 sm:col-span-1">
           <div className="text-xs text-gray-500 dark:text-gray-400">{config.label}总市值</div>
-          <div className="text-3xl font-bold text-gray-900 dark:text-gray-200 mt-0.5">
+          <div className="text-3xl sm:text-2xl xl:text-3xl font-bold text-gray-900 dark:text-gray-200 mt-0.5 sm:mt-3">
             {showOriginalMode
               ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2)
               : formatCurrency(sumMarketValue)
             }
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-right sm:text-left sm:p-6 sm:border-l sm:border-slate-100 dark:sm:border-gray-700">
           <div className="text-xs text-gray-500 dark:text-gray-400">占总资产</div>
-          <div className="text-lg font-semibold mt-0.5" style={{ color: config.color, fontWeight: 700 }}>
+          <div className="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-3" style={{ color: config.color, fontWeight: 700 }}>
             {total ? ((sumMarketValue / total) * 100).toFixed(1) : 0}%
           </div>
+        </div>
+        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
+          <div className="text-xs text-gray-500 dark:text-gray-400">持仓与账户</div>
+          <div className="mt-3 text-2xl font-semibold text-gray-900 dark:text-gray-200">{rows.length} <span className="text-sm font-normal text-gray-400">项</span></div>
+          <div className="mt-1 text-xs text-gray-400">分布于 {accountCount} 个账户</div>
+        </div>
+        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
+          <div className="text-xs text-gray-500 dark:text-gray-400">最大持仓</div>
+          <div className="mt-3 truncate text-2xl font-semibold text-gray-900 dark:text-gray-200">{largestHolding?.name || '—'}</div>
+          <div className="mt-1 text-xs text-gray-400">{largestHolding && sumMarketValue ? `${((largestHolding.marketValueCNY / sumMarketValue) * 100).toFixed(1)}% · ${formatCurrency(largestHolding.marketValueCNY)}` : '暂无持仓'}</div>
         </div>
       </div>
 
       {/* 各类资产趋势卡片 */}
       {categoryHistory.length >= 1 && (
-        <div className="card dark:bg-gray-800 dark:border-gray-700">
+        <div className="card dark:bg-gray-800 dark:border-gray-700 sm:p-6">
           <div className="flex items-center justify-between mb-2 flex-wrap gap-2 px-3 sm:px-0">
             <div>
               <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">趋势</h3>
@@ -192,7 +204,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
               ))}
             </div>
           </div>
-          <div className="w-full h-[140px]">
+          <div className="w-full h-[140px] sm:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
                 <defs>
@@ -246,9 +258,12 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
         </div>
       )}
 
-      <div className="card dark:bg-gray-800 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200">持仓列表</h3>
+      <div className="card dark:bg-gray-800 dark:border-gray-700 sm:p-0 sm:overflow-hidden">
+        <div className="flex items-center justify-between mb-3 sm:mb-0 sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
+          <div>
+            <h3 className="desktop-section-title">持仓列表</h3>
+            <p className="hidden sm:block desktop-section-subtitle">按人民币市值从高到低排列</p>
+          </div>
           <div className="flex items-center gap-2">
             {showToggle && (
               <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 text-xs">
@@ -271,7 +286,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
-                <th className="py-2 px-2 font-medium">名称</th>
+                <th className="py-2 px-6 font-medium">名称</th>
                 <th className="py-2 px-2 font-medium">代码</th>
                 <th className="py-2 px-2 font-medium">币种</th>
                 <th className="py-2 px-2 font-medium text-right">数量</th>
@@ -283,7 +298,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
             <tbody>
               {rows.map((h, idx) => (
                 <tr key={idx} className="border-b border-gray-50 dark:border-gray-700 last:border-0">
-                  <td className="py-2.5 px-2 text-gray-800 dark:text-gray-200 font-medium">{h.name}</td>
+                  <td className="py-2.5 px-6 text-gray-800 dark:text-gray-200 font-medium">{h.name}</td>
                   <td className="py-2.5 px-2 text-gray-500 dark:text-gray-400">{h.symbol === '-' ? '—' : h.symbol}</td>
                   <td className="py-2.5 px-2 text-gray-400 dark:text-gray-500">{h.currency}</td>
                   <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
@@ -303,7 +318,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
             </tbody>
             <tfoot>
               <tr className="font-semibold border-t-2 border-gray-100 dark:border-gray-600">
-                <td className="py-3 px-2 text-gray-800 dark:text-gray-200" colSpan={5}>合计</td>
+                <td className="py-3 px-6 text-gray-800 dark:text-gray-200" colSpan={5}>合计</td>
                 <td className="py-3 px-2 text-right text-gray-800 dark:text-gray-200">
                   {showOriginalMode ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2) : formatCurrency(sumMarketValue)}
                 </td>

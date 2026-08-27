@@ -5,20 +5,22 @@ import { formatDateLong } from '../utils/format.js'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
 
 const navItems = [
+  { type: 'label', label: '工作台' },
   { to: '/', label: '总览', icon: HomeIcon, end: true },
   { to: '/market', label: '行情', icon: MarketIcon },
   { to: '/holdings', label: '持仓明细', icon: ListIcon },
   { to: '/target', label: '配置目标', icon: TargetIcon },
-  { type: 'divider' },
+  { type: 'label', label: '资产账户' },
   { to: '/us', label: '美股', icon: StockUpIcon },
   { to: '/cn', label: 'A股', icon: ChartUpIcon },
   { to: '/hk', label: '港股', icon: GlobeIcon },
   { to: '/jp', label: '日股', icon: SunIcon },
+  { to: '/gold', label: '黄金', icon: GoldIcon },
   { to: '/bond', label: '债基', icon: ShieldIcon },
   { to: '/crypto', label: '虚拟币', icon: BitcoinIcon },
   { to: '/future', label: '期货', icon: ZapIcon },
   { to: '/cash', label: '现金', icon: WalletIcon },
-  { type: 'divider' },
+  { type: 'label', label: '系统' },
   { to: '/settings', label: '设置', icon: SettingsIcon },
 ]
 
@@ -33,6 +35,7 @@ const pageTitles = {
   '/cn': 'A股',
   '/hk': '港股',
   '/jp': '日股',
+  '/gold': '黄金',
   '/bond': '债基',
   '/crypto': '虚拟币',
   '/future': '期货',
@@ -50,9 +53,10 @@ function ListIcon({ className }) { return <svg className={className} viewBox="0 
 function MarketIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg> }
 function TargetIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg> }
 function StockUpIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="10" width="4" height="9" rx="1" /><rect x="10" y="6" width="4" height="13" rx="1" /><rect x="17" y="2" width="4" height="17" rx="1" /></svg> }
-function ChartUpIcon({ className }) { return StockUpIcon({ className }) }
-function GlobeIcon({ className }) { return StockUpIcon({ className }) }
-function SunIcon({ className }) { return StockUpIcon({ className }) }
+function ChartUpIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" /><path d="m3 7 5-4 5 5 7-6" /></svg> }
+function GlobeIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.4 3 14.6 0 18M12 3c-3 3.4-3 14.6 0 18" /></svg> }
+function SunIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" /></svg> }
+function GoldIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 8-3 11h16L17 8Z" /><path d="M9 8 11 3h2l2 5M8 13h8" /></svg> }
 function ShieldIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> }
 function BitcoinIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11.8 3v2.1M11.8 15.4V20M15.2 7.3c1.7 0 3 1.2 3 2.7s-1.3 2.5-3 2.5H7.5V7.3h7.7zM7.5 12.5h8.2" /></svg> }
 function ZapIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg> }
@@ -61,14 +65,32 @@ function SettingsIcon({ className }) { return <svg className={className} viewBox
 
 const sourceLabels = {
   online: '在线',
-  cache: '离线',
+  cache: '缓存',
   demo: '演示',
   empty: '无数据',
+}
+
+const pageDescriptions = {
+  '/': '资产总览与组合表现',
+  '/holdings': '查看和维护全部资产明细',
+  '/target': '跟踪当前配置与目标偏差',
+  '/market': '关注汇率、指数与主要标的',
+  '/settings': '数据模式、外观与账户管理',
+  '/us': '美股账户资产与走势',
+  '/cn': 'A股持仓与走势',
+  '/hk': '港股持仓与走势',
+  '/jp': '日股持仓与走势',
+  '/gold': '黄金持仓与走势',
+  '/bond': '债基持仓与走势',
+  '/crypto': '虚拟币持仓与走势',
+  '/future': '期货持仓、保证金与贴水',
+  '/cash': '现金资产与币种分布',
 }
 
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
   const location = useLocation()
   const pageTitle = pageTitles[location.pathname] || '有数'
+  const pageDescription = pageDescriptions[location.pathname] || '资产配置，心中有数'
   const displayLabel = sourceLabels[source] || source
 
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -147,29 +169,39 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
   useEffect(() => { return () => { clearTimeout(sloganTimerRef.current) } }, [])
 
+  const handleDesktopRefresh = useCallback(async () => {
+    if (refreshingRef.current || !onRefresh) return
+    refreshingRef.current = true
+    setIsRefreshing(true)
+    try { await onRefresh() } finally {
+      refreshingRef.current = false
+      setIsRefreshing(false)
+    }
+  }, [onRefresh])
+
   return (
     <div className="min-h-full flex dark:bg-gray-900">
       {/* PC 侧栏 */}
-      <aside className="hidden sm:flex flex-col w-60 shrink-0 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto">
-        <div className="px-5 pt-5 pb-4 border-b border-gray-50 dark:border-gray-700">
-          <img src="/Transparent-Chinese.png" alt="logo" className="w-[120px] h-[44px] object-cover object-center rounded-lg block dark:hidden" />
-          <img src="/white-Chinese.png" alt="logo" className="w-[120px] h-[44px] object-cover object-center rounded-lg hidden dark:block" />
+      <aside className="hidden sm:flex flex-col w-56 shrink-0 border-r border-slate-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto desktop-sidebar">
+        <div className="px-5 h-20 flex items-center border-b border-slate-100 dark:border-gray-700">
+          <img src="/Transparent-Chinese.png" alt="有数" className="w-[118px] h-[42px] object-cover object-center rounded-lg block dark:hidden" />
+          <img src="/white-Chinese.png" alt="有数" className="w-[118px] h-[42px] object-cover object-center rounded-lg hidden dark:block" />
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item, i) => {
-            if (item.type === 'divider') return <div key={i} className="mx-3 my-2 border-t border-gray-100 dark:border-gray-700" />
+            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pt-4 pb-1.5 first:pt-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{item.label}</div>
             const Icon = item.icon
-            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-gray-700 dark:text-brand-400 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'}`}>
-              <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>
+            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'}`}>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-400 transition-colors group-hover:bg-white group-hover:text-brand-600 dark:bg-gray-700 dark:text-gray-400"><Icon className="w-4 h-4 shrink-0" /></span><span className="truncate">{item.label}</span>
             </NavLink>)
           })}
         </nav>
-        <div className="px-5 py-3 border-t border-gray-50 dark:border-gray-700 space-y-1.5 text-xs">
-          <span className={`inline-flex items-center gap-1.5 font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-            {displayLabel}
+        <div className="mx-3 mb-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-3 dark:border-gray-700 dark:bg-gray-900/40 space-y-1.5 text-xs">
+          <span className={`inline-flex items-center gap-2 font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+            <span className={`w-2 h-2 rounded-full ring-4 ${source === 'online' ? 'bg-green-500 ring-green-100 dark:ring-green-500/10' : source === 'cache' ? 'bg-yellow-500 ring-yellow-100 dark:ring-yellow-500/10' : 'bg-gray-400 ring-gray-100 dark:ring-gray-700'}`} />
+            数据{displayLabel}
           </span>
-          {syncedAt && <div className="text-gray-400 dark:text-gray-500">同步于 {formatDateLong(syncedAt.slice(0, 10))}</div>}
+          {syncedAt && <div className="pl-4 text-gray-400 dark:text-gray-500">最近同步 {formatDateLong(syncedAt.slice(0, 10))}</div>}
           {error && <div className="text-red-500 dark:text-red-400">加载失败，使用缓存</div>}
         </div>
       </aside>
@@ -195,18 +227,25 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
         </header>
 
         {/* PC 顶部栏 */}
-        <header className="hidden sm:flex sticky top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-100 dark:border-gray-700">
-          <div className="flex-1 flex items-center justify-between px-8 h-14">
-            <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</h1>
-            <div className="flex items-center gap-4">
-              {auth?.isLoggedIn && (
-                <span className="text-sm text-gray-500 dark:text-gray-400">{auth.username}</span>
-              )}
-              <span className={`text-xs ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+        <header className="hidden sm:flex sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-gray-700 desktop-topbar">
+          <div className="flex-1 flex items-center justify-between px-6 lg:px-8 h-20">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900 dark:text-gray-100 tracking-tight">{pageTitle}</h1>
+              <p className="mt-0.5 text-xs text-slate-400 dark:text-gray-500">{pageDescription}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`status-pill ${source === 'online' ? 'status-pill-online' : source === 'cache' ? 'status-pill-cache' : ''}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
                 {displayLabel}
-                {syncedAt && <span className="text-gray-400 ml-1">· {formatDateLong(syncedAt.slice(0, 10))}</span>}
+                {syncedAt && <span className="text-slate-400 dark:text-gray-500">· {formatDateLong(syncedAt.slice(0, 10))}</span>}
               </span>
-              <NavLink to="/settings" className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">设置</NavLink>
+              <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-icon-button" title="刷新数据" aria-label="刷新数据">
+                <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
+              </button>
+              {auth?.isLoggedIn && (
+                <span className="hidden lg:flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-[10px] font-semibold text-brand-700">{auth.username?.slice(0, 1)?.toUpperCase()}</span>{auth.username}</span>
+              )}
+              <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-4 w-4" /></NavLink>
             </div>
           </div>
         </header>
@@ -216,7 +255,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-8 pt-2 sm:pt-6 pb-24 sm:pb-10">
+            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-6 lg:pt-8 pb-24 sm:pb-12">
               <Outlet />
             </main>
           </div>

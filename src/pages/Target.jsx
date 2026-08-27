@@ -61,6 +61,7 @@ export default function Target({ refreshKey = 0 }) {
   const overWeight = rows.filter((r) => getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'over')
   const underWeight = rows.filter((r) => getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'under')
   const noTarget = rows.filter((r) => r.targetRatio === null)
+  const normalWeight = rows.length - overWeight.length - underWeight.length - noTarget.length
 
   if (loading) {
     return (
@@ -84,10 +85,33 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-[4px]">
+    <div className="space-y-[4px] sm:space-y-5">
+      <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">配置资产总额</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(totalRow?.marketValue || 0)}</div>
+          <div className="mt-2 text-xs text-slate-400">共 {rows.length} 个资产类别</div>
+        </div>
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">配置正常</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{normalWeight} <span className="text-sm font-normal text-slate-400">项</span></div>
+          <div className="mt-2 text-xs text-green-600">处于目标范围</div>
+        </div>
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">需要调整</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{overWeight.length + underWeight.length} <span className="text-sm font-normal text-slate-400">项</span></div>
+          <div className="mt-2 text-xs text-slate-400">超配 {overWeight.length} · 低配 {underWeight.length}</div>
+        </div>
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">未设目标</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{noTarget.length} <span className="text-sm font-normal text-slate-400">项</span></div>
+          <div className="mt-2 text-xs text-slate-400">建议补充目标比例</div>
+        </div>
+      </section>
+
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-[4px]">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-[4px] sm:gap-4">
           {overWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-red-400">
               <div className="text-sm font-medium text-red-500 flex items-center gap-1.5">
@@ -138,13 +162,18 @@ export default function Target({ refreshKey = 0 }) {
       )}
 
       {/* 配置目标表格 */}
-      <div className="card">
-        <div className="hidden sm:flex items-center justify-end mb-4">
+      <div className="card sm:p-0 sm:overflow-hidden">
+        <div className="hidden sm:flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-gray-700">
+          <div>
+            <h2 className="desktop-section-title">目标配置明细</h2>
+            <p className="desktop-section-subtitle">点击类别可查看对应资产详情</p>
+          </div>
           <button
             onClick={loadData}
-            className="text-xs text-gray-400 hover:text-brand-600 transition-colors"
+            className="desktop-secondary-button h-9"
           >
-            刷新
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
+            刷新数据
           </button>
         </div>
 
@@ -153,7 +182,7 @@ export default function Target({ refreshKey = 0 }) {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-100">
-                <th className="py-2 px-2 font-medium">类别</th>
+                <th className="py-2 px-6 font-medium">类别</th>
                 <th className="py-2 px-2 font-medium text-right">当前金额</th>
                 <th className="py-2 px-2 font-medium text-right">当前占比</th>
                 <th className="py-2 px-2 font-medium text-right">目标比例</th>
@@ -172,14 +201,20 @@ export default function Target({ refreshKey = 0 }) {
 
                 return (
                     <tr key={idx} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
-                      <td className="py-2.5 px-2">
+                      <td className="py-2.5 px-6">
                       <span className="inline-flex items-center gap-1.5">
                         <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
                         <span className="text-gray-800">{r.category}</span>
                       </span>
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-700">{formatCurrency(r.marketValue)}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-600">{(r.currentRatio * 100).toFixed(2)}%</td>
+                    <td className="py-2.5 px-2 text-right text-gray-600">
+                      <div>{(r.currentRatio * 100).toFixed(2)}%</div>
+                      <div className="relative ml-auto mt-1.5 h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-gray-700">
+                        <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(r.currentRatio * 100, 100)}%`, backgroundColor: color }} />
+                        {hasTarget && <span className="absolute -top-0.5 h-2.5 w-0.5 bg-slate-700 dark:bg-white" style={{ left: `${Math.min(r.targetRatio * 100, 100)}%` }} />}
+                      </div>
+                    </td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       {hasTarget ? `${(r.targetRatio * 100).toFixed(2)}%` : <span className="text-gray-300">—</span>}
                     </td>
@@ -201,7 +236,7 @@ export default function Target({ refreshKey = 0 }) {
             {totalRow && (
               <tfoot>
                 <tr className="font-semibold border-t-2 border-gray-100">
-                  <td className="py-3 px-2 text-gray-800">合计</td>
+                  <td className="py-3 px-6 text-gray-800">合计</td>
                   <td className="py-3 px-2 text-right text-gray-800">{formatCurrency(totalRow.marketValue)}</td>
                   <td className="py-3 px-2 text-right text-gray-500">100%</td>
                   <td className="py-3 px-2 text-right text-gray-500">{totalRow.targetRatio !== null ? `${(totalRow.targetRatio * 100).toFixed(0)}%` : '—'}</td>
@@ -259,7 +294,7 @@ export default function Target({ refreshKey = 0 }) {
           })}
         </div>
 
-        <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-400">
+        <div className="mt-3 sm:mt-0 pt-3 sm:px-6 sm:py-4 border-t border-gray-100 text-sm text-gray-400 sm:bg-slate-50/60 dark:sm:bg-gray-900/30">
           💡 偏离比例达到±40%，或偏离数值达到±2%时提醒。
         </div>
       </div>

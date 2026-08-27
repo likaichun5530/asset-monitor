@@ -16,6 +16,12 @@ export default function Cash({ refreshKey = 0 }) {
   }, [holdings])
 
   const sumCash = cashHoldings.reduce((s, r) => s + holdingMarketValue(r), 0)
+  const accountCount = new Set(cashHoldings.map((holding) => holding.account).filter(Boolean)).size
+  const currencyCount = new Set(cashHoldings.map((holding) => holding.currency).filter(Boolean)).size
+  const largestCashAccount = cashHoldings.reduce((largest, holding) => {
+    const marketValue = holdingMarketValue(holding)
+    return !largest || marketValue > largest.marketValue ? { name: holding.account || holding.name, marketValue } : largest
+  }, null)
 
   // 获取目标配置数据
   const [targetData, setTargetData] = useState([])
@@ -74,28 +80,41 @@ export default function Cash({ refreshKey = 0 }) {
   }, [targetData, total])
 
   return (
-    <div className="space-y-[4px]">
+    <div className="space-y-[4px] sm:space-y-5">
       {/* 概要 */}
-      <div className="card py-3 px-4 flex items-center justify-between">
-        <div>
+      <div className="card py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
+        <div className="sm:p-6">
           <div className="text-xs text-gray-500">现金总市值</div>
-          <div className="text-2xl font-bold text-gray-900 mt-0.5">{formatCurrency(sumCash)}</div>
+          <div className="text-2xl font-bold text-gray-900 mt-0.5 sm:mt-3">{formatCurrency(sumCash)}</div>
         </div>
-        <div className="text-right">
+        <div className="text-right sm:text-left sm:p-6 sm:border-l sm:border-slate-100 dark:sm:border-gray-700">
           <div className="text-xs text-gray-500">占总资产</div>
-          <div className="text-lg font-semibold mt-0.5" style={{ color: '#6b7280', fontWeight: 700 }}>
+          <div className="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-3" style={{ color: '#6b7280', fontWeight: 700 }}>
             {total ? ((sumCash / total) * 100).toFixed(1) : 0}%
           </div>
         </div>
+        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
+          <div className="text-xs text-gray-500">账户与币种</div>
+          <div className="mt-3 text-2xl font-semibold text-gray-900">{accountCount} <span className="text-sm font-normal text-gray-400">个账户</span></div>
+          <div className="mt-1 text-xs text-gray-400">覆盖 {currencyCount} 种币种</div>
+        </div>
+        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
+          <div className="text-xs text-gray-500">最大现金账户</div>
+          <div className="mt-3 truncate text-2xl font-semibold text-gray-900">{largestCashAccount?.name || '—'}</div>
+          <div className="mt-1 text-xs text-gray-400">{largestCashAccount ? formatCurrency(largestCashAccount.marketValue) : '暂无现金'}</div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[4px] sm:gap-5 items-stretch">
         {/* 现金明细饼图 */}
         {cashHoldings.length > 0 && (
           <div className="card">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">现金明细</h3>
-            <div className="flex items-center gap-6 sm:gap-[130px]">
-              <div className="w-40 h-40 sm:w-48 sm:h-48 flex-shrink-0">
+            <div className="mb-3 sm:mb-5">
+              <h3 className="desktop-section-title">现金账户分布</h3>
+              <p className="hidden sm:block desktop-section-subtitle">按账户汇总人民币市值</p>
+            </div>
+            <div className="flex items-center gap-6 sm:gap-10">
+              <div className="w-40 h-40 sm:w-52 sm:h-52 flex-shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -126,7 +145,7 @@ export default function Cash({ refreshKey = 0 }) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex-1 space-y-1.5">
+              <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-3">
                 {cashPieData.map((d, i) => (
                   <div key={i} className="flex items-center justify-between text-xs">
                     <span className="text-gray-600 flex items-center gap-1">
@@ -143,7 +162,10 @@ export default function Cash({ refreshKey = 0 }) {
 
         {/* 配置建议 */}
         <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-3">配置建议</h3>
+        <div className="mb-3 sm:mb-5">
+          <h3 className="desktop-section-title">配置建议</h3>
+          <p className="hidden sm:block desktop-section-subtitle">根据目标缺口估算现金加仓方向</p>
+        </div>
         {targetLoading ? (
           <div className="text-sm text-gray-400 py-4 text-center">加载配置数据...</div>
         ) : underWeight.length === 0 ? (

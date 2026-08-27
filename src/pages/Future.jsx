@@ -27,6 +27,12 @@ export default function Future({ refreshKey = 0 }) {
   }, [holdings])
 
   const sumMarketValue = futures.reduce((s, r) => s + holdingMarketValue(r), 0)
+  const totalUsageRate = futures.reduce((sum, holding) => {
+    const multiplier = getMultiplier(holding.symbol)
+    const contractValue = (holding.price || 0) * (holding.quantity || 0) * multiplier
+    return sum + contractValue * 0.14
+  }, 0)
+  const aggregateUsageRate = sumMarketValue ? (totalUsageRate / sumMarketValue) * 100 : 0
 
   const FUTURES_CACHE_KEY = 'asset-monitor:futures'
   const MARKET_CACHE_KEY = 'asset-monitor:market'
@@ -120,29 +126,40 @@ export default function Future({ refreshKey = 0 }) {
   }, [futuresData, marketPriceMap, spot])
 
   return (
-    <div className="space-y-[4px]">
+    <div className="space-y-[4px] sm:space-y-5">
       {/* 概要 */}
-      <div className="card py-3 px-4 flex items-center justify-between">
-        <div>
+      <div className="card py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
+        <div className="sm:p-6">
           <div className="text-xs text-gray-500">期货总市值</div>
-          <div className="text-2xl font-bold text-gray-900 mt-0.5">{formatCurrency(sumMarketValue)}</div>
+          <div className="text-2xl font-bold text-gray-900 mt-0.5 sm:mt-3">{formatCurrency(sumMarketValue)}</div>
         </div>
-        <div className="text-right">
+        <div className="text-right sm:text-left sm:p-6 sm:border-l sm:border-slate-100 dark:sm:border-gray-700">
           <div className="text-xs text-gray-500">占总资产</div>
-          <div className="text-lg font-semibold mt-0.5" style={{ color: '#06b6d4', fontWeight: 700 }}>
+          <div className="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-3" style={{ color: '#06b6d4', fontWeight: 700 }}>
             {total ? ((sumMarketValue / total) * 100).toFixed(1) : 0}%
           </div>
         </div>
+        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
+          <div className="text-xs text-gray-500">持仓合约</div>
+          <div className="mt-3 text-2xl font-semibold text-gray-900">{futures.length} <span className="text-sm font-normal text-gray-400">项</span></div>
+        </div>
+        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
+          <div className="text-xs text-gray-500">综合保证金使用率</div>
+          <div className={`mt-3 text-2xl font-semibold ${aggregateUsageRate > 75 ? 'text-red-500' : aggregateUsageRate > 70 ? 'text-yellow-500' : 'text-green-600'}`}>{aggregateUsageRate.toFixed(1)}%</div>
+        </div>
       </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-[4px] sm:gap-5 items-start">
       {/* 持仓列表 */}
-      <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-3">持仓列表</h3>
+      <div className="card sm:p-0 sm:overflow-hidden xl:col-span-2">
+        <div className="sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
+          <h3 className="desktop-section-title mb-3 sm:mb-0">持仓列表</h3>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-100">
-                <th className="py-2 px-2 font-medium">代码</th>
+                <th className="py-2 px-2 sm:px-6 font-medium">代码</th>
                 <th className="py-2 px-2 font-medium text-right">价格</th>
                 <th className="py-2 px-2 font-medium text-right">市值</th>
                 <th className="py-2 px-2 font-medium text-right">保证金使用率</th>
@@ -157,7 +174,7 @@ export default function Future({ refreshKey = 0 }) {
                 const usageRate = depositMargin ? (requiredMargin / depositMargin) * 100 : 0
                 return (
                   <tr key={idx} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 px-2 text-gray-600">{h.symbol === '-' ? '—' : h.symbol}</td>
+                    <td className="py-2.5 px-2 sm:px-6 text-gray-600 font-medium">{h.symbol === '-' ? '—' : h.symbol}</td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       {h.price === null ? '—' : Math.round(h.price)}
                     </td>
@@ -174,14 +191,16 @@ export default function Future({ refreshKey = 0 }) {
       </div>
 
       {/* 期现贴水 */}
-      <div className="card">
-        <h3 className="text-base font-semibold text-gray-800 mb-3">期现贴水</h3>
+      <div className="card sm:p-0 sm:overflow-hidden xl:col-span-3">
+        <div className="sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
+          <h3 className="desktop-section-title mb-3 sm:mb-0">期现贴水</h3>
+        </div>
         {spot !== null && contracts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-400 border-b border-gray-100 whitespace-nowrap">
-                  <th className="py-2 px-2 font-medium">标的</th>
+                  <th className="py-2 px-2 sm:px-6 font-medium">标的</th>
                   <th className="py-2 px-2 font-medium text-right">价格</th>
                   <th className="py-2 px-2 font-medium text-right">贴水</th>
                   <th className="py-2 px-2 font-medium text-right">交割日</th>
@@ -191,7 +210,7 @@ export default function Future({ refreshKey = 0 }) {
               </thead>
               <tbody>
                 <tr className="border-b border-gray-50">
-                  <td className="py-2.5 px-2 text-gray-600 font-medium">中证500</td>
+                  <td className="py-2.5 px-2 sm:px-6 text-gray-600 font-medium">中证500</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(spot)}</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
@@ -203,7 +222,7 @@ export default function Future({ refreshKey = 0 }) {
                   const isPremium = item.spread !== null && item.spread < 0 // 升水（期货高于现货）
                   return (
                     <tr key={idx} className="border-b border-gray-50 last:border-0 whitespace-nowrap">
-                      <td className="py-2.5 px-2">
+                      <td className="py-2.5 px-2 sm:px-6">
                         <span className="text-gray-600">{item.name}</span>
                       </td>
                       <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(item.price)}</td>
@@ -226,6 +245,7 @@ export default function Future({ refreshKey = 0 }) {
             暂无数据
           </div>
         )}
+      </div>
       </div>
     </div>
   )

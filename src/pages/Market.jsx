@@ -93,31 +93,53 @@ export default function Market({ refreshKey = 0 }) {
     return ordered
   }, [data])
 
+  const quotedCount = data.filter((item) => item.price !== null && item.price !== undefined).length
+
   return (
-    <div className="space-y-4 pt-3 px-1 sm:px-0 sm:pt-0">
+    <div className="space-y-4 sm:space-y-6 pt-3 px-1 sm:px-0 sm:pt-0">
+      <section className="hidden sm:grid grid-cols-3 gap-4">
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">行情分组</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{groups.length} <span className="text-sm font-normal text-slate-400">组</span></div>
+          <div className="mt-2 text-xs text-slate-400">按资产市场分类展示</div>
+        </div>
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">关注标的</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{data.length} <span className="text-sm font-normal text-slate-400">项</span></div>
+          <div className="mt-2 text-xs text-slate-400">汇率、指数、币种与期货</div>
+        </div>
+        <div className="desktop-metric-card">
+          <div className="text-xs font-medium text-slate-400">有效报价</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{quotedCount} <span className="text-sm font-normal text-slate-400">项</span></div>
+          <div className="mt-2 text-xs text-green-600">{loading ? '正在更新行情' : '行情数据已载入'}</div>
+        </div>
+      </section>
       {groups.map((group, gi) => (
-        <section key={gi}>
-          <h2 className="text-base font-semibold text-gray-900 uppercase tracking-wider px-4 sm:px-0 mb-1">
-            {group.name}
-          </h2>
-          <div className="grid grid-cols-3 lg:grid-cols-7 gap-1 lg:gap-2">
+        <section key={gi} className="sm:card sm:p-0 sm:overflow-hidden">
+          <div className="sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
+            <h2 className="text-base font-semibold text-gray-900 tracking-wide px-4 sm:px-0 mb-1 sm:mb-0">
+              {group.name}
+            </h2>
+            <span className="hidden sm:inline text-xs text-slate-400">{group.items.length} 个标的</span>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1 sm:gap-0">
             {group.items.map((item, idx) => {
               const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null
               const icon = group.name === '虚拟币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
-                  className="card flex flex-col justify-center items-center text-center p-2 lg:p-3 lg:aspect-square min-h-[100px]"
+                  className="card sm:rounded-none sm:border-0 sm:border-r sm:border-b sm:border-slate-100 dark:sm:border-gray-700 sm:shadow-none flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[100px] sm:min-h-[118px]"
                 >
-                  <div className="text-base text-gray-900 flex items-center gap-1">
+                  <div className="text-sm sm:text-xs font-medium text-gray-500 flex items-center gap-1.5">
                     {icon}
                     <span>{item.name}</span>
                   </div>
-                  <div className="text-base font-semibold text-gray-900 mt-1">
+                  <div className="text-base sm:text-xl font-semibold text-gray-900 mt-1 sm:mt-3">
                     {item.price ? Number(item.price).toFixed(2) : '—'}
                   </div>
                   {spread !== null && (
-                    <div className="text-sm text-gray-500 font-normal mt-0.5">
+                    <div className="text-sm sm:text-xs text-gray-500 font-normal mt-0.5 sm:mt-2">
                       {spread >= 0 ? '贴水 ' : '升水 '}
                       {Math.abs(spread).toFixed(2)}
                     </div>

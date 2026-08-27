@@ -63,11 +63,14 @@ function StatMini({ label, change, changePct }) {
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
   const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
   return (
-    <div className="card w-full flex flex-col justify-center items-center text-center p-2 min-h-[85px] lg:min-h-[150px]">
-      <div className="text-xs sm:text-sm text-gray-500">{label}</div>
-      <div className={`text-base sm:text-xl font-bold mt-2 ${color}`}>{formatChange(change)}</div>
+    <div className="card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] lg:min-h-[138px]">
+      <div className="flex w-full items-center justify-between">
+        <div className="text-xs sm:text-sm font-medium text-gray-500">{label}</div>
+        <span className={`hidden sm:block h-2 w-2 rounded-full ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
+      </div>
+      <div className={`text-base sm:text-2xl font-bold mt-2 sm:mt-3 ${color}`}>{formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
-        <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-1 rounded text-xs sm:text-sm ${bg} ${color}`}>
+        <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs sm:text-sm ${bg} ${color}`}>
           {isUp && <span>▲</span>} {isDown && <span>▼</span>} {formatPercent(Math.abs(changePct))}
         </span>
       </div>
@@ -446,35 +449,44 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
       {editMode && (
-        <div className="card py-2 px-4 flex items-center justify-between bg-brand-50 border-brand-200">
-          <span className="text-xs text-brand-700 font-medium">编辑模式 — 按住卡片拖动调整顺序</span>
-          <button onClick={exitEditMode} className="text-xs text-brand-600 font-medium">完成</button>
+        <div className="card py-2 sm:py-3 px-4 sm:px-5 flex items-center justify-between bg-brand-50 border-brand-200 dark:bg-brand-500/10">
+          <span className="text-xs sm:text-sm text-brand-700 dark:text-brand-400 font-medium">编辑模式 — 按住卡片拖动调整顺序，点击减号隐藏卡片</span>
+          <button onClick={exitEditMode} className="text-xs sm:text-sm text-brand-600 dark:text-brand-400 font-medium">完成编辑</button>
         </div>
       )}
 
-      <div className="card py-2 px-4 flex flex-col justify-center min-h-[85px] lg:min-h-[150px] relative">
+      <div className="card home-hero-card py-2 px-4 sm:p-7 flex flex-col justify-center min-h-[85px] lg:min-h-[178px] relative overflow-hidden">
+        <div className="hidden sm:block absolute -right-20 -top-28 h-72 w-72 rounded-full bg-brand-100/60 dark:bg-brand-500/10" />
+        <div className="hidden sm:block absolute right-24 -bottom-24 h-48 w-48 rounded-full border-[32px] border-white/50 dark:border-gray-700/20" />
         <div>
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-gray-500">总资产（人民币）</div>
-              <div className="text-3xl sm:text-4xl font-bold mt-1 text-gray-900">{formatCurrency(total)}</div>
-              <div className="mt-1 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
+          <div className="relative flex items-start justify-between gap-6">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-500"><span className="hidden sm:inline-block h-2 w-2 rounded-full bg-brand-500" />总资产（人民币）</div>
+              <div className="text-3xl sm:text-[42px] sm:leading-tight font-bold mt-1 sm:mt-3 text-gray-900 tracking-tight">{formatCurrency(total)}</div>
+              <div className="mt-1 sm:mt-3 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'} · 共展示 {visibleItems.length} 张数据卡片</div>
             </div>
-            <button onClick={handleSnapshot} disabled={snapshotLoading}
-              className="inline-flex items-center justify-center gap-1 w-7 h-7 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium transition-colors disabled:opacity-60 shrink-0"
-            >
-              {snapshotLoading ? (
-                <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-              )}
-            </button>
+            <div className="relative flex shrink-0 items-center gap-2">
+              <button type="button" onClick={() => setEditMode((value) => !value)} className="hidden sm:inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 text-sm font-medium text-slate-600 shadow-sm hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+                {editMode ? '退出编辑' : '编辑布局'}
+              </button>
+              <button onClick={handleSnapshot} disabled={snapshotLoading}
+                className="inline-flex items-center justify-center gap-2 w-7 h-7 sm:w-auto sm:h-10 sm:px-4 rounded-full sm:rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-medium shadow-sm transition-colors disabled:opacity-60 shrink-0"
+              >
+                {snapshotLoading ? (
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                )}
+                <span className="hidden sm:inline">生成快照</span>
+              </button>
+            </div>
           </div>
         </div>
         <div className="mt-1 flex items-center gap-2 flex-wrap">

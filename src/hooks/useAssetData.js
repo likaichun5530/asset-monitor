@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { loadAll } from '../utils/asset.js'
+import { getInitialAssetStatus } from '../utils/assetDataStatus.js'
 
 // 数据加载与刷新的统一 hook
 // 返回:
@@ -9,8 +10,9 @@ import { loadAll } from '../utils/asset.js'
 //   refresh: 手动刷新（完成后 bump refreshKey 触发组件更新）
 //   bumpRefreshKey: 触发依赖 refreshKey 的组件刷新（用于快照后）
 export function useAssetData() {
-  const [source, setSource] = useState('empty')
-  const [syncedAt, setSyncedAt] = useState(null)
+  const initialStatus = useRef(getInitialAssetStatus())
+  const [source, setSource] = useState(initialStatus.current.source)
+  const [syncedAt, setSyncedAt] = useState(initialStatus.current.syncedAt)
   const [error, setError] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const mountedRef = useRef(true)
