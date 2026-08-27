@@ -15,3 +15,10 @@ test('首页编辑卡片有抖动效果，拖动时停止抖动', () => {
   assert.match(homeSource, /\.sortable-chosen > \.home-card-wobble/)
   assert.match(homeSource, /prefers-reduced-motion: reduce/)
 })
+
+test('拖动目标使用普通交换和中心点插入判定', () => {
+  assert.match(homeSource, /swapThreshold: 0\.7/)
+  assert.match(homeSource, /onMove: \(evt, originalEvent\)/)
+  assert.doesNotMatch(homeSource, /invertSwap:/)
+  assert.match(homeSource, /sortable-drop-target/)
+})

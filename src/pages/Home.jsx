@@ -12,6 +12,7 @@ import {
 import { getPendingCount, fetchTarget } from '../utils/dataStore.js'
 import { formatCurrency, formatPercent, formatChange, formatDateLong, formatDateMid, formatNumber } from '../utils/format.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
+import { getCardInsertDirection } from '../utils/cardSort.js'
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
@@ -317,6 +318,11 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       return
     }
     const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
+    let dropTarget = null
+    const clearDropTarget = () => {
+      dropTarget?.classList.remove('sortable-drop-target')
+      dropTarget = null
+    }
     sortInstance.current = Sortable.create(sortRef.current, {
       animation: 100,
       easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
@@ -331,9 +337,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       forceFallback: coarsePointer,
       fallbackOnBody: true,
       fallbackTolerance: 3,
-      swapThreshold: 0.55,
-      invertSwap: true,
-      invertedSwapThreshold: 0.5,
+      swapThreshold: 0.7,
       scroll: true,
       bubbleScroll: true,
       scrollSensitivity: 70,
@@ -346,10 +350,23 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       },
       filter: 'button, a, input, select, textarea, .no-sort',
       preventOnFilter: false,
+      onMove: (evt, originalEvent) => {
+        if (dropTarget !== evt.related) {
+          clearDropTarget()
+          dropTarget = evt.related
+          dropTarget?.classList.add('sortable-drop-target')
+        }
+        const pointer = originalEvent?.touches?.[0] || originalEvent?.changedTouches?.[0] || originalEvent
+        return getCardInsertDirection(evt.draggedRect, evt.relatedRect, {
+          x: pointer?.clientX,
+          y: pointer?.clientY,
+        }) ?? undefined
+      },
       onStart: () => {
         document.body.dataset.sortableDragging = 'true'
       },
       onEnd: () => {
+        clearDropTarget()
         delete document.body.dataset.sortableDragging
         const visibleKeys = sortInstance.current?.toArray() || []
         setCardOrder((previous) => {
@@ -363,6 +380,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       },
     })
     return () => {
+      clearDropTarget()
       delete document.body.dataset.sortableDragging
       if (sortInstance.current) { sortInstance.current.destroy(); sortInstance.current = null }
     }
@@ -496,6 +514,14 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         .sortable-fallback > .home-card-wobble {
           animation: none;
           transform: none;
+        }
+        body[data-sortable-dragging="true"] .home-card-wobble {
+          animation-play-state: paused;
+        }
+        .sortable-drop-target > .home-card-wobble {
+          outline: 2px solid rgba(37, 99, 235, 0.45);
+          outline-offset: 2px;
+          border-radius: 12px;
         }
         .sortable-ghost { opacity: 0.15; }
         .sortable-drag, .sortable-fallback {
