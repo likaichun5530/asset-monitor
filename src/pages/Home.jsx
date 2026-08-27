@@ -12,7 +12,7 @@ import {
 import { getPendingCount, fetchTarget } from '../utils/dataStore.js'
 import { formatCurrency, formatPercent, formatChange, formatDateLong, formatDateMid, formatNumber } from '../utils/format.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
-import { getCardInsertDirection } from '../utils/cardSort.js'
+import { getCardInsertDirection, getCardOverlapRatio } from '../utils/cardSort.js'
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
@@ -319,6 +319,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
     }
     const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
     let dropTarget = null
+    let lastPointer = null
     const clearDropTarget = () => {
       dropTarget?.classList.remove('sortable-drop-target')
       dropTarget = null
@@ -337,7 +338,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       forceFallback: coarsePointer,
       fallbackOnBody: true,
       fallbackTolerance: 3,
-      swapThreshold: 0.7,
+      swapThreshold: 1,
       scroll: true,
       bubbleScroll: true,
       scrollSensitivity: 70,
@@ -351,18 +352,37 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
       filter: 'button, a, input, select, textarea, .no-sort',
       preventOnFilter: false,
       onMove: (evt, originalEvent) => {
+        const pointer = originalEvent?.touches?.[0] || originalEvent?.changedTouches?.[0] || originalEvent
+        const point = { x: pointer?.clientX, y: pointer?.clientY }
+        const movement = lastPointer && Number.isFinite(point.x) && Number.isFinite(point.y)
+          ? { x: point.x - lastPointer.x, y: point.y - lastPointer.y }
+          : { x: 0, y: 0 }
+        if (Number.isFinite(point.x) && Number.isFinite(point.y)) lastPointer = point
+
+        const fallbackRect = document.querySelector('.sortable-fallback')?.getBoundingClientRect()
+        const sourceRect = evt.draggedRect
+        const movingRect = fallbackRect || (Number.isFinite(point.x) && Number.isFinite(point.y) && sourceRect
+          ? {
+              left: point.x - sourceRect.width / 2,
+              right: point.x + sourceRect.width / 2,
+              top: point.y - sourceRect.height / 2,
+              bottom: point.y + sourceRect.height / 2,
+            }
+          : sourceRect)
+
+        if (getCardOverlapRatio(movingRect, evt.relatedRect) < 0.5) {
+          clearDropTarget()
+          return false
+        }
         if (dropTarget !== evt.related) {
           clearDropTarget()
           dropTarget = evt.related
           dropTarget?.classList.add('sortable-drop-target')
         }
-        const pointer = originalEvent?.touches?.[0] || originalEvent?.changedTouches?.[0] || originalEvent
-        return getCardInsertDirection(evt.draggedRect, evt.relatedRect, {
-          x: pointer?.clientX,
-          y: pointer?.clientY,
-        }) ?? undefined
+        return getCardInsertDirection(movingRect, evt.relatedRect, movement) ?? undefined
       },
       onStart: () => {
+        lastPointer = null
         document.body.dataset.sortableDragging = 'true'
       },
       onEnd: () => {
@@ -508,15 +528,6 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         .home-card-sortable:nth-child(2n) > .home-card-wobble {
           animation-delay: -0.17s;
           animation-direction: reverse;
-        }
-        .sortable-chosen > .home-card-wobble,
-        .sortable-drag > .home-card-wobble,
-        .sortable-fallback > .home-card-wobble {
-          animation: none;
-          transform: none;
-        }
-        body[data-sortable-dragging="true"] .home-card-wobble {
-          animation-play-state: paused;
         }
         .sortable-drop-target > .home-card-wobble {
           outline: 2px solid rgba(37, 99, 235, 0.45);
