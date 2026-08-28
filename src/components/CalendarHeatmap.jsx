@@ -1,7 +1,9 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { getHistory } from '../utils/asset.js'
+import { saveHistoryNote } from '../utils/dataStore.js'
 import { formatCurrency } from '../utils/format.js'
 import { getHistoryDayDetail } from '../utils/historyChanges.js'
+import { setCachedHistory } from '../utils/snapshot.js'
 
 // 星期标题
 const WEEKDAY_HEADERS = ['日', '一', '二', '三', '四', '五', '六']
@@ -42,10 +44,15 @@ function prevDayStr(dateStr) {
 }
 
 export default function CalendarHeatmap({ refreshKey = 0 }) {
-  const history = useMemo(() => getHistory(), [refreshKey])
+  const [historyRevision, setHistoryRevision] = useState(0)
+  const history = useMemo(() => getHistory(), [refreshKey, historyRevision])
   const [selectedDay, setSelectedDay] = useState(null)
   const [popupPos, setPopupPos] = useState(null)
   const [showMonthPicker, setShowMonthPicker] = useState(false)
+  const [noteEditing, setNoteEditing] = useState(false)
+  const [noteDraft, setNoteDraft] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
+  const [noteError, setNoteError] = useState('')
   // 显示模式（记忆上次选择）
   const [displayMode, setDisplayMode] = useState(() => {
     try { return localStorage.getItem('youshu-calendar-mode') || 'amount' } catch { return 'amount' }
@@ -81,6 +88,12 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     () => selectedDay ? getHistoryDayDetail(history, selectedDay.date) : null,
     [history, selectedDay],
   )
+
+  useEffect(() => {
+    setNoteEditing(false)
+    setNoteDraft(selectedDetail?.note || '')
+    setNoteError('')
+  }, [selectedDetail?.date])
 
   // 分析历史数据中存在的年月范围
   const availableMonths = useMemo(() => {
@@ -197,6 +210,25 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const goPrevYear = () => setViewYear(viewYear - 1)
   const goNextYear = () => setViewYear(viewYear + 1)
 
+  const handleSaveNote = async () => {
+    if (!selectedDetail || noteSaving) return
+    setNoteSaving(true)
+    setNoteError('')
+    try {
+      const result = await saveHistoryNote(selectedDetail.date, noteDraft)
+      const updatedHistory = history.map((item) => item.date === selectedDetail.date
+        ? { ...item, note: result.note || undefined }
+        : item)
+      setCachedHistory(updatedHistory)
+      setHistoryRevision((value) => value + 1)
+      setNoteEditing(false)
+    } catch (error) {
+      setNoteError(error?.message || '保存备注失败')
+    } finally {
+      setNoteSaving(false)
+    }
+  }
+
   const renderDayDetail = (showClose = false) => selectedDetail && (
     <>
       <div className="flex items-start justify-between">
@@ -251,6 +283,36 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       ) : (
         <div className="py-6 text-center text-xs text-gray-400">该日暂无分类资产快照</div>
       )}
+      <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-700">
+        {noteEditing ? (
+          <div>
+            <textarea
+              value={noteDraft}
+              onChange={(event) => { setNoteDraft(event.target.value); setNoteError('') }}
+              maxLength={500}
+              rows={3}
+              placeholder="记录当天的重要事项"
+              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-brand-500/20"
+            />
+            {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
+            <div className="mt-2 flex justify-end gap-2">
+              <button type="button" onClick={() => { setNoteEditing(false); setNoteDraft(selectedDetail.note || ''); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">取消</button>
+              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+                {noteSaving ? '保存中…' : '保存备注'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 text-xs text-gray-500 dark:text-gray-400">
+              {selectedDetail.note || '暂无备注'}
+            </div>
+            <button type="button" onClick={() => setNoteEditing(true)} className="shrink-0 text-xs font-medium text-brand-600 dark:text-brand-400">
+              {selectedDetail.note ? '编辑备注' : '添加备注'}
+            </button>
+          </div>
+        )}
+      </div>
     </>
   )
 

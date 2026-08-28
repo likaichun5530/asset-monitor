@@ -7,6 +7,7 @@ dotenv.config()
 
 const routes = [
   ['/api/auth/login', '../api/auth/login.js'],
+  ['/api/ai-chat', '../api/ai-chat.js'],
   ['/api/futures', '../api/futures.js'],
   ['/api/health', '../api/health.js'],
   ['/api/history', '../api/history.js'],

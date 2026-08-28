@@ -190,10 +190,41 @@ export async function fetchHistory() {
   return { history: merged, source: cached?.history?.length ? 'cache' : 'empty', syncedAt: cached?.syncedAt || null }
 }
 
+export async function saveHistoryNote(date, note) {
+  if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘备注')
+  const token = localStorage.getItem('youshu-auth-token') || ''
+  if (!token) throw new Error('请重新登录后再操作')
+
+  let resp
+  try {
+    resp = await fetch(apiUrl('history'), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ date, note }),
+      signal: AbortSignal.timeout(15000),
+    })
+  } catch {
+    throw new Error('网络不可用，无法保存备注，请联网后重试')
+  }
+
+  const data = await resp.json().catch(() => ({}))
+  if (!resp.ok) throw new Error(data.error || `保存备注失败（${resp.status}）`)
+
+  const cached = readLocal(KEYS.history, null)
+  if (cached?.history?.length) {
+    const history = cached.history.map((item) => item.date === date ? { ...item, note: data.note || undefined } : item)
+    writeLocal(KEYS.history, { ...cached, history, syncedAt: data.syncedAt || cached.syncedAt })
+  }
+  return data
+}
+
 function mergeHistory(base, extra) {
   const map = new Map()
   for (const item of base) map.set(item.date, { ...item })
-  for (const item of extra) map.set(item.date, { ...item })
+  for (const item of extra) map.set(item.date, { ...(map.get(item.date) || {}), ...item })
   return Array.from(map.values()).sort((a, b) => new Date(a.date) - new Date(b.date))
 }
 

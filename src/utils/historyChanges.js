@@ -40,6 +40,7 @@ export function getHistoryDayDetail(history = [], date) {
 
   return {
     date: current.date,
+    note: String(current.note || ''),
     previousDate: previous?.date || null,
     total: currentTotal,
     totalChange: previousTotal === null ? null : currentTotal - previousTotal,

@@ -16,7 +16,7 @@
   - 按市场（美股 / A股 / 港股 / 日股 / 全球）
   - 按币种（人民币 / 美元 / 港币）
 - **账户分布**：按账户/平台（IBKR / Snowball / Binance 等）展示资产分布与进度条
-- **收益日历**：展示每日总资产变化；点击日期可查看各类资产相对上一条快照的变化金额
+- **收益日历**：展示每日总资产变化；点击日期可查看各类资产相对上一条快照的变化金额，并可将当天备注保存到 History 表最后一列
 - **卡片编辑**：长按首页进入编辑模式，卡片会轻微抖动；按住卡片即可拖动排序，也可隐藏或恢复卡片
 
 ### 📸 生成快照
@@ -45,6 +45,13 @@
 - 相对目标偏离达到 ±40%，或绝对偏离达到 ±2 个百分点时，提醒超配或低配
 - 对已触发提醒的类别，按照当前总资产与目标比例给出建议增加或减少的金额
 - 首页账户健康度与现金加仓建议使用相同的偏差判断口径
+
+### 🤖 AI 资产助手
+- 设置中可独立开启或关闭；开启后在登录状态下的每个页面右上角显示机器人入口
+- Vercel 后端实时读取 Holdings、History 和 target，将规范化后的资产数据交给 DeepSeek 分析
+- 支持流式多轮对话和当前页面快捷问题，对话仅保存在当前浏览器
+- DeepSeek API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
+- AI 分析仅作资产整理与风险提示，不会修改持仓或执行交易
 
 ### 📱 响应式设计
 - 桌面端：顶部导航 + 宽屏布局
@@ -144,6 +151,10 @@ vercel
 | `AUTH_USERNAME` | 登录用户名 | 自定义 |
 | `AUTH_PASSWORD` | 登录密码 | 自定义 |
 | `CRON_SECRET` | 自动快照 Cron 调用密钥 | 长随机字符串 |
+| `DEEPSEEK_API_KEY` | DeepSeek 开放平台 API Key，仅供服务端调用 | `sk-...` |
+| `DEEPSEEK_BASE_URL` | DeepSeek OpenAI 兼容接口地址；官方平台可不填 | `https://api.deepseek.com` |
+| `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
+| `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
 
 配置后重新部署使环境变量生效：
 
@@ -304,6 +315,9 @@ Asset-Monitor/
 | `asset-monitor:history` | 历史快照缓存 |
 | `asset-monitor:pendingSync` | 待同步到 Google Sheets 的快照队列 |
 | `asset-monitor:lastSyncAt` | 最后成功同步时间 |
+| `youshu-ai-enabled` | 是否在页面显示 AI 助手 |
+| `youshu-ai-consent` | 是否已确认资产数据会发送给 DeepSeek |
+| `youshu-ai-messages` | 当前浏览器最近的 AI 对话 |
 
 ## 配色说明
 
@@ -314,9 +328,10 @@ Asset-Monitor/
 | 接口 | 方法 | 说明 |
 | --- | --- | --- |
 | `/api/auth/login` | POST | 登录，返回 JWT token |
+| `/api/ai-chat` | POST | 登录后读取资产数据并流式调用 DeepSeek |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET / POST / PUT / DELETE | 读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓；写操作需要登录令牌及行版本校验 |
-| `/api/history` | GET | 读取 Google Sheets「History」表，返回 JSON 数组 |
+| `/api/history` | GET / PUT | 读取 History；登录后可按日期更新当天最后一列备注 |
 | `/api/snapshot` | POST | 从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
 | `/api/snapshot-auto` | GET | 每日北京时间 23:00 自动快照（Vercel Cron；手动调用需 `CRON_SECRET`） |
 | `/api/target` | GET | 读取 target 表 + 实时持仓计算，返回目标配置对比数据 |

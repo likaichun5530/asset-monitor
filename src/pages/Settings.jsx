@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { apiUrl } from '../utils/api.js'
+import { AI_CONSENT_KEY, isAiEnabled, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
 
 const THEME_KEY = 'youshu-theme'
@@ -24,6 +25,8 @@ export default function Settings({ auth } = {}) {
   const [pwd, setPwd] = useState('')
   const [pwdError, setPwdError] = useState('')
   const [pwdLoading, setPwdLoading] = useState(false)
+  const [aiEnabled, setAiEnabledState] = useState(() => isAiEnabled())
+  const [showAiConsent, setShowAiConsent] = useState(false)
   const isLoggedIn = auth?.isLoggedIn || false
 
   function handleThemeChange(t) {
@@ -79,6 +82,27 @@ export default function Settings({ auth } = {}) {
     setPwdError('')
   }
 
+  function handleAiToggle() {
+    if (aiEnabled) {
+      setAiEnabled(false)
+      setAiEnabledState(false)
+      return
+    }
+    if (localStorage.getItem(AI_CONSENT_KEY) === 'true') {
+      setAiEnabled(true)
+      setAiEnabledState(true)
+      return
+    }
+    setShowAiConsent(true)
+  }
+
+  function confirmAiConsent() {
+    localStorage.setItem(AI_CONSENT_KEY, 'true')
+    setAiEnabled(true)
+    setAiEnabledState(true)
+    setShowAiConsent(false)
+  }
+
   const themes = [
     { key: 'light', label: '白天模式', icon: '☀️' },
     { key: 'dark', label: '暗夜模式', icon: '🌙' },
@@ -113,6 +137,29 @@ export default function Settings({ auth } = {}) {
             {demoMode && <svg className="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
           </button>
         </div>
+      </div>
+
+      <div className="card sm:min-h-[260px]">
+        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">AI 资产助手</h3>
+        <p className="mb-5 text-xs leading-5 text-gray-400">使用 DeepSeek 分析 Holdings、History 和目标配置</p>
+        <button
+          type="button"
+          onClick={handleAiToggle}
+          disabled={!isLoggedIn || demoMode}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${aiEnabled ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'} ${!isLoggedIn || demoMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <div className="flex items-center gap-3 text-left">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-lg dark:bg-brand-500/15">🤖</span>
+            <div>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">显示 AI 机器人</div>
+              <div className="mt-0.5 text-[10px] text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在所有页面显示' : '当前已关闭'}</div>
+            </div>
+          </div>
+          <span className={`relative h-6 w-11 rounded-full transition-colors ${aiEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}>
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${aiEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </span>
+        </button>
+        <p className="mt-3 text-[10px] leading-4 text-gray-400">开启后，具体资产金额、账户、代码和备注会通过 Vercel 后端发送给 DeepSeek。</p>
       </div>
 
       <div className="card sm:min-h-[260px]">
@@ -176,6 +223,21 @@ export default function Settings({ auth } = {}) {
               <button onClick={handleVerify} disabled={pwdLoading}
                 className="flex-1 px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
               >{pwdLoading ? '验证中...' : '确认'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAiConsent && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setShowAiConsent(false)} />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-gray-800">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">启用 DeepSeek 资产助手</h3>
+            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">系统会将 Holdings、History 和目标配置中的资产金额、账户、证券代码及备注发送给 DeepSeek API，用于回答你的资产分析问题。</p>
+            <p className="mt-2 text-xs leading-5 text-gray-400">Google 凭据、登录令牌、表格公式和 DeepSeek API Key 不会发送给模型。</p>
+            <div className="mt-5 flex gap-2">
+              <button type="button" onClick={() => setShowAiConsent(false)} className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">取消</button>
+              <button type="button" onClick={confirmAiConsent} className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white">同意并启用</button>
             </div>
           </div>
         </div>

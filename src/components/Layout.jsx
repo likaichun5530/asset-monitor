@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { NavLink, Outlet } from 'react-router-dom'
+import AiAssistant from './AiAssistant.jsx'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
 
 const navItems = [
@@ -264,6 +265,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
         <NavLink to="/holdings" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><ListIcon className="w-5 h-5" /><span>持仓</span></NavLink>
         <NavLink to="/target" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><TargetIcon className="w-5 h-5" /><span>目标</span></NavLink>
       </nav>
+      <AiAssistant auth={auth} />
     </div>
   )
 }

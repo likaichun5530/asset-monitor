@@ -25,3 +25,11 @@ test('没有可比较分类快照时显示所选日期的分类金额', () => {
   assert.equal(detail.categories.find((item) => item.key === 'bond').currentValue, 300)
   assert.equal(detail.categories.find((item) => item.key === 'cash').currentValue, 700)
 })
+
+test('日历详情保留当天 History 备注', () => {
+  const detail = getHistoryDayDetail([
+    { date: '2026-08-28', total: 1000, categories: { cash: 1000 }, note: '工资到账' },
+  ], '2026-08-28')
+
+  assert.equal(detail.note, '工资到账')
+})
