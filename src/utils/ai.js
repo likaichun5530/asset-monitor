@@ -5,6 +5,12 @@ export const AI_CONSENT_KEY = 'youshu-ai-consent'
 export const AI_MESSAGES_KEY = 'youshu-ai-messages'
 export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 
+function authHeaders() {
+  const token = localStorage.getItem('youshu-auth-token') || ''
+  if (!token) throw new Error('请先登录实盘账户')
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+}
+
 export function isAiEnabled() {
   try { return localStorage.getItem(AI_ENABLED_KEY) === 'true' } catch { return false }
 }
@@ -34,6 +40,24 @@ export function saveAiMessages(messages) {
   } catch {
     // ignore
   }
+}
+
+export async function getAiRules() {
+  const response = await fetch(apiUrl('ai-rules'), { headers: authHeaders(), cache: 'no-store' })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.error || `读取 AI 规则失败（${response.status}）`)
+  return data
+}
+
+export async function saveAiRules(systemRules, userRules) {
+  const response = await fetch(apiUrl('ai-rules'), {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ systemRules, userRules }),
+  })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.error || `保存 AI 规则失败（${response.status}）`)
+  return data
 }
 
 export async function streamAiChat(messages, page, onChunk, { signal } = {}) {

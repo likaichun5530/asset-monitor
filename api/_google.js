@@ -92,10 +92,10 @@ export async function readSheet(sheetName, { valueRenderOption } = {}) {
 }
 
 // 通过 Sheets API 写入行
-export async function appendRows(sheetName, values) {
+export async function appendRows(sheetName, values, { valueInputOption = 'USER_ENTERED' } = {}) {
   if (!isConfigured()) throw new Error('Google Sheets 未配置')
   const token = await getAccessToken()
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z:append?valueInputOption=USER_ENTERED`
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z:append?valueInputOption=${encodeURIComponent(valueInputOption)}`
   const resp = await fetch(url, {
     method: 'POST',
     headers: {
@@ -112,10 +112,10 @@ export async function appendRows(sheetName, values) {
 }
 
 // 更新指定行
-export async function updateRows(sheetName, range, values) {
+export async function updateRows(sheetName, range, values, { valueInputOption = 'USER_ENTERED' } = {}) {
   if (!isConfigured()) throw new Error('Google Sheets 未配置')
   const token = await getAccessToken()
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!${range}?valueInputOption=USER_ENTERED`
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName)}!${range}?valueInputOption=${encodeURIComponent(valueInputOption)}`
   const resp = await fetch(url, {
     method: 'PUT',
     headers: {
@@ -129,6 +129,35 @@ export async function updateRows(sheetName, range, values) {
     throw new Error(`更新 ${sheetName} 失败: ${resp.status} ${text}`)
   }
   return resp.json()
+}
+
+// 确保工作表存在，适合首次启用可选功能时初始化配置表。
+export async function ensureSheet(sheetName) {
+  if (!isConfigured()) throw new Error('Google Sheets 未配置')
+  const token = await getAccessToken()
+  const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties(title)`
+  const metadataResp = await fetch(metadataUrl, { headers: { Authorization: `Bearer ${token}` } })
+  if (!metadataResp.ok) {
+    const text = await metadataResp.text()
+    throw new Error(`读取工作表信息失败: ${metadataResp.status} ${text}`)
+  }
+  const metadata = await metadataResp.json()
+  if (metadata.sheets?.some(({ properties }) => properties?.title === sheetName)) return false
+
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}:batchUpdate`
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ requests: [{ addSheet: { properties: { title: sheetName } } }] }),
+  })
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`创建 ${sheetName} 失败: ${resp.status} ${text}`)
+  }
+  return true
 }
 
 // 物理删除指定工作表中的一行，其下方数据会自动上移

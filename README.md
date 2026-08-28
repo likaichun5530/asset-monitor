@@ -50,6 +50,8 @@
 - 设置中可独立开启或关闭；开启后在登录状态下的每个页面右上角显示机器人入口
 - Vercel 后端实时读取 Holdings、History 和 target，将规范化后的资产数据交给 DeepSeek 分析
 - 支持流式多轮对话和当前页面快捷问题，对话仅保存在当前浏览器
+- 设置页可在同一窗口编辑系统规则和用户规则；两者保存到 Google Sheets 的 `AIConfig` 表，保存后下一次提问生效
+- 系统规则用于配置助手身份、事实边界和固定要求，优先于用于收益口径、回答风格和分析偏好的用户规则；登录鉴权和密钥隔离仍由服务端代码强制执行
 - DeepSeek API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
 - AI 分析仅作资产整理与风险提示，不会修改持仓或执行交易
 
@@ -329,6 +331,7 @@ Asset-Monitor/
 | --- | --- | --- |
 | `/api/auth/login` | POST | 登录，返回 JWT token |
 | `/api/ai-chat` | POST | 登录后读取资产数据并流式调用 DeepSeek |
+| `/api/ai-rules` | GET / PUT | 登录后读取系统/用户规则或保存用户规则；首次保存自动创建 `AIConfig` 表 |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET / POST / PUT / DELETE | 读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓；写操作需要登录令牌及行版本校验 |
 | `/api/history` | GET / PUT | 读取 History；登录后可按日期更新当天最后一列备注 |

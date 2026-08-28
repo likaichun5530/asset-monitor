@@ -338,7 +338,6 @@ export default function AiAssistant({ auth } = {}) {
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
                 </button>
               </div>
-              <div className="mt-1.5 text-center text-[9px] text-gray-400">仅供资产整理与风险分析参考，不构成投资建议</div>
             </footer>
           </section>
         </>

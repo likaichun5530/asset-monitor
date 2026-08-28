@@ -3,6 +3,7 @@ import { requireAuth } from './_auth.js'
 import { readJsonBody } from './_http.js'
 import { buildAssetAiContext } from './_ai-context.js'
 import { createDeepSeekStream, normalizeAiMessages } from './_deepseek.js'
+import { readAiRules } from './_ai-rules.js'
 
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' })
@@ -25,9 +26,9 @@ export default async function handler(req, res) {
     const messages = normalizeAiMessages(body.messages)
     if (!messages.length || messages.at(-1).role !== 'user') return json(res, 400, { error: '请输入需要分析的问题' })
     const page = String(body.page || '/').slice(0, 80)
-    const context = await buildAssetAiContext(page)
+    const [context, rules] = await Promise.all([buildAssetAiContext(page), readAiRules()])
     if (!context.holdings.length && !context.history.length) return json(res, 422, { error: '没有可供 AI 分析的资产数据' })
-    const { response, model } = await createDeepSeekStream(context, messages)
+    const { response, model } = await createDeepSeekStream(context, messages, rules)
 
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
