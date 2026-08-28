@@ -250,7 +250,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-2 sm:px-4 lg:px-5 pt-2 sm:pt-4 lg:pt-5 pb-24 sm:pb-8">
+            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-2 sm:px-4 lg:px-5 pt-1 sm:pt-4 lg:pt-5 pb-24 sm:pb-8">
               <Outlet />
             </main>
           </div>

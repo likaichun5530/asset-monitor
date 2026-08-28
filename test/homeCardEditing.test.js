@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 
 const homeSource = await readFile(new URL('../src/pages/Home.jsx', import.meta.url), 'utf8')
 const styleSource = await readFile(new URL('../src/index.css', import.meta.url), 'utf8')
+const layoutSource = await readFile(new URL('../src/components/Layout.jsx', import.meta.url), 'utf8')
 
 test('首页编辑模式使用整张卡片拖动并移除手柄', () => {
   assert.match(homeSource, /draggable: '\[data-id\]'/)
@@ -37,4 +38,9 @@ test('桌面首页同排卡片使用等高伸缩槽位', () => {
   assert.match(styleSource, /\.home-card-slot > div > \.card\s*{[^}]*height: 100%;/s)
   assert.match(styleSource, /\.home-card-slot-analysis > div > \.card\s*{[^}]*height: 350px;[^}]*max-height: 350px;/s)
   assert.doesNotMatch(homeSource, /共展示.*张数据卡片/)
+})
+
+test('手机首页顶部和卡片横向间距保持统一', () => {
+  assert.match(layoutSource, /px-2 sm:px-4 lg:px-5 pt-1 sm:pt-4/)
+  assert.match(homeSource, /home-card-slot-analysis w-full lg:w-1\/2 px-0\.5 sm:px-1\.5/)
 })

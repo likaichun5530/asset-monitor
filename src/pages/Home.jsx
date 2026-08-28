@@ -521,7 +521,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
             )
           }
           return (
-            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-1 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-0.5 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
               <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                 {editMode && (
                   <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>
