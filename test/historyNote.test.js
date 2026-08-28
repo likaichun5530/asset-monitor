@@ -20,11 +20,13 @@ test('History 备注允许清空但拒绝公式和超长内容', () => {
   assert.throws(() => normalizeHistoryNote('a'.repeat(501)), /不能超过 500 个字符/)
 })
 
-test('手机收益详情使用可视窗口滚动并直接显示备注输入区', async () => {
+test('手机收益详情使用可视窗口滚动并在底部按需展开备注输入区', async () => {
   const source = await readFile(new URL('../src/components/CalendarHeatmap.jsx', import.meta.url), 'utf8')
   assert.match(source, /max-h-\[calc\(100dvh-8px\)\]/)
+  assert.match(source, /'添加备注'/)
   assert.match(source, />备注<\/span>/)
   assert.match(source, /placeholder="记录当天的重要事项"/)
+  assert.match(source, /备注保存成功/)
   assert.match(source, /role="dialog" aria-modal="true" aria-label="每日资产变化"/)
-  assert.ok(source.indexOf('placeholder="记录当天的重要事项"') < source.indexOf('selectedDetail.categories.length'))
+  assert.ok(source.indexOf('placeholder="记录当天的重要事项"') > source.indexOf('selectedDetail.categories.length'))
 })

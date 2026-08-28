@@ -50,8 +50,10 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const [popupPos, setPopupPos] = useState(null)
   const [showMonthPicker, setShowMonthPicker] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
+  const [noteEditing, setNoteEditing] = useState(false)
   const [noteSaving, setNoteSaving] = useState(false)
   const [noteError, setNoteError] = useState('')
+  const [noteSuccess, setNoteSuccess] = useState('')
   // 显示模式（记忆上次选择）
   const [displayMode, setDisplayMode] = useState(() => {
     try { return localStorage.getItem('youshu-calendar-mode') || 'amount' } catch { return 'amount' }
@@ -90,7 +92,9 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
 
   useEffect(() => {
     setNoteDraft(selectedDetail?.note || '')
+    setNoteEditing(false)
     setNoteError('')
+    setNoteSuccess('')
   }, [selectedDetail?.date])
 
   useEffect(() => {
@@ -226,6 +230,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     if (!selectedDetail || noteSaving) return
     setNoteSaving(true)
     setNoteError('')
+    setNoteSuccess('')
     try {
       const result = await saveHistoryNote(selectedDetail.date, noteDraft)
       const updatedHistory = history.map((item) => item.date === selectedDetail.date
@@ -233,6 +238,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         : item)
       setCachedHistory(updatedHistory)
       setHistoryRevision((value) => value + 1)
+      setNoteEditing(false)
+      setNoteSuccess('备注保存成功')
     } catch (error) {
       setNoteError(error?.message || '保存备注失败')
     } finally {
@@ -272,27 +279,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           </div>
         )}
       </div>
-      <div className="mt-3 rounded-xl border border-brand-100 bg-brand-50/40 p-3 dark:border-brand-500/20 dark:bg-brand-500/5">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-200">备注</span>
-            <span className="text-[10px] text-gray-400">{noteDraft.length}/500</span>
-          </div>
-          <textarea
-            value={noteDraft}
-            onChange={(event) => { setNoteDraft(event.target.value); setNoteError('') }}
-            maxLength={500}
-            rows={3}
-            placeholder="记录当天的重要事项"
-            className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-brand-500/20"
-          />
-          {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
-          <div className="mt-2 flex justify-end gap-2">
-            <button type="button" onClick={() => { setNoteDraft(selectedDetail.note || ''); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">重置</button>
-            <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
-              {noteSaving ? '保存中…' : '保存备注'}
-            </button>
-          </div>
-      </div>
       {selectedDetail.categories.length > 0 ? (
         <div className="mt-2 divide-y divide-gray-100 dark:divide-gray-700">
           {selectedDetail.categories.map((item) => {
@@ -317,6 +303,48 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       ) : (
         <div className="py-6 text-center text-xs text-gray-400">该日暂无分类资产快照</div>
       )}
+      <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-700">
+        {selectedDetail.note && !noteEditing && (
+          <div className="mb-2 rounded-lg bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-600 dark:bg-gray-900/50 dark:text-gray-300">
+            {selectedDetail.note}
+          </div>
+        )}
+        {noteSuccess && !noteEditing && (
+          <div role="status" className="mb-2 text-xs font-medium text-green-600 dark:text-green-400">{noteSuccess}</div>
+        )}
+        {!noteEditing ? (
+          <button
+            type="button"
+            onClick={() => { setNoteEditing(true); setNoteError(''); setNoteSuccess('') }}
+            className="w-full rounded-lg border border-brand-200 px-3 py-2 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-500/30 dark:text-brand-400 dark:hover:bg-brand-500/10"
+          >
+            {selectedDetail.note ? '编辑备注' : '添加备注'}
+          </button>
+        ) : (
+          <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3 dark:border-brand-500/20 dark:bg-brand-500/5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-200">备注</span>
+              <span className="text-[10px] text-gray-400">{noteDraft.length}/500</span>
+            </div>
+            <textarea
+              value={noteDraft}
+              onChange={(event) => { setNoteDraft(event.target.value); setNoteError(''); setNoteSuccess('') }}
+              maxLength={500}
+              rows={3}
+              autoFocus
+              placeholder="记录当天的重要事项"
+              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-brand-500/20"
+            />
+            {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
+            <div className="mt-2 flex justify-end gap-2">
+              <button type="button" disabled={noteSaving} onClick={() => { setNoteDraft(selectedDetail.note || ''); setNoteEditing(false); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700">取消</button>
+              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+                {noteSaving ? '保存中…' : '保存备注'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   )
 
