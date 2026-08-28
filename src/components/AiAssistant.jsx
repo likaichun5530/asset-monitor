@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
   AI_MESSAGES_KEY,
@@ -25,6 +25,39 @@ const PAGE_PROMPTS = {
   '/cash': ['分析现金配置', '现金是否高于或低于目标'],
 }
 
+const AI_BUTTON_POSITION_KEY = 'youshu-ai-button-position'
+const BUTTON_SIZE = 44
+const EDGE_GAP = 8
+
+function clampButtonPosition(position) {
+  if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
+  return {
+    x: Math.min(Math.max(position.x, EDGE_GAP), Math.max(EDGE_GAP, window.innerWidth - BUTTON_SIZE - EDGE_GAP)),
+    y: Math.min(Math.max(position.y, EDGE_GAP), Math.max(EDGE_GAP, window.innerHeight - BUTTON_SIZE - EDGE_GAP)),
+  }
+}
+
+function loadButtonPosition() {
+  if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
+  try {
+    const saved = JSON.parse(localStorage.getItem(AI_BUTTON_POSITION_KEY) || 'null')
+    if (Number.isFinite(saved?.xRatio) && Number.isFinite(saved?.yRatio)) {
+      return clampButtonPosition({ x: saved.xRatio * window.innerWidth, y: saved.yRatio * window.innerHeight })
+    }
+  } catch {
+    // Ignore malformed local preferences.
+  }
+  return clampButtonPosition({ x: window.innerWidth - BUTTON_SIZE - 12, y: window.innerWidth >= 640 ? 80 : 56 })
+}
+
+function saveButtonPosition(position) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(AI_BUTTON_POSITION_KEY, JSON.stringify({
+    xRatio: position.x / window.innerWidth,
+    yRatio: position.y / window.innerHeight,
+  }))
+}
+
 function RobotIcon({ className = 'h-6 w-6' }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -43,20 +76,38 @@ export default function AiAssistant({ auth } = {}) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dataAsOf, setDataAsOf] = useState(null)
+  const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const scrollRef = useRef(null)
   const abortRef = useRef(null)
+  const dragRef = useRef(null)
+  const suppressClickRef = useRef(false)
+  const historyEntryRef = useRef(false)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
   const visible = enabled && auth?.isLoggedIn && !demoMode
   const prompts = useMemo(() => PAGE_PROMPTS[location.pathname] || PAGE_PROMPTS['/'], [location.pathname])
+
+  const close = useCallback(() => {
+    abortRef.current?.abort()
+    if (historyEntryRef.current) {
+      historyEntryRef.current = false
+      history.back()
+    }
+    setOpen(false)
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
     const onSetting = (event) => {
       const nextEnabled = Boolean(event.detail?.enabled)
       setEnabled(nextEnabled)
-      if (!nextEnabled) setOpen(false)
+      if (!nextEnabled) close()
     }
     const onStorage = (event) => {
-      if (event.key === 'youshu-ai-enabled') setEnabled(event.newValue === 'true')
+      if (event.key === 'youshu-ai-enabled') {
+        const nextEnabled = event.newValue === 'true'
+        setEnabled(nextEnabled)
+        if (!nextEnabled) close()
+      }
     }
     window.addEventListener(AI_SETTING_EVENT, onSetting)
     window.addEventListener('storage', onStorage)
@@ -64,15 +115,62 @@ export default function AiAssistant({ auth } = {}) {
       window.removeEventListener(AI_SETTING_EVENT, onSetting)
       window.removeEventListener('storage', onStorage)
     }
-  }, [])
+  }, [close])
+
+  useEffect(() => {
+    if (!visible && open) close()
+  }, [close, open, visible])
 
   useEffect(() => { saveAiMessages(messages) }, [messages])
 
   useEffect(() => {
     if (!open || !visible) return undefined
     document.body.dataset.modalOpen = 'true'
-    return () => { delete document.body.dataset.modalOpen }
+    const scrollY = window.scrollY
+    const previousBody = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    }
+    const previousHtmlOverflow = document.documentElement.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      delete document.body.dataset.modalOpen
+      document.documentElement.style.overflow = previousHtmlOverflow
+      Object.assign(document.body.style, previousBody)
+      window.scrollTo(0, scrollY)
+    }
   }, [open, visible])
+
+  useEffect(() => {
+    const handleResize = () => setButtonPosition((current) => {
+      const next = clampButtonPosition(current)
+      saveButtonPosition(next)
+      return next
+    })
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return undefined
+    history.pushState({ ...(history.state || {}), youshuAiAssistant: true }, '', window.location.href)
+    historyEntryRef.current = true
+    const handlePopState = () => {
+      if (!historyEntryRef.current) return
+      historyEntryRef.current = false
+      abortRef.current?.abort()
+      setLoading(false)
+      setOpen(false)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [open])
 
   useEffect(() => {
     if (open) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -109,10 +207,49 @@ export default function AiAssistant({ auth } = {}) {
     }
   }
 
-  const close = () => {
-    abortRef.current?.abort()
-    setOpen(false)
-    setLoading(false)
+  const handleButtonPointerDown = (event) => {
+    if (event.button !== undefined && event.button !== 0) return
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: buttonPosition.x,
+      originY: buttonPosition.y,
+      moved: false,
+    }
+  }
+
+  const handleButtonPointerMove = (event) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const deltaX = event.clientX - drag.startX
+    const deltaY = event.clientY - drag.startY
+    if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return
+    drag.moved = true
+    suppressClickRef.current = true
+    setButtonPosition(clampButtonPosition({ x: drag.originX + deltaX, y: drag.originY + deltaY }))
+  }
+
+  const handleButtonPointerEnd = (event) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    dragRef.current = null
+    if (drag.moved) {
+      setButtonPosition((current) => {
+        const next = clampButtonPosition(current)
+        saveButtonPosition(next)
+        return next
+      })
+    }
+  }
+
+  const handleButtonClick = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false
+      return
+    }
+    setOpen(true)
   }
 
   const clearMessages = () => {
@@ -128,8 +265,13 @@ export default function AiAssistant({ auth } = {}) {
       {!open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
-          className="fixed right-3 top-14 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/25 transition hover:-translate-y-0.5 hover:bg-brand-700 sm:right-5 sm:top-20"
+          onClick={handleButtonClick}
+          onPointerDown={handleButtonPointerDown}
+          onPointerMove={handleButtonPointerMove}
+          onPointerUp={handleButtonPointerEnd}
+          onPointerCancel={handleButtonPointerEnd}
+          className="fixed z-40 flex h-11 w-11 touch-none select-none items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700"
+          style={{ left: `${buttonPosition.x}px`, top: `${buttonPosition.y}px` }}
           title="AI资产助手"
           aria-label="打开AI资产助手"
           data-pull-refresh-ignore="true"
@@ -141,7 +283,7 @@ export default function AiAssistant({ auth } = {}) {
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭AI资产助手" onClick={close} />
-          <section className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[88vh] min-h-[68vh] flex-col rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:min-h-0 sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
+          <section role="dialog" aria-modal="true" aria-label="DeepSeek 资产助手" className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[88dvh] min-h-[68dvh] flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:min-h-0 sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
@@ -156,7 +298,7 @@ export default function AiAssistant({ auth } = {}) {
               </div>
             </header>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">

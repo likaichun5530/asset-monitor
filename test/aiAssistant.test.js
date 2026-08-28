@@ -62,3 +62,13 @@ test('AI接口要求登录，且API密钥仅在服务端读取', async () => {
   assert.doesNotMatch(clientSource, /DEEPSEEK_API_KEY/)
   assert.match(clientSource, /Holdings、History 和目标配置/)
 })
+
+test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭', async () => {
+  const source = await readFile(new URL('../src/components/AiAssistant.jsx', import.meta.url), 'utf8')
+  assert.match(source, /onPointerDown=\{handleButtonPointerDown\}/)
+  assert.match(source, /AI_BUTTON_POSITION_KEY/)
+  assert.match(source, /document\.body\.style\.position = 'fixed'/)
+  assert.match(source, /history\.pushState/)
+  assert.match(source, /window\.addEventListener\('popstate'/)
+  assert.match(source, /role="dialog" aria-modal="true"/)
+})
