@@ -127,7 +127,7 @@ test('AI规则接口要求登录并将统一规则保存到独立配置表', asy
   assert.match(rulesSource, /valueInputOption: 'RAW'/)
   assert.match(settingsSource, /回答规则/)
   assert.match(settingsSource, /onClick=\{handleSaveAiRules\}/)
-  assert.match(settingsSource, /setTimeout\(\(\) =>/)
+  assert.doesNotMatch(settingsSource, /lastAutoSaveAttemptRef/)
   assert.match(settingsSource, /clearAiMessages\(\)/)
   assert.doesNotMatch(settingsSource, /用户规则<\/h4>/)
 })

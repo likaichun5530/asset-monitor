@@ -49,7 +49,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const [selectedDay, setSelectedDay] = useState(null)
   const [popupPos, setPopupPos] = useState(null)
   const [showMonthPicker, setShowMonthPicker] = useState(false)
-  const [noteEditing, setNoteEditing] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [noteSaving, setNoteSaving] = useState(false)
   const [noteError, setNoteError] = useState('')
@@ -68,7 +67,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const wrapRef = useRef(null)
   // 防止点击弹窗本体立即关闭的标记
   const suppressCloseRef = useRef(false)
-  const noteTextareaRef = useRef(null)
 
   // 当前选中年月
   const now = new Date()
@@ -91,19 +89,9 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   )
 
   useEffect(() => {
-    setNoteEditing(false)
     setNoteDraft(selectedDetail?.note || '')
     setNoteError('')
   }, [selectedDetail?.date])
-
-  useEffect(() => {
-    if (!noteEditing) return undefined
-    const frame = requestAnimationFrame(() => {
-      noteTextareaRef.current?.focus({ preventScroll: true })
-      noteTextareaRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [noteEditing])
 
   useEffect(() => {
     if (!selectedDetail || window.matchMedia('(min-width: 640px)').matches) return undefined
@@ -245,7 +233,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         : item)
       setCachedHistory(updatedHistory)
       setHistoryRevision((value) => value + 1)
-      setNoteEditing(false)
     } catch (error) {
       setNoteError(error?.message || '保存备注失败')
     } finally {
@@ -265,11 +252,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          {!noteEditing && (
-            <button type="button" onClick={() => setNoteEditing(true)} className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
-              {selectedDetail.note ? '编辑备注' : '添加备注'}
-            </button>
-          )}
           {showClose && (
             <button
               type="button"
@@ -290,10 +272,12 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           </div>
         )}
       </div>
-      {noteEditing ? (
-        <div className="mt-3 rounded-xl border border-brand-100 bg-brand-50/40 p-3 dark:border-brand-500/20 dark:bg-brand-500/5">
+      <div className="mt-3 rounded-xl border border-brand-100 bg-brand-50/40 p-3 dark:border-brand-500/20 dark:bg-brand-500/5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-200">备注</span>
+            <span className="text-[10px] text-gray-400">{noteDraft.length}/500</span>
+          </div>
           <textarea
-            ref={noteTextareaRef}
             value={noteDraft}
             onChange={(event) => { setNoteDraft(event.target.value); setNoteError('') }}
             maxLength={500}
@@ -303,15 +287,12 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           />
           {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
           <div className="mt-2 flex justify-end gap-2">
-            <button type="button" onClick={() => { setNoteEditing(false); setNoteDraft(selectedDetail.note || ''); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">取消</button>
+            <button type="button" onClick={() => { setNoteDraft(selectedDetail.note || ''); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">重置</button>
             <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
               {noteSaving ? '保存中…' : '保存备注'}
             </button>
           </div>
-        </div>
-      ) : selectedDetail.note ? (
-        <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{selectedDetail.note}</div>
-      ) : null}
+      </div>
       {selectedDetail.categories.length > 0 ? (
         <div className="mt-2 divide-y divide-gray-100 dark:divide-gray-700">
           {selectedDetail.categories.map((item) => {
@@ -482,7 +463,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       {/* 桌面端日期旁浮层 */}
       {selectedDetail && popupPos && (
         <div
-          className="fixed z-30 hidden w-72 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl dark:border-gray-600 dark:bg-gray-800 sm:block"
+          className="fixed z-30 hidden max-h-[calc(100dvh-32px)] w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl dark:border-gray-600 dark:bg-gray-800 sm:block"
           style={{ top: popupPos.top, left: popupPos.left, transform: 'translateX(-50%)' }}
         >
           {renderDayDetail()}

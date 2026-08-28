@@ -37,7 +37,6 @@ export default function Settings({ auth } = {}) {
   const [aiRulesSaved, setAiRulesSaved] = useState(false)
   const [aiRulesDirty, setAiRulesDirty] = useState(false)
   const latestAiRulesRef = useRef('')
-  const lastAutoSaveAttemptRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
 
   useEffect(() => {
@@ -147,7 +146,6 @@ export default function Settings({ auth } = {}) {
   function updateAiRules(value) {
     const next = value.slice(0, aiRulesMaxLength)
     latestAiRulesRef.current = next
-    lastAutoSaveAttemptRef.current = ''
     setAiRules(next)
     setAiRulesDirty(true)
     setAiRulesSaved(false)
@@ -177,16 +175,6 @@ export default function Settings({ auth } = {}) {
       setAiRulesSaving(false)
     }
   }
-
-  useEffect(() => {
-    if (!showAiRules || aiRulesLoading || aiRulesSaving || !aiRulesDirty || !aiRules.trim()) return undefined
-    if (lastAutoSaveAttemptRef.current === aiRules) return undefined
-    const timer = setTimeout(() => {
-      lastAutoSaveAttemptRef.current = aiRules
-      handleSaveAiRules()
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [aiRules, aiRulesDirty, aiRulesLoading, aiRulesSaving, showAiRules])
 
   const themes = [
     { key: 'light', label: '白天模式', icon: '☀️' },
