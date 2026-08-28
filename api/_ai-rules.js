@@ -1,6 +1,7 @@
 import { appendRows, ensureSheet, readSheet, updateRows } from './_google.js'
 
 export const AI_CONFIG_SHEET = 'AIConfig'
+export const AI_RULES_KEY = 'AI_RULES'
 export const AI_SYSTEM_RULES_KEY = 'AI_SYSTEM_RULES'
 export const AI_USER_RULES_KEY = 'AI_USER_RULES'
 export const MAX_AI_RULES_LENGTH = 6000
@@ -20,6 +21,8 @@ export const DEFAULT_USER_RULES = `1. 依据系统提供的资产数据回答资
 3. 回答清晰、简洁、有结论；可以使用短标题和“-”列表，不使用 Markdown 表格或 HTML。
 4. 分析持仓或市场行情时，可以结合标的、行业趋势和市场热点；无法确认实时信息时说明时效限制。`
 
+export const DEFAULT_AI_RULES = `${DEFAULT_SYSTEM_RULES}\n\n${DEFAULT_USER_RULES}`
+
 export function normalizeAiRules(value, label = '规则', { allowEmpty = false } = {}) {
   const rules = String(value ?? '').replace(/\r\n/g, '\n').trim()
   if (!rules) {
@@ -34,41 +37,36 @@ export function normalizeAiRules(value, label = '规则', { allowEmpty = false }
 
 export async function readAiRules() {
   const result = await readSheet(AI_CONFIG_SHEET).catch(() => null)
-  if (!result) return { systemRules: DEFAULT_SYSTEM_RULES, userRules: DEFAULT_USER_RULES }
+  if (!result) return DEFAULT_AI_RULES
   const keyHeader = result.headers?.[0]
   const valueHeader = result.headers?.[1]
   const valueFor = (key) => result.data?.find((item) => String(item?.[keyHeader] || '').trim() === key)?.[valueHeader]
-  return {
-    systemRules: normalizeAiRules(valueFor(AI_SYSTEM_RULES_KEY), '系统规则', { allowEmpty: true }) || DEFAULT_SYSTEM_RULES,
-    userRules: normalizeAiRules(valueFor(AI_USER_RULES_KEY), '用户规则', { allowEmpty: true }) || DEFAULT_USER_RULES,
-  }
+  const unified = normalizeAiRules(valueFor(AI_RULES_KEY), 'AI 规则', { allowEmpty: true })
+  if (unified) return unified
+  // 兼容已经保存过的双规则结构，打开设置后会合并显示，下一次保存转为 AI_RULES。
+  const legacySystem = normalizeAiRules(valueFor(AI_SYSTEM_RULES_KEY), '系统规则', { allowEmpty: true })
+  const legacyUser = normalizeAiRules(valueFor(AI_USER_RULES_KEY), '用户规则', { allowEmpty: true })
+  return [legacySystem, legacyUser].filter(Boolean).join('\n\n') || DEFAULT_AI_RULES
 }
 
 export async function readAiUserRules() {
-  return (await readAiRules()).userRules
+  return readAiRules()
 }
 
-export async function writeAiRules({ systemRules: systemValue, userRules: userValue } = {}) {
-  const systemRules = normalizeAiRules(systemValue, '系统规则')
-  const userRules = normalizeAiRules(userValue, '用户规则')
+export async function writeAiRules(value) {
+  const rules = normalizeAiRules(value, 'AI 规则')
   await ensureSheet(AI_CONFIG_SHEET)
   const result = await readSheet(AI_CONFIG_SHEET)
   if (!result.headers?.length) {
-    await updateRows(AI_CONFIG_SHEET, 'A1:B3', [
+    await updateRows(AI_CONFIG_SHEET, 'A1:B2', [
       ['Key', 'Value'],
-      [AI_SYSTEM_RULES_KEY, systemRules],
-      [AI_USER_RULES_KEY, userRules],
+      [AI_RULES_KEY, rules],
     ], { valueInputOption: 'RAW' })
-    return { systemRules, userRules }
+    return rules
   }
   const keyHeader = result.headers[0]
-  const values = [[AI_SYSTEM_RULES_KEY, systemRules], [AI_USER_RULES_KEY, userRules]]
-  const missing = []
-  for (const [key, value] of values) {
-    const rowIndex = result.data?.findIndex((item) => String(item?.[keyHeader] || '').trim() === key) ?? -1
-    if (rowIndex >= 0) await updateRows(AI_CONFIG_SHEET, `A${rowIndex + 2}:B${rowIndex + 2}`, [[key, value]], { valueInputOption: 'RAW' })
-    else missing.push([key, value])
-  }
-  if (missing.length) await appendRows(AI_CONFIG_SHEET, missing, { valueInputOption: 'RAW' })
-  return { systemRules, userRules }
+  const rowIndex = result.data?.findIndex((item) => String(item?.[keyHeader] || '').trim() === AI_RULES_KEY) ?? -1
+  if (rowIndex >= 0) await updateRows(AI_CONFIG_SHEET, `A${rowIndex + 2}:B${rowIndex + 2}`, [[AI_RULES_KEY, rules]], { valueInputOption: 'RAW' })
+  else await appendRows(AI_CONFIG_SHEET, [[AI_RULES_KEY, rules]], { valueInputOption: 'RAW' })
+  return rules
 }

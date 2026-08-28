@@ -49,11 +49,11 @@ export async function getAiRules() {
   return data
 }
 
-export async function saveAiRules(systemRules, userRules) {
+export async function saveAiRules(rules) {
   const response = await fetch(apiUrl('ai-rules'), {
     method: 'PUT',
     headers: authHeaders(),
-    body: JSON.stringify({ systemRules, userRules }),
+    body: JSON.stringify({ rules }),
   })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(data.error || `保存 AI 规则失败（${response.status}）`)

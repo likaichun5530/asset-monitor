@@ -28,10 +28,8 @@ export default function Settings({ auth } = {}) {
   const [aiEnabled, setAiEnabledState] = useState(() => isAiEnabled())
   const [showAiConsent, setShowAiConsent] = useState(false)
   const [showAiRules, setShowAiRules] = useState(false)
-  const [systemRules, setSystemRules] = useState('')
-  const [defaultSystemRules, setDefaultSystemRules] = useState('')
-  const [userRules, setUserRules] = useState('')
-  const [defaultUserRules, setDefaultUserRules] = useState('')
+  const [aiRules, setAiRules] = useState('')
+  const [defaultAiRules, setDefaultAiRules] = useState('')
   const [aiRulesMaxLength, setAiRulesMaxLength] = useState(6000)
   const [aiRulesLoading, setAiRulesLoading] = useState(false)
   const [aiRulesSaving, setAiRulesSaving] = useState(false)
@@ -131,10 +129,8 @@ export default function Settings({ auth } = {}) {
     setAiRulesSaved(false)
     try {
       const data = await getAiRules()
-      setSystemRules(data.systemRules || '')
-      setDefaultSystemRules(data.defaultSystemRules || '')
-      setUserRules(data.userRules || '')
-      setDefaultUserRules(data.defaultUserRules || '')
+      setAiRules(data.rules || '')
+      setDefaultAiRules(data.defaultRules || '')
       setAiRulesMaxLength(data.maxLength || 6000)
     } catch (error) {
       setAiRulesError(error.message || '读取 AI 规则失败')
@@ -144,15 +140,13 @@ export default function Settings({ auth } = {}) {
   }
 
   async function handleSaveAiRules() {
-    if (!systemRules.trim()) { setAiRulesError('系统规则不能为空'); return }
-    if (!userRules.trim()) { setAiRulesError('用户规则不能为空'); return }
+    if (!aiRules.trim()) { setAiRulesError('AI 规则不能为空'); return }
     setAiRulesSaving(true)
     setAiRulesError('')
     setAiRulesSaved(false)
     try {
-      const data = await saveAiRules(systemRules, userRules)
-      setSystemRules(data.systemRules || systemRules)
-      setUserRules(data.userRules || userRules)
+      const data = await saveAiRules(aiRules)
+      setAiRules(data.rules || aiRules)
       setAiRulesSaved(true)
     } catch (error) {
       setAiRulesError(error.message || '保存 AI 规则失败')
@@ -307,36 +301,26 @@ export default function Settings({ auth } = {}) {
       {showAiRules && (
         <div className="fixed inset-0 z-[85] flex items-end justify-center sm:items-center sm:px-4" data-pull-refresh-ignore="true">
           <button type="button" className="fixed inset-0 bg-black/40" onClick={() => setShowAiRules(false)} aria-label="关闭AI规则设置" />
-          <section role="dialog" aria-modal="true" aria-label="AI回答规则" className="relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:max-w-2xl sm:rounded-2xl">
-            <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700 sm:px-5">
+          <section role="dialog" aria-modal="true" aria-label="AI回答规则" className="relative flex h-[calc(100dvh-8px)] min-h-0 w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:h-auto sm:max-h-[92dvh] sm:max-w-2xl sm:rounded-2xl">
+            <header className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700 sm:px-5">
               <div>
                 <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 回答规则</h3>
-                <p className="mt-0.5 text-[10px] text-gray-400">系统规则和用户规则统一保存到 Google Sheet</p>
+                <p className="mt-0.5 text-[10px] text-gray-400">统一保存到 Google Sheet，下一次提问生效</p>
               </div>
               <button type="button" onClick={() => setShowAiRules(false)} className="p-2 text-gray-400" aria-label="关闭"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
             </header>
 
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
               {aiRulesLoading ? <div className="py-16 text-center text-sm text-gray-400">正在读取规则…</div> : (
                 <>
                   <div>
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">系统规则</h4>
-                      <button type="button" onClick={() => { setSystemRules(defaultSystemRules); setAiRulesSaved(false); setAiRulesError('') }} className="text-xs text-brand-600 disabled:opacity-40" disabled={!defaultSystemRules}>恢复默认</button>
-                    </div>
-                    <p className="mt-1 text-xs leading-5 text-gray-400">定义助手身份、事实边界、权限和固定回答要求，优先级高于用户规则。</p>
-                    <textarea value={systemRules} onChange={(event) => { setSystemRules(event.target.value.slice(0, aiRulesMaxLength)); setAiRulesSaved(false); setAiRulesError('') }} maxLength={aiRulesMaxLength} rows={12} className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="输入 DeepSeek 的系统规则" />
-                    <div className="mt-1 text-right text-[10px] text-gray-400">{systemRules.length}/{aiRulesMaxLength}</div>
-                  </div>
-
-                  <div>
                     <div className="flex items-center justify-between gap-3">
-                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">用户规则</h4>
-                      <button type="button" onClick={() => { setUserRules(defaultUserRules); setAiRulesSaved(false); setAiRulesError('') }} className="text-xs text-brand-600 disabled:opacity-40" disabled={!defaultUserRules}>恢复默认</button>
+                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">回答规则</h4>
+                      <button type="button" onClick={() => { setAiRules(defaultAiRules); setAiRulesSaved(false); setAiRulesError('') }} className="text-xs text-brand-600 disabled:opacity-40" disabled={!defaultAiRules}>恢复默认</button>
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-gray-400">可以修改收益口径、回答风格和分析偏好，保存后下一次提问生效。</p>
-                    <textarea value={userRules} onChange={(event) => { setUserRules(event.target.value.slice(0, aiRulesMaxLength)); setAiRulesSaved(false); setAiRulesError('') }} maxLength={aiRulesMaxLength} rows={12} className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="输入希望 DeepSeek 遵循的回答规则" />
-                    <div className="mt-1 flex justify-between text-[10px] text-gray-400"><span>作为系统规则之外的个性化补充</span><span>{userRules.length}/{aiRulesMaxLength}</span></div>
+                    <p className="mt-1 text-xs leading-5 text-gray-400">统一修改助手身份、收益口径、事实边界、回答风格和分析偏好。</p>
+                    <textarea value={aiRules} onChange={(event) => { setAiRules(event.target.value.slice(0, aiRulesMaxLength)); setAiRulesSaved(false); setAiRulesError('') }} maxLength={aiRulesMaxLength} rows={18} className="mt-2 min-h-[50dvh] w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:min-h-[360px]" placeholder="输入希望 DeepSeek 遵循的全部规则" />
+                    <div className="mt-1 text-right text-[10px] text-gray-400">{aiRules.length}/{aiRulesMaxLength}</div>
                   </div>
                   {aiRulesError && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{aiRulesError}</div>}
                   {aiRulesSaved && <div className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600 dark:bg-green-500/10 dark:text-green-400">已保存，下一次 AI 提问将使用新规则。</div>}
@@ -344,9 +328,9 @@ export default function Settings({ auth } = {}) {
               )}
             </div>
 
-            <footer className="flex gap-2 border-t border-gray-100 bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:px-5 sm:pb-4">
+            <footer className="flex shrink-0 gap-2 border-t border-gray-100 bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:px-5 sm:pb-4">
               <button type="button" onClick={() => setShowAiRules(false)} className="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">关闭</button>
-              <button type="button" onClick={handleSaveAiRules} disabled={aiRulesLoading || aiRulesSaving || !systemRules.trim() || !userRules.trim()} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-50">{aiRulesSaving ? '保存中…' : '保存全部规则'}</button>
+              <button type="button" onClick={handleSaveAiRules} disabled={aiRulesLoading || aiRulesSaving || !aiRules.trim()} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-50">{aiRulesSaving ? '保存中…' : '保存规则'}</button>
             </footer>
           </section>
         </div>

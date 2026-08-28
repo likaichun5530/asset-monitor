@@ -68,6 +68,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const wrapRef = useRef(null)
   // 防止点击弹窗本体立即关闭的标记
   const suppressCloseRef = useRef(false)
+  const noteTextareaRef = useRef(null)
 
   // 当前选中年月
   const now = new Date()
@@ -94,6 +95,29 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     setNoteDraft(selectedDetail?.note || '')
     setNoteError('')
   }, [selectedDetail?.date])
+
+  useEffect(() => {
+    if (!noteEditing) return undefined
+    const frame = requestAnimationFrame(() => {
+      noteTextareaRef.current?.focus({ preventScroll: true })
+      noteTextareaRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [noteEditing])
+
+  useEffect(() => {
+    if (!selectedDetail || window.matchMedia('(min-width: 640px)').matches) return undefined
+    const previousOverflow = document.body.style.overflow
+    const previousOverscroll = document.body.style.overscrollBehavior
+    document.body.dataset.modalOpen = 'true'
+    document.body.style.overflow = 'hidden'
+    document.body.style.overscrollBehavior = 'none'
+    return () => {
+      delete document.body.dataset.modalOpen
+      document.body.style.overflow = previousOverflow
+      document.body.style.overscrollBehavior = previousOverscroll
+    }
+  }, [selectedDetail])
 
   // 分析历史数据中存在的年月范围
   const availableMonths = useMemo(() => {
@@ -287,6 +311,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         {noteEditing ? (
           <div>
             <textarea
+              ref={noteTextareaRef}
               value={noteDraft}
               onChange={(event) => { setNoteDraft(event.target.value); setNoteError('') }}
               maxLength={500}
@@ -447,10 +472,12 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       {selectedDetail && (
         <>
           <button type="button" aria-label="关闭分类资产变化" className="fixed inset-0 z-[55] bg-black/25 sm:hidden" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
-          <div className="fixed inset-x-0 bottom-0 z-[60] max-h-[82vh] overflow-y-auto rounded-t-2xl bg-white dark:bg-gray-800 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4 shadow-2xl sm:hidden">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-600" />
-            {renderDayDetail(true)}
-          </div>
+          <section role="dialog" aria-modal="true" aria-label="每日资产变化" className="fixed inset-x-0 bottom-0 z-[60] flex max-h-[calc(100dvh-8px)] min-h-0 flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:hidden" data-pull-refresh-ignore="true">
+            <div className="shrink-0 pt-3"><div className="mx-auto h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-600" /></div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {renderDayDetail(true)}
+            </div>
+          </section>
         </>
       )}
 

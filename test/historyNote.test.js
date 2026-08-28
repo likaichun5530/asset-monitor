@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { findHistoryRowNumber, normalizeHistoryNote } from '../api/history.js'
 
 test('History 备注按日期定位到对应工作表行', () => {
@@ -17,4 +18,11 @@ test('History 备注允许清空但拒绝公式和超长内容', () => {
   assert.equal(normalizeHistoryNote(''), '')
   assert.throws(() => normalizeHistoryNote('=IMPORTDATA("url")'), /不能以等号开头/)
   assert.throws(() => normalizeHistoryNote('a'.repeat(501)), /不能超过 500 个字符/)
+})
+
+test('手机收益详情使用可视窗口滚动，并在添加备注后聚焦输入区', async () => {
+  const source = await readFile(new URL('../src/components/CalendarHeatmap.jsx', import.meta.url), 'utf8')
+  assert.match(source, /max-h-\[calc\(100dvh-8px\)\]/)
+  assert.match(source, /noteTextareaRef\.current\?\.scrollIntoView/)
+  assert.match(source, /role="dialog" aria-modal="true" aria-label="每日资产变化"/)
 })
