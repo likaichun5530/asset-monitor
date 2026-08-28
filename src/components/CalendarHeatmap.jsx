@@ -199,7 +199,10 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     const onDocClick = (e) => {
       // 本次点击由日期格子触发时，跳过（避免刚打开就关闭）
       if (suppressCloseRef.current) { suppressCloseRef.current = false; return }
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+      // 交互按钮可能在 React 更新时被输入区替换，不能只用已脱离 DOM 的 target 判断。
+      const eventPath = typeof e.composedPath === 'function' ? e.composedPath() : []
+      const clickedInside = wrapRef.current && (eventPath.includes(wrapRef.current) || wrapRef.current.contains(e.target))
+      if (wrapRef.current && !clickedInside) {
         setSelectedDay(null)
         setPopupPos(null)
       }

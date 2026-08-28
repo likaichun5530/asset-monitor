@@ -27,6 +27,8 @@ test('手机收益详情使用可视窗口滚动并在底部按需展开备注�
   assert.match(source, />备注<\/span>/)
   assert.match(source, /placeholder="记录当天的重要事项"/)
   assert.match(source, /备注保存成功/)
+  assert.match(source, /e\.composedPath\(\)/)
+  assert.match(source, /eventPath\.includes\(wrapRef\.current\)/)
   assert.match(source, /role="dialog" aria-modal="true" aria-label="每日资产变化"/)
   assert.ok(source.indexOf('placeholder="记录当天的重要事项"') > source.indexOf('selectedDetail.categories.length'))
 })

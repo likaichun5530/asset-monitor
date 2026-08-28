@@ -38,6 +38,7 @@ export default function Settings({ auth } = {}) {
   const [aiRulesDirty, setAiRulesDirty] = useState(false)
   const latestAiRulesRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
+  const aiControlEnabled = aiEnabled && isLoggedIn && !demoMode
 
   useEffect(() => {
     if (!showAiRules) return undefined
@@ -219,7 +220,9 @@ export default function Settings({ auth } = {}) {
           type="button"
           onClick={handleAiToggle}
           disabled={!isLoggedIn || demoMode}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${aiEnabled ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'} ${!isLoggedIn || demoMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+          role="switch"
+          aria-checked={aiControlEnabled}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${aiControlEnabled ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'} ${!isLoggedIn || demoMode ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <div className="flex items-center gap-3 text-left">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-lg dark:bg-brand-500/15">🤖</span>
@@ -228,8 +231,8 @@ export default function Settings({ auth } = {}) {
               <div className="mt-0.5 text-[10px] text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在所有页面显示' : '当前已关闭'}</div>
             </div>
           </div>
-          <span className={`relative h-6 w-11 rounded-full transition-colors ${aiEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}>
-            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${aiEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          <span aria-hidden="true" className={`relative ml-3 h-6 w-11 shrink-0 rounded-full transition-colors ${aiControlEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}>
+            <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
           </span>
         </button>
         <p className="mt-3 text-[10px] leading-4 text-gray-400">开启后，具体资产金额、账户、代码和备注会通过 Vercel 后端发送给 DeepSeek。</p>
