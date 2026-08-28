@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { NavLink, Outlet } from 'react-router-dom'
-import { formatDateLong } from '../utils/format.js'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
 
 const navItems = [
@@ -184,25 +183,23 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       {/* PC 侧栏 */}
       <aside className="hidden sm:flex flex-col w-56 shrink-0 border-r border-slate-800 bg-slate-950 sticky top-0 h-screen overflow-y-auto desktop-sidebar">
         <div className="px-5 h-[72px] flex items-center border-b border-white/[0.07]">
-          <img src="/white-Chinese.png" alt="有数" className="w-[118px] h-[42px] object-cover object-center rounded-lg" />
+          <div className="flex items-center gap-3 overflow-hidden">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-lg font-bold text-white shadow-sm">有</span>
+            <div className="min-w-0">
+              <div className="text-xl font-semibold tracking-[0.12em] text-white">有数</div>
+              <div className="mt-0.5 text-[9px] tracking-[0.18em] text-slate-600">ASSET MONITOR</div>
+            </div>
+          </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item, i) => {
             if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pt-4 pb-1.5 first:pt-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">{item.label}</div>
             const Icon = item.icon
-            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'}`}>
+            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-medium transition-all ${isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'}`}>
               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.05] text-current opacity-70 transition-opacity group-hover:opacity-100"><Icon className="w-4 h-4 shrink-0" /></span><span className="truncate">{item.label}</span>
             </NavLink>)
           })}
         </nav>
-        <div className="mx-3 mb-3 rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-3 space-y-1.5 text-xs">
-          <span className={`inline-flex items-center gap-2 font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
-            <span className={`w-2 h-2 rounded-full ring-4 ${source === 'online' ? 'bg-green-500 ring-green-100 dark:ring-green-500/10' : source === 'cache' ? 'bg-yellow-500 ring-yellow-100 dark:ring-yellow-500/10' : 'bg-gray-400 ring-gray-100 dark:ring-gray-700'}`} />
-            数据{displayLabel}
-          </span>
-          {syncedAt && <div className="pl-4 text-slate-600">最近同步 {formatDateLong(syncedAt.slice(0, 10))}</div>}
-          {error && <div className="text-red-500 dark:text-red-400">加载失败，使用缓存</div>}
-        </div>
       </aside>
 
       {/* 主内容区 */}
@@ -227,7 +224,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
         {/* PC 顶部栏 */}
         <header className="hidden sm:flex sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-gray-700 desktop-topbar">
-          <div className="flex-1 flex items-center justify-between px-6 lg:px-8 h-[72px]">
+          <div className="flex-1 flex items-center justify-between px-4 lg:px-5 h-[72px]">
             <div>
               <h1 className="text-xl font-semibold text-slate-900 dark:text-gray-100 tracking-tight">{pageTitle}</h1>
               <p className="mt-0.5 text-xs text-slate-400 dark:text-gray-500">{pageDescription}</p>
@@ -236,7 +233,6 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
               <span className={`status-pill ${source === 'online' ? 'status-pill-online' : source === 'cache' ? 'status-pill-cache' : ''}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
                 {displayLabel}
-                {syncedAt && <span className="text-slate-400 dark:text-gray-500">· {formatDateLong(syncedAt.slice(0, 10))}</span>}
               </span>
               <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-icon-button" title="刷新数据" aria-label="刷新数据">
                 <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
@@ -254,7 +250,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-6 lg:pt-8 pb-24 sm:pb-12">
+            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-2 sm:px-4 lg:px-5 pt-2 sm:pt-4 lg:pt-5 pb-24 sm:pb-8">
               <Outlet />
             </main>
           </div>

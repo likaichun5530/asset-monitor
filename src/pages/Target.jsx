@@ -85,8 +85,8 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-[4px] sm:space-y-5">
-      <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="space-y-[4px] sm:space-y-3">
+      <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">配置资产总额</div>
           <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(totalRow?.marketValue || 0)}</div>
@@ -111,7 +111,7 @@ export default function Target({ refreshKey = 0 }) {
 
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-[4px] sm:gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-[4px] sm:gap-3">
           {overWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-red-400">
               <div className="text-sm font-medium text-red-500 flex items-center gap-1.5">

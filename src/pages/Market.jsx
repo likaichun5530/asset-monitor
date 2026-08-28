@@ -96,8 +96,8 @@ export default function Market({ refreshKey = 0 }) {
   const quotedCount = data.filter((item) => item.price !== null && item.price !== undefined).length
 
   return (
-    <div className="space-y-4 sm:space-y-6 pt-3 px-1 sm:px-0 sm:pt-0">
-      <section className="hidden sm:grid grid-cols-3 gap-4">
+    <div className="space-y-4 sm:space-y-3 pt-3 px-1 sm:px-0 sm:pt-0">
+      <section className="hidden sm:grid grid-cols-3 gap-3">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">行情分组</div>
           <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{groups.length} <span className="text-sm font-normal text-slate-400">组</span></div>

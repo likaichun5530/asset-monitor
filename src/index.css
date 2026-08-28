@@ -46,7 +46,7 @@ html.dark body {
 
 @layer components {
   .card {
-    @apply bg-white rounded-lg p-4 sm:p-6;
+    @apply bg-white rounded-lg p-4 sm:p-5;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.02);
   }
   html.dark .card {
@@ -152,7 +152,19 @@ html.dark body {
     min-height: 210px;
   }
   .home-card-slot-analysis > div > .card {
-    min-height: 360px;
+    height: 350px;
+    min-height: 350px;
+    max-height: 350px;
+    overflow: hidden;
+  }
+  .home-card-slot-analysis table th,
+  .home-card-slot-analysis table td {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+  .home-card-slot-analysis .calendar-day-cell {
+    aspect-ratio: auto;
+    height: 34px;
   }
   html.dark body { background-color: #0f172a; }
   html.dark .home-hero-card {

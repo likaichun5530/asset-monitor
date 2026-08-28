@@ -186,7 +186,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
 
   if (!history.length) {
     return (
-      <div className="card">
+      <div className="card calendar-card">
         <h3 className="text-base font-semibold text-gray-800 mb-3">收益日历</h3>
         <div className="text-sm text-gray-400 py-8 text-center">暂无历史数据</div>
       </div>
@@ -194,7 +194,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="card relative" ref={wrapRef}>
+    <div className="card calendar-card relative" ref={wrapRef}>
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-gray-800">收益日历</h3>
@@ -294,7 +294,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
               key={dayInfo.date}
               ref={(el) => { dayRefs.current[dayInfo.date] = el }}
               onClick={(e) => handleDayClick(dayInfo, e)}
-              className={`aspect-square flex flex-col items-center justify-center rounded cursor-pointer transition-colors ${cellBg} ${isSelected ? 'ring-2 ring-brand-500' : ''} hover:ring-1 hover:ring-gray-300 relative overflow-hidden ${!dayInfo.isCurrentMonth ? 'opacity-60' : ''}`}
+              className={`calendar-day-cell aspect-square flex flex-col items-center justify-center rounded cursor-pointer transition-colors ${cellBg} ${isSelected ? 'ring-2 ring-brand-500' : ''} hover:ring-1 hover:ring-gray-300 relative overflow-hidden ${!dayInfo.isCurrentMonth ? 'opacity-60' : ''}`}
             >
               {/* 右上角日期数字 */}
               <span className={`absolute top-1.5 right-1.5 text-sm ${!dayInfo.hasTotal ? 'text-gray-300' : isUp ? 'text-red-600' : isDown ? 'text-green-600' : 'text-gray-500'}`}>

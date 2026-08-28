@@ -444,7 +444,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   }
 
   return (
-    <div className="space-y-[4px] sm:space-y-4" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
+    <div className="space-y-[4px] sm:space-y-3" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
       onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onMouseDown={startLongPress}
       onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
@@ -455,13 +455,13 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
 
-      <div className="card home-hero-card py-2 px-4 sm:p-6 flex flex-col justify-center min-h-[85px] sm:min-h-[160px] relative overflow-hidden">
+      <div className="card home-hero-card py-2 px-4 sm:p-5 flex flex-col justify-center min-h-[85px] sm:min-h-[150px] relative overflow-hidden">
         <div>
           <div className="relative flex items-start justify-between gap-6">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-500"><span className="hidden sm:inline-block h-2 w-2 rounded-full bg-brand-500" />总资产（人民币）</div>
               <div className="text-3xl sm:text-[38px] sm:leading-tight font-bold mt-1 sm:mt-3 text-gray-900 tracking-tight">{formatCurrency(total)}</div>
-              <div className="mt-1 sm:mt-3 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'} · 共展示 {visibleItems.length} 张数据卡片</div>
+              <div className="mt-1 sm:mt-3 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
             </div>
             <div className="relative flex shrink-0 items-center gap-2">
               <button type="button" onClick={() => setEditMode((value) => !value)} className="hidden sm:inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 text-sm font-medium text-slate-600 shadow-sm hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -493,12 +493,12 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         </div>
       </div>
 
-      <div ref={sortRef} className="flex flex-wrap items-stretch -mx-0.5 sm:-mx-2">
+      <div ref={sortRef} className="flex flex-wrap items-stretch -mx-0.5 sm:-mx-1.5">
         {visibleItems.map((key) => {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat w-1/3 sm:w-1/2 lg:w-1/4 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat w-1/3 sm:w-1/2 lg:w-1/4 px-0.5 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
                 <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -510,7 +510,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
           }
           if (HALF_KEYS.includes(key)) {
             return (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact w-1/2 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact w-1/2 px-0.5 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
                 <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -521,7 +521,7 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
             )
           }
           return (
-            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-1 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-1 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
               <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                 {editMode && (
                   <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>

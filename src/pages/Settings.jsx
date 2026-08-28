@@ -86,7 +86,7 @@ export default function Settings({ auth } = {}) {
   ]
 
   return (
-    <div className="space-y-[4px] sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
+    <div className="space-y-[4px] sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
       <div className="card sm:min-h-[260px]">
         <h3 className="text-base font-semibold text-gray-800 mb-4">数据模式</h3>
         <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">选择真实账户数据或演示数据</p>

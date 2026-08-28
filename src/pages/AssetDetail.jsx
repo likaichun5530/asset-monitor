@@ -141,7 +141,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
   }, [chartData])
 
   return (
-    <div className="space-y-[4px] sm:space-y-5">
+    <div className="space-y-[4px] sm:space-y-3">
       {/* 移动端返回按钮 */}
       <button
         onClick={() => navigate('/my')}

@@ -35,4 +35,6 @@ test('桌面首页同排卡片使用等高伸缩槽位', () => {
   assert.match(homeSource, /home-card-slot-analysis w-full lg:w-1\/2/)
   assert.match(styleSource, /\.home-card-slot\s*{\s*display: flex;/)
   assert.match(styleSource, /\.home-card-slot > div > \.card\s*{[^}]*height: 100%;/s)
+  assert.match(styleSource, /\.home-card-slot-analysis > div > \.card\s*{[^}]*height: 350px;[^}]*max-height: 350px;/s)
+  assert.doesNotMatch(homeSource, /共展示.*张数据卡片/)
 })
