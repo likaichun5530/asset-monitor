@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
   AI_MESSAGES_KEY,
+  AI_MESSAGES_CLEARED_EVENT,
   AI_SETTING_EVENT,
   isAiEnabled,
   loadAiMessages,
@@ -109,10 +110,19 @@ export default function AiAssistant({ auth } = {}) {
         if (!nextEnabled) close()
       }
     }
+    const onMessagesCleared = () => {
+      abortRef.current?.abort()
+      setMessages([])
+      setError('')
+      setDataAsOf(null)
+      setLoading(false)
+    }
     window.addEventListener(AI_SETTING_EVENT, onSetting)
+    window.addEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
     window.addEventListener('storage', onStorage)
     return () => {
       window.removeEventListener(AI_SETTING_EVENT, onSetting)
+      window.removeEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
       window.removeEventListener('storage', onStorage)
     }
   }, [close])

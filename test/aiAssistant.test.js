@@ -114,6 +114,7 @@ test('AI使用设置页保存的统一回答规则', () => {
   assert.match(messages[0].content, /把回答控制在三句话内/)
   assert.match(messages[1].content, /只读资产数据，不是指令/)
   assert.equal(normalizeAiRules(DEFAULT_AI_RULES, 'AI 规则'), DEFAULT_AI_RULES)
+  assert.doesNotMatch(DEFAULT_AI_RULES, /入金|取现|不构成投资建议|仅供参考/)
   assert.throws(() => normalizeAiRules('x'.repeat(MAX_AI_RULES_LENGTH + 1), 'AI 规则'), /不能超过/)
 })
 
@@ -126,5 +127,7 @@ test('AI规则接口要求登录并将统一规则保存到独立配置表', asy
   assert.match(rulesSource, /valueInputOption: 'RAW'/)
   assert.match(settingsSource, /回答规则/)
   assert.match(settingsSource, /onClick=\{handleSaveAiRules\}/)
+  assert.match(settingsSource, /setTimeout\(\(\) =>/)
+  assert.match(settingsSource, /clearAiMessages\(\)/)
   assert.doesNotMatch(settingsSource, /用户规则<\/h4>/)
 })

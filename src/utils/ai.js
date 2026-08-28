@@ -4,6 +4,7 @@ export const AI_ENABLED_KEY = 'youshu-ai-enabled'
 export const AI_CONSENT_KEY = 'youshu-ai-consent'
 export const AI_MESSAGES_KEY = 'youshu-ai-messages'
 export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
+export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
 
 function authHeaders() {
   const token = localStorage.getItem('youshu-auth-token') || ''
@@ -40,6 +41,11 @@ export function saveAiMessages(messages) {
   } catch {
     // ignore
   }
+}
+
+export function clearAiMessages() {
+  localStorage.removeItem(AI_MESSAGES_KEY)
+  window.dispatchEvent(new CustomEvent(AI_MESSAGES_CLEARED_EVENT))
 }
 
 export async function getAiRules() {
