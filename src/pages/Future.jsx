@@ -149,9 +149,9 @@ export default function Future({ refreshKey = 0 }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-[4px] sm:gap-5 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-[4px] sm:gap-5 items-stretch">
       {/* 持仓列表 */}
-      <div className="card sm:p-0 sm:overflow-hidden xl:col-span-2">
+      <div className="card h-full sm:p-0 sm:overflow-hidden xl:col-span-2">
         <div className="sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
           <h3 className="desktop-section-title mb-3 sm:mb-0">持仓列表</h3>
         </div>
@@ -191,7 +191,7 @@ export default function Future({ refreshKey = 0 }) {
       </div>
 
       {/* 期现贴水 */}
-      <div className="card sm:p-0 sm:overflow-hidden xl:col-span-3">
+      <div className="card h-full sm:p-0 sm:overflow-hidden xl:col-span-3">
         <div className="sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
           <h3 className="desktop-section-title mb-3 sm:mb-0">期现贴水</h3>
         </div>

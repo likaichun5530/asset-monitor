@@ -86,7 +86,8 @@ html.dark body {
   }
 
   .desktop-metric-card {
-    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800;
+    @apply h-full rounded-xl border border-slate-200/80 bg-white p-5 dark:border-gray-700 dark:bg-gray-800;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
   }
 
   .desktop-table-wrap {
@@ -95,15 +96,15 @@ html.dark body {
 }
 
 @media (min-width: 640px) {
-  :root { background-color: #f3f6fa; }
-  body { background-color: #f3f6fa; }
+  :root { background-color: #f4f6f9; }
+  body { background-color: #f4f6f9; }
   .card {
     border: 1px solid rgba(226, 232, 240, 0.9);
-    border-radius: 16px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025), 0 8px 24px rgba(15, 23, 42, 0.025);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
   }
   .card:hover {
-    border-color: rgba(203, 213, 225, 0.95);
+    border-color: rgba(203, 213, 225, 0.85);
   }
   button:focus-visible,
   a:focus-visible,
@@ -113,7 +114,7 @@ html.dark body {
     outline-offset: 2px;
   }
   .desktop-sidebar {
-    box-shadow: 8px 0 32px rgba(15, 23, 42, 0.018);
+    box-shadow: none;
   }
   .desktop-topbar {
     box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
@@ -132,10 +133,31 @@ html.dark body {
   }
   table th,
   table td {
-    padding-top: 12px !important;
-    padding-bottom: 12px !important;
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+  }
+  .home-hero-card {
+    background: linear-gradient(110deg, #ffffff 0%, #ffffff 62%, #f3f7ff 100%);
+    border-top: 3px solid #2563eb;
+  }
+  .home-card-slot {
+    display: flex;
+  }
+  .home-card-slot > div,
+  .home-card-slot > div > .card {
+    width: 100%;
+    height: 100%;
+  }
+  .home-card-slot-compact > div > .card {
+    min-height: 210px;
+  }
+  .home-card-slot-analysis > div > .card {
+    min-height: 360px;
   }
   html.dark body { background-color: #0f172a; }
+  html.dark .home-hero-card {
+    background: linear-gradient(110deg, #1e293b 0%, #1e293b 62%, rgba(37, 99, 235, 0.12) 100%);
+  }
   html.dark .card:hover { border-color: #475569; }
   html.dark table thead th { background: rgba(15, 23, 42, 0.55); }
   html.dark table tbody tr:hover { background-color: rgba(51, 65, 85, 0.45); }

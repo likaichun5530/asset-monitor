@@ -161,7 +161,7 @@ export default function Cash({ refreshKey = 0 }) {
         )}
 
         {/* 配置建议 */}
-        <div className="card">
+        <div className={`card ${cashHoldings.length === 0 ? 'lg:col-span-2' : ''}`}>
         <div className="mb-3 sm:mb-5">
           <h3 className="desktop-section-title">配置建议</h3>
           <p className="hidden sm:block desktop-section-subtitle">根据目标缺口估算现金加仓方向</p>

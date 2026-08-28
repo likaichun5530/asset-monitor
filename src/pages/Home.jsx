@@ -63,7 +63,7 @@ function StatMini({ label, change, changePct }) {
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
   const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
   return (
-    <div className="card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] lg:min-h-[138px]">
+    <div className="card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px]">
       <div className="flex w-full items-center justify-between">
         <div className="text-xs sm:text-sm font-medium text-gray-500">{label}</div>
         <span className={`hidden sm:block h-2 w-2 rounded-full ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
@@ -130,8 +130,8 @@ function CurrencyCard() {
   }, [pieData])
 
   return (
-    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2">
-      <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
+    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
+      <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
         {/* 半圆堆叠环（SVG，粗 14px） */}
         <svg viewBox="0 0 128 64" className="w-32 h-16 shrink-0">
@@ -212,8 +212,8 @@ function HealthCard({ refreshKey }) {
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
 
   return (
-    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2">
-      <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
+    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
+      <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
       <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
         <div className="text-gray-500">现金建议：</div>
         <div>
@@ -455,14 +455,12 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
 
-      <div className="card home-hero-card py-2 px-4 sm:p-7 flex flex-col justify-center min-h-[85px] lg:min-h-[178px] relative overflow-hidden">
-        <div className="hidden sm:block absolute -right-20 -top-28 h-72 w-72 rounded-full bg-brand-100/60 dark:bg-brand-500/10" />
-        <div className="hidden sm:block absolute right-24 -bottom-24 h-48 w-48 rounded-full border-[32px] border-white/50 dark:border-gray-700/20" />
+      <div className="card home-hero-card py-2 px-4 sm:p-6 flex flex-col justify-center min-h-[85px] sm:min-h-[160px] relative overflow-hidden">
         <div>
           <div className="relative flex items-start justify-between gap-6">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-500"><span className="hidden sm:inline-block h-2 w-2 rounded-full bg-brand-500" />总资产（人民币）</div>
-              <div className="text-3xl sm:text-[42px] sm:leading-tight font-bold mt-1 sm:mt-3 text-gray-900 tracking-tight">{formatCurrency(total)}</div>
+              <div className="text-3xl sm:text-[38px] sm:leading-tight font-bold mt-1 sm:mt-3 text-gray-900 tracking-tight">{formatCurrency(total)}</div>
               <div className="mt-1 sm:mt-3 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'} · 共展示 {visibleItems.length} 张数据卡片</div>
             </div>
             <div className="relative flex shrink-0 items-center gap-2">
@@ -495,13 +493,13 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         </div>
       </div>
 
-      <div ref={sortRef} className="flex flex-wrap -mx-0.5 sm:-mx-2">
+      <div ref={sortRef} className="flex flex-wrap items-stretch -mx-0.5 sm:-mx-2">
         {visibleItems.map((key) => {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`w-1/3 lg:w-1/4 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
-                <div className={`relative ${editMode ? 'home-card-wobble' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat w-1/3 sm:w-1/2 lg:w-1/4 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+                <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
                   )}
@@ -512,8 +510,8 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
           }
           if (HALF_KEYS.includes(key)) {
             return (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`w-1/2 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
-                <div className={`relative ${editMode ? 'home-card-wobble' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact w-1/2 px-0.5 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+                <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
                   )}
@@ -523,8 +521,8 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
             )
           }
           return (
-            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`w-full lg:w-1/2 px-1 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
-              <div className={`relative ${editMode ? 'home-card-wobble' : ''}`}>
+            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-1 sm:px-2 mb-[4px] sm:mb-4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                 {editMode && (
                   <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>
                 )}

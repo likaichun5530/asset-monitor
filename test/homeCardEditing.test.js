@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
 const homeSource = await readFile(new URL('../src/pages/Home.jsx', import.meta.url), 'utf8')
+const styleSource = await readFile(new URL('../src/index.css', import.meta.url), 'utf8')
 
 test('首页编辑模式使用整张卡片拖动并移除手柄', () => {
   assert.match(homeSource, /draggable: '\[data-id\]'/)
@@ -26,4 +27,12 @@ test('拖动目标根据卡片实际重叠面积判定', () => {
   assert.doesNotMatch(homeSource, /onMove:/)
   assert.doesNotMatch(homeSource, /invertSwap:/)
   assert.match(homeSource, /sortable-drop-target/)
+})
+
+test('桌面首页同排卡片使用等高伸缩槽位', () => {
+  assert.match(homeSource, /home-card-slot-stat w-1\/3 sm:w-1\/2 lg:w-1\/4/)
+  assert.match(homeSource, /home-card-slot-compact w-1\/2/)
+  assert.match(homeSource, /home-card-slot-analysis w-full lg:w-1\/2/)
+  assert.match(styleSource, /\.home-card-slot\s*{\s*display: flex;/)
+  assert.match(styleSource, /\.home-card-slot > div > \.card\s*{[^}]*height: 100%;/s)
 })

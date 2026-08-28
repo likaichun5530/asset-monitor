@@ -86,7 +86,7 @@ export default function Settings({ auth } = {}) {
   ]
 
   return (
-    <div className="space-y-[4px] sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0 sm:items-start">
+    <div className="space-y-[4px] sm:grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
       <div className="card sm:min-h-[260px]">
         <h3 className="text-base font-semibold text-gray-800 mb-4">数据模式</h3>
         <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">选择真实账户数据或演示数据</p>
@@ -143,7 +143,7 @@ export default function Settings({ auth } = {}) {
         </div>
       )}
 
-      <div className="card">
+      <div className={`card ${!isLoggedIn ? 'sm:col-span-2' : ''}`}>
         <h3 className="text-base font-semibold text-gray-800 mb-4">关于</h3>
         <div className="space-y-[4px] sm:space-y-0 text-sm sm:divide-y sm:divide-slate-100 dark:sm:divide-gray-700">
           <div className="flex justify-between sm:py-3 sm:first:pt-0"><span className="text-gray-500">应用名称</span><span className="text-gray-800 font-medium">有数</span></div>

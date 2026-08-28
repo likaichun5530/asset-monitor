@@ -182,32 +182,31 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   return (
     <div className="min-h-full flex dark:bg-gray-900">
       {/* PC 侧栏 */}
-      <aside className="hidden sm:flex flex-col w-56 shrink-0 border-r border-slate-200/80 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 h-screen overflow-y-auto desktop-sidebar">
-        <div className="px-5 h-20 flex items-center border-b border-slate-100 dark:border-gray-700">
-          <img src="/Transparent-Chinese.png" alt="有数" className="w-[118px] h-[42px] object-cover object-center rounded-lg block dark:hidden" />
-          <img src="/white-Chinese.png" alt="有数" className="w-[118px] h-[42px] object-cover object-center rounded-lg hidden dark:block" />
+      <aside className="hidden sm:flex flex-col w-56 shrink-0 border-r border-slate-800 bg-slate-950 sticky top-0 h-screen overflow-y-auto desktop-sidebar">
+        <div className="px-5 h-[72px] flex items-center border-b border-white/[0.07]">
+          <img src="/white-Chinese.png" alt="有数" className="w-[118px] h-[42px] object-cover object-center rounded-lg" />
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item, i) => {
-            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pt-4 pb-1.5 first:pt-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{item.label}</div>
+            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pt-4 pb-1.5 first:pt-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">{item.label}</div>
             const Icon = item.icon
-            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'}`}>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-400 transition-colors group-hover:bg-white group-hover:text-brand-600 dark:bg-gray-700 dark:text-gray-400"><Icon className="w-4 h-4 shrink-0" /></span><span className="truncate">{item.label}</span>
+            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-400 hover:bg-white/[0.06] hover:text-white'}`}>
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.05] text-current opacity-70 transition-opacity group-hover:opacity-100"><Icon className="w-4 h-4 shrink-0" /></span><span className="truncate">{item.label}</span>
             </NavLink>)
           })}
         </nav>
-        <div className="mx-3 mb-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-3 dark:border-gray-700 dark:bg-gray-900/40 space-y-1.5 text-xs">
+        <div className="mx-3 mb-3 rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-3 space-y-1.5 text-xs">
           <span className={`inline-flex items-center gap-2 font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
             <span className={`w-2 h-2 rounded-full ring-4 ${source === 'online' ? 'bg-green-500 ring-green-100 dark:ring-green-500/10' : source === 'cache' ? 'bg-yellow-500 ring-yellow-100 dark:ring-yellow-500/10' : 'bg-gray-400 ring-gray-100 dark:ring-gray-700'}`} />
             数据{displayLabel}
           </span>
-          {syncedAt && <div className="pl-4 text-gray-400 dark:text-gray-500">最近同步 {formatDateLong(syncedAt.slice(0, 10))}</div>}
+          {syncedAt && <div className="pl-4 text-slate-600">最近同步 {formatDateLong(syncedAt.slice(0, 10))}</div>}
           {error && <div className="text-red-500 dark:text-red-400">加载失败，使用缓存</div>}
         </div>
       </aside>
 
       {/* 主内容区 */}
-      <div className="flex-1 min-w-0 flex flex-col bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 min-w-0 flex flex-col bg-gray-50 sm:bg-[#f4f6f9] dark:bg-gray-900">
         {/* 移动端顶部栏 */}
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           <div className="px-4 h-12 flex items-center justify-between">
@@ -228,7 +227,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
         {/* PC 顶部栏 */}
         <header className="hidden sm:flex sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-gray-700 desktop-topbar">
-          <div className="flex-1 flex items-center justify-between px-6 lg:px-8 h-20">
+          <div className="flex-1 flex items-center justify-between px-6 lg:px-8 h-[72px]">
             <div>
               <h1 className="text-xl font-semibold text-slate-900 dark:text-gray-100 tracking-tight">{pageTitle}</h1>
               <p className="mt-0.5 text-xs text-slate-400 dark:text-gray-500">{pageDescription}</p>
