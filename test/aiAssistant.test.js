@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { buildAiContextFromSheets, compactAiHistory } from '../api/_ai-context.js'
-import { buildDeepSeekMessages, normalizeAiMessages } from '../api/_deepseek.js'
+import { buildDeepSeekMessages, createDeepSeekStream, normalizeAiMessages } from '../api/_deepseek.js'
 
 test('AI上下文包含完整持仓、历史分类和目标计算，但不包含表格控制字段', () => {
   const context = buildAiContextFromSheets({
@@ -71,4 +71,35 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /history\.pushState/)
   assert.match(source, /window\.addEventListener\('popstate'/)
   assert.match(source, /role="dialog" aria-modal="true"/)
+})
+
+test('DeepSeek连接异常会自动重试，并区分供应商业务错误', async () => {
+  const originalFetch = global.fetch
+  const originalKey = process.env.DEEPSEEK_API_KEY
+  const originalModel = process.env.DEEPSEEK_MODEL
+  process.env.DEEPSEEK_API_KEY = 'test-key'
+  process.env.DEEPSEEK_MODEL = 'deepseek-v4-flash'
+  try {
+    let calls = 0
+    global.fetch = async () => {
+      calls += 1
+      if (calls === 1) throw new TypeError('fetch failed')
+      return new Response('data: [DONE]\n\n', { status: 200 })
+    }
+    const result = await createDeepSeekStream({ holdings: [] }, [{ role: 'user', content: '测试' }])
+    assert.equal(result.response.status, 200)
+    assert.equal(calls, 2)
+
+    global.fetch = async () => new Response('insufficient balance', { status: 402 })
+    await assert.rejects(
+      () => createDeepSeekStream({ holdings: [] }, [{ role: 'user', content: '测试' }]),
+      (error) => error.statusCode === 502 && /余额不足/.test(error.message),
+    )
+  } finally {
+    global.fetch = originalFetch
+    if (originalKey === undefined) delete process.env.DEEPSEEK_API_KEY
+    else process.env.DEEPSEEK_API_KEY = originalKey
+    if (originalModel === undefined) delete process.env.DEEPSEEK_MODEL
+    else process.env.DEEPSEEK_MODEL = originalModel
+  }
 })
