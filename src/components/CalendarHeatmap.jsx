@@ -264,16 +264,23 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
               : '分类资产金额'}
           </div>
         </div>
-        {showClose && (
-          <button
-            type="button"
-            className="-mr-1 -mt-1 p-2 text-gray-400"
-            aria-label="关闭分类资产变化"
-            onClick={() => { setSelectedDay(null); setPopupPos(null) }}
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg>
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          {!noteEditing && (
+            <button type="button" onClick={() => setNoteEditing(true)} className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
+              {selectedDetail.note ? '编辑备注' : '添加备注'}
+            </button>
+          )}
+          {showClose && (
+            <button
+              type="button"
+              className="-mr-1 p-2 text-gray-400"
+              aria-label="关闭分类资产变化"
+              onClick={() => { setSelectedDay(null); setPopupPos(null) }}
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>
+          )}
+        </div>
       </div>
       <div className="mt-3 flex items-end justify-between rounded-lg bg-gray-50 dark:bg-gray-900/50 px-3 py-2">
         <div><div className="text-[10px] text-gray-400">总资产</div><div className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(selectedDetail.total, { decimals: 0 })}</div></div>
@@ -283,6 +290,28 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           </div>
         )}
       </div>
+      {noteEditing ? (
+        <div className="mt-3 rounded-xl border border-brand-100 bg-brand-50/40 p-3 dark:border-brand-500/20 dark:bg-brand-500/5">
+          <textarea
+            ref={noteTextareaRef}
+            value={noteDraft}
+            onChange={(event) => { setNoteDraft(event.target.value); setNoteError('') }}
+            maxLength={500}
+            rows={3}
+            placeholder="记录当天的重要事项"
+            className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-brand-500/20"
+          />
+          {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
+          <div className="mt-2 flex justify-end gap-2">
+            <button type="button" onClick={() => { setNoteEditing(false); setNoteDraft(selectedDetail.note || ''); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">取消</button>
+            <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+              {noteSaving ? '保存中…' : '保存备注'}
+            </button>
+          </div>
+        </div>
+      ) : selectedDetail.note ? (
+        <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{selectedDetail.note}</div>
+      ) : null}
       {selectedDetail.categories.length > 0 ? (
         <div className="mt-2 divide-y divide-gray-100 dark:divide-gray-700">
           {selectedDetail.categories.map((item) => {
@@ -307,37 +336,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       ) : (
         <div className="py-6 text-center text-xs text-gray-400">该日暂无分类资产快照</div>
       )}
-      <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-700">
-        {noteEditing ? (
-          <div>
-            <textarea
-              ref={noteTextareaRef}
-              value={noteDraft}
-              onChange={(event) => { setNoteDraft(event.target.value); setNoteError('') }}
-              maxLength={500}
-              rows={3}
-              placeholder="记录当天的重要事项"
-              className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-brand-500/20"
-            />
-            {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
-            <div className="mt-2 flex justify-end gap-2">
-              <button type="button" onClick={() => { setNoteEditing(false); setNoteDraft(selectedDetail.note || ''); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">取消</button>
-              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
-                {noteSaving ? '保存中…' : '保存备注'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1 text-xs text-gray-500 dark:text-gray-400">
-              {selectedDetail.note || '暂无备注'}
-            </div>
-            <button type="button" onClick={() => setNoteEditing(true)} className="shrink-0 text-xs font-medium text-brand-600 dark:text-brand-400">
-              {selectedDetail.note ? '编辑备注' : '添加备注'}
-            </button>
-          </div>
-        )}
-      </div>
     </>
   )
 

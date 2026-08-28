@@ -25,4 +25,5 @@ test('手机收益详情使用可视窗口滚动，并在添加备注后聚焦�
   assert.match(source, /max-h-\[calc\(100dvh-8px\)\]/)
   assert.match(source, /noteTextareaRef\.current\?\.scrollIntoView/)
   assert.match(source, /role="dialog" aria-modal="true" aria-label="每日资产变化"/)
+  assert.ok(source.indexOf("selectedDetail.note ? '编辑备注' : '添加备注'") < source.indexOf('selectedDetail.categories.length'))
 })

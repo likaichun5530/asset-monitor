@@ -307,7 +307,10 @@ export default function Settings({ auth } = {}) {
                 <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 回答规则</h3>
                 <p className="mt-0.5 text-[10px] text-gray-400">统一保存到 Google Sheet，下一次提问生效</p>
               </div>
-              <button type="button" onClick={() => setShowAiRules(false)} className="p-2 text-gray-400" aria-label="关闭"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button type="button" onClick={handleSaveAiRules} disabled={aiRulesLoading || aiRulesSaving || !aiRules.trim()} className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">{aiRulesSaving ? '保存中…' : '保存'}</button>
+                <button type="button" onClick={() => setShowAiRules(false)} className="p-2 text-gray-400" aria-label="关闭"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+              </div>
             </header>
 
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -327,11 +330,6 @@ export default function Settings({ auth } = {}) {
                 </>
               )}
             </div>
-
-            <footer className="flex shrink-0 gap-2 border-t border-gray-100 bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:px-5 sm:pb-4">
-              <button type="button" onClick={() => setShowAiRules(false)} className="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">关闭</button>
-              <button type="button" onClick={handleSaveAiRules} disabled={aiRulesLoading || aiRulesSaving || !aiRules.trim()} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-50">{aiRulesSaving ? '保存中…' : '保存规则'}</button>
-            </footer>
           </section>
         </div>
       )}
