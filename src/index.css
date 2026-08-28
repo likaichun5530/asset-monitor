@@ -182,6 +182,30 @@ html.dark body {
   }
 }
 
+@media (max-width: 639px) {
+  .target-list-shell {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  html.dark .target-list-shell {
+    background: transparent;
+  }
+  .target-reminder {
+    margin-top: 4px;
+    padding: 12px;
+    border: 1px solid #f3f4f6;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
+  }
+  html.dark .target-reminder {
+    border-color: #374151;
+    background: #1f2937;
+  }
+}
+
 /* 阻止移动端浏览器默认的下拉刷新（黑色圆圈） */
 html {
   overscroll-behavior: none;

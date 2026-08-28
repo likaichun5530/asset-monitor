@@ -85,7 +85,7 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-[4px] sm:space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">配置资产总额</div>
@@ -109,9 +109,26 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </section>
 
+      <section className="card sm:hidden px-3 py-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">配置偏差</div>
+            <div className="mt-0.5 text-xs text-gray-400">实际配置与计划目标的差距</div>
+          </div>
+          <div className={`rounded-full px-2.5 py-1 text-xs font-medium ${overWeight.length + underWeight.length > 0 ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400' : 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400'}`}>
+            {overWeight.length + underWeight.length > 0 ? `${overWeight.length + underWeight.length} 项需关注` : '配置正常'}
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-3 divide-x divide-gray-100 dark:divide-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/40 py-2.5 text-center">
+          <div><div className="text-base font-semibold text-red-500">{overWeight.length}</div><div className="mt-0.5 text-[10px] text-gray-400">超出目标</div></div>
+          <div><div className="text-base font-semibold text-green-600">{underWeight.length}</div><div className="mt-0.5 text-[10px] text-gray-400">低于目标</div></div>
+          <div><div className="text-base font-semibold text-gray-700 dark:text-gray-200">{normalWeight}</div><div className="mt-0.5 text-[10px] text-gray-400">范围正常</div></div>
+        </div>
+      </section>
+
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-[4px] sm:gap-3">
+        <section className="hidden sm:grid sm:grid-cols-2 gap-3">
           {overWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-red-400">
               <div className="text-sm font-medium text-red-500 flex items-center gap-1.5">
@@ -162,7 +179,7 @@ export default function Target({ refreshKey = 0 }) {
       )}
 
       {/* 配置目标表格 */}
-      <div className="card sm:p-0 sm:overflow-hidden">
+      <div className="card target-list-shell sm:p-0 sm:overflow-hidden">
         <div className="hidden sm:flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-gray-700">
           <div>
             <h2 className="desktop-section-title">目标配置明细</h2>
@@ -249,7 +266,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         {/* 移动端卡片列表 */}
-        <div className="sm:hidden space-y-[4px]">
+        <div className="sm:hidden space-y-2">
           {rows.map((r, idx) => {
             const color = colorMap[r.category] || '#94a3b8'
             const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined
@@ -257,44 +274,47 @@ export default function Target({ refreshKey = 0 }) {
             const status = getTargetAllocationStatus(r.currentRatio, r.targetRatio).status
             const isOver = status === 'over'
             const isUnder = status === 'under'
+            const scaleMax = hasTarget ? Math.max(r.currentRatio || 0, r.targetRatio || 0, 0.01) * 1.18 : Math.max(r.currentRatio || 0, 0.01)
+            const currentWidth = Math.min(((r.currentRatio || 0) / scaleMax) * 100, 100)
+            const targetPosition = hasTarget ? Math.min(((r.targetRatio || 0) / scaleMax) * 100, 98) : null
+            const driftAmount = diffPct === null ? null : Math.abs(diffPct)
+            const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
             return (
-              <div key={idx} className="border border-gray-100 rounded-lg p-3 cursor-pointer hover:border-gray-300" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
+              <div key={idx} className="target-allocation-card border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-3 py-3 cursor-pointer" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
+                    <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
                     <span className="text-gray-800 font-medium text-sm">{r.category}</span>
+                    <span className="text-xs text-gray-400">{formatWan(r.marketValue)}</span>
                   </div>
-                  {isOver && <span className="text-sm px-1.5 py-0.5 rounded bg-red-50 text-red-500">超配</span>}
-                  {isUnder && <span className="text-sm px-1.5 py-0.5 rounded bg-green-50 text-green-600">低配</span>}
-                  {diffPct !== null && !isOver && !isUnder && <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">正常</span>}
-                  {!hasTarget && <span className="text-sm px-1.5 py-0.5 rounded bg-gray-50 text-gray-400">未设置</span>}
+                  {isOver && <span className="text-xs px-2 py-1 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">超配 +{driftAmount.toFixed(1)}%</span>}
+                  {isUnder && <span className="text-xs px-2 py-1 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600">低配 −{driftAmount.toFixed(1)}%</span>}
+                  {diffPct !== null && !isOver && !isUnder && <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">正常</span>}
+                  {!hasTarget && <span className="text-xs px-2 py-1 rounded-full bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600">未设置</span>}
                 </div>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-gray-400">金额：</span>
-                    <span className="text-gray-700">{formatWan(r.marketValue)}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">当前：</span>
-                    <span className="text-gray-700">{(r.currentRatio * 100).toFixed(1)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">目标：</span>
-                    <span className="text-gray-700">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">差值：</span>
-                    <span className={isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-500'}>
-                      {diffPct !== null ? `${diffPct > 0 ? '+' : ''}${diffPct.toFixed(1)}%` : '—'}
-                    </span>
-                  </div>
+                <div className="mt-3 flex items-end justify-between">
+                  <div><div className="text-[10px] text-gray-400">当前配置</div><div className="mt-0.5 text-lg font-semibold text-gray-900 dark:text-gray-100">{(r.currentRatio * 100).toFixed(1)}%</div></div>
+                  <div className="text-right"><div className="text-[10px] text-gray-400">计划目标</div><div className="mt-0.5 text-lg font-semibold text-gray-600 dark:text-gray-300">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</div></div>
+                </div>
+                <div className="relative mt-2 h-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                  <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${currentWidth}%`, backgroundColor: progressColor }} />
+                  {targetPosition !== null && <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-gray-800 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标位置" />}
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[11px]">
+                  <span className={isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-400'}>
+                    {isOver && `应降低 ${driftAmount.toFixed(1)} 个百分点`}
+                    {isUnder && `应增加 ${driftAmount.toFixed(1)} 个百分点`}
+                    {hasTarget && !isOver && !isUnder && '当前处于目标提醒范围内'}
+                    {!hasTarget && '请先在目标表中设置计划比例'}
+                  </span>
+                  <svg className="h-3.5 w-3.5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
                 </div>
               </div>
             )
           })}
         </div>
 
-        <div className="mt-3 sm:mt-0 pt-3 sm:px-6 sm:py-4 border-t border-gray-100 text-sm text-gray-400 sm:bg-slate-50/60 dark:sm:bg-gray-900/30">
+        <div className="target-reminder mt-3 sm:mt-0 pt-3 sm:px-6 sm:py-4 border-t border-gray-100 text-sm text-gray-400 sm:bg-slate-50/60 dark:sm:bg-gray-900/30">
           💡 偏离比例达到±40%，或偏离数值达到±2%时提醒。
         </div>
       </div>
