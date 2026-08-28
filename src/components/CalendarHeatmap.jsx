@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { getHistory } from '../utils/asset.js'
 import { saveHistoryNote } from '../utils/dataStore.js'
 import { formatCurrency } from '../utils/format.js'
@@ -67,6 +68,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const dayRefs = useRef({})
   // 组件根容器引用（用于判断点击是否在日历内部）
   const wrapRef = useRef(null)
+  const mobileDialogRef = useRef(null)
+  const desktopPopupRef = useRef(null)
   // 防止点击弹窗本体立即关闭的标记
   const suppressCloseRef = useRef(false)
 
@@ -201,7 +204,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
       if (suppressCloseRef.current) { suppressCloseRef.current = false; return }
       // 交互按钮可能在 React 更新时被输入区替换，不能只用已脱离 DOM 的 target 判断。
       const eventPath = typeof e.composedPath === 'function' ? e.composedPath() : []
-      const clickedInside = wrapRef.current && (eventPath.includes(wrapRef.current) || wrapRef.current.contains(e.target))
+      const interactiveRoots = [wrapRef.current, mobileDialogRef.current, desktopPopupRef.current].filter(Boolean)
+      const clickedInside = interactiveRoots.some((root) => eventPath.includes(root) || root.contains(e.target))
       if (wrapRef.current && !clickedInside) {
         setSelectedDay(null)
         setPopupPos(null)
@@ -478,27 +482,27 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         })}
       </div>
 
-      {/* 手机端底部面板 */}
-      {selectedDetail && (
+      {/* 弹窗挂载到 body，避免首页卡片的层叠环境在滚动后压到弹窗上方。 */}
+      {selectedDetail && typeof document !== 'undefined' && createPortal(
         <>
-          <button type="button" aria-label="关闭分类资产变化" className="fixed inset-0 z-[55] bg-black/25 sm:hidden" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
-          <section role="dialog" aria-modal="true" aria-label="每日资产变化" className="fixed inset-x-0 bottom-0 z-[60] flex max-h-[calc(100dvh-8px)] min-h-0 flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:hidden" data-pull-refresh-ignore="true">
+          <button type="button" aria-label="关闭分类资产变化" className="fixed inset-0 z-[75] bg-black/25 sm:hidden" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
+          <section ref={mobileDialogRef} role="dialog" aria-modal="true" aria-label="每日资产变化" className="fixed inset-x-0 bottom-0 z-[80] flex max-h-[calc(100dvh-8px)] min-h-0 flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:hidden" data-pull-refresh-ignore="true">
             <div className="shrink-0 pt-3"><div className="mx-auto h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-600" /></div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3" style={{ WebkitOverflowScrolling: 'touch' }}>
               {renderDayDetail(true)}
             </div>
           </section>
-        </>
-      )}
-
-      {/* 桌面端日期旁浮层 */}
-      {selectedDetail && popupPos && (
-        <div
-          className="fixed z-30 hidden max-h-[calc(100dvh-32px)] w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl dark:border-gray-600 dark:bg-gray-800 sm:block"
-          style={{ top: popupPos.top, left: popupPos.left, transform: 'translateX(-50%)' }}
-        >
-          {renderDayDetail()}
-        </div>
+          {popupPos && (
+            <div
+              ref={desktopPopupRef}
+              className="fixed z-[80] hidden max-h-[calc(100dvh-32px)] w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl dark:border-gray-600 dark:bg-gray-800 sm:block"
+              style={{ top: popupPos.top, left: popupPos.left, transform: 'translateX(-50%)' }}
+            >
+              {renderDayDetail()}
+            </div>
+          )}
+        </>,
+        document.body,
       )}
     </div>
   )

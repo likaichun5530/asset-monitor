@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import RobotIcon from './RobotIcon.jsx'
 import {
   AI_MESSAGES_KEY,
   AI_MESSAGES_CLEARED_EVENT,
@@ -38,17 +39,28 @@ function clampButtonPosition(position) {
   }
 }
 
+function snapButtonToEdge(position) {
+  if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
+  const clamped = clampButtonPosition(position)
+  return {
+    x: clamped.x + BUTTON_SIZE / 2 < window.innerWidth / 2
+      ? EDGE_GAP
+      : Math.max(EDGE_GAP, window.innerWidth - BUTTON_SIZE - EDGE_GAP),
+    y: clamped.y,
+  }
+}
+
 function loadButtonPosition() {
   if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
   try {
     const saved = JSON.parse(localStorage.getItem(AI_BUTTON_POSITION_KEY) || 'null')
     if (Number.isFinite(saved?.xRatio) && Number.isFinite(saved?.yRatio)) {
-      return clampButtonPosition({ x: saved.xRatio * window.innerWidth, y: saved.yRatio * window.innerHeight })
+      return snapButtonToEdge({ x: saved.xRatio * window.innerWidth, y: saved.yRatio * window.innerHeight })
     }
   } catch {
     // Ignore malformed local preferences.
   }
-  return clampButtonPosition({ x: window.innerWidth - BUTTON_SIZE - 12, y: window.innerWidth >= 640 ? 80 : 56 })
+  return snapButtonToEdge({ x: window.innerWidth, y: window.innerWidth >= 640 ? 80 : 56 })
 }
 
 function saveButtonPosition(position) {
@@ -57,15 +69,6 @@ function saveButtonPosition(position) {
     xRatio: position.x / window.innerWidth,
     yRatio: position.y / window.innerHeight,
   }))
-}
-
-function RobotIcon({ className = 'h-6 w-6' }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="7" width="16" height="13" rx="4" />
-      <path d="M12 3v4M9 3h6M8 12h.01M16 12h.01M8 16h8" />
-    </svg>
-  )
 }
 
 export default function AiAssistant({ auth } = {}) {
@@ -78,13 +81,14 @@ export default function AiAssistant({ auth } = {}) {
   const [error, setError] = useState('')
   const [dataAsOf, setDataAsOf] = useState(null)
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
+  const [buttonDragging, setButtonDragging] = useState(false)
   const scrollRef = useRef(null)
   const abortRef = useRef(null)
   const dragRef = useRef(null)
   const suppressClickRef = useRef(false)
   const historyEntryRef = useRef(false)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
-  const visible = enabled && auth?.isLoggedIn && !demoMode
+  const visible = enabled && auth?.isLoggedIn && !demoMode && location.pathname === '/'
   const prompts = useMemo(() => PAGE_PROMPTS[location.pathname] || PAGE_PROMPTS['/'], [location.pathname])
 
   const close = useCallback(() => {
@@ -159,7 +163,7 @@ export default function AiAssistant({ auth } = {}) {
 
   useEffect(() => {
     const handleResize = () => setButtonPosition((current) => {
-      const next = clampButtonPosition(current)
+      const next = snapButtonToEdge(current)
       saveButtonPosition(next)
       return next
     })
@@ -237,6 +241,7 @@ export default function AiAssistant({ auth } = {}) {
     const deltaY = event.clientY - drag.startY
     if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return
     drag.moved = true
+    setButtonDragging(true)
     suppressClickRef.current = true
     setButtonPosition(clampButtonPosition({ x: drag.originX + deltaX, y: drag.originY + deltaY }))
   }
@@ -245,9 +250,10 @@ export default function AiAssistant({ auth } = {}) {
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
     dragRef.current = null
+    setButtonDragging(false)
     if (drag.moved) {
       setButtonPosition((current) => {
-        const next = clampButtonPosition(current)
+        const next = snapButtonToEdge(current)
         saveButtonPosition(next)
         return next
       })
@@ -280,13 +286,13 @@ export default function AiAssistant({ auth } = {}) {
           onPointerMove={handleButtonPointerMove}
           onPointerUp={handleButtonPointerEnd}
           onPointerCancel={handleButtonPointerEnd}
-          className="fixed z-40 flex h-11 w-11 touch-none select-none items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700"
+          className={`fixed z-40 flex h-11 w-11 touch-none select-none items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white ring-1 ring-white/40 shadow-lg shadow-brand-600/30 hover:brightness-105 ${buttonDragging ? '' : 'transition-[left,top,filter] duration-200 ease-out'}`}
           style={{ left: `${buttonPosition.x}px`, top: `${buttonPosition.y}px` }}
           title="AI资产助手"
           aria-label="打开AI资产助手"
           data-pull-refresh-ignore="true"
         >
-          <RobotIcon />
+          <RobotIcon className="h-7 w-7" />
         </button>
       )}
 

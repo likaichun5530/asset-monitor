@@ -72,6 +72,10 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /history\.pushState/)
   assert.match(source, /window\.addEventListener\('popstate'/)
   assert.match(source, /role="dialog" aria-modal="true"/)
+  assert.match(source, /location\.pathname === '\/'/)
+  assert.match(source, /snapButtonToEdge/)
+  assert.match(source, /window\.innerWidth \/ 2/)
+  assert.match(source, /transition-\[left,top,filter\]/)
 })
 
 test('DeepSeek连接异常会自动重试，并区分供应商业务错误', async () => {
