@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { getHistory } from '../utils/asset.js'
 import { formatCurrency } from '../utils/format.js'
+import { getHistoryDayDetail } from '../utils/historyChanges.js'
 
 // 星期标题
 const WEEKDAY_HEADERS = ['日', '一', '二', '三', '四', '五', '六']
@@ -20,6 +21,13 @@ function formatChangePct(value) {
   if (value === null || value === undefined) return ''
   const sign = value > 0 ? '+' : ''
   return sign + value.toFixed(1) + '%'
+}
+
+function formatSignedCurrency(value) {
+  if (!Number.isFinite(Number(value))) return '—'
+  const amount = Number(value)
+  if (amount === 0) return formatCurrency(0, { decimals: 0 })
+  return `${amount > 0 ? '+' : '−'}${formatCurrency(Math.abs(amount), { decimals: 0 })}`
 }
 
 // 日期字符串工具
@@ -68,6 +76,11 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     for (const d of history) map.set(d.date, d.total)
     return map
   }, [history])
+
+  const selectedDetail = useMemo(
+    () => selectedDay ? getHistoryDayDetail(history, selectedDay.date) : null,
+    [history, selectedDay],
+  )
 
   // 分析历史数据中存在的年月范围
   const availableMonths = useMemo(() => {
@@ -118,8 +131,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     if (!el) return
     const rect = el.getBoundingClientRect()
     setPopupPos({
-      top: Math.max(rect.top - 8, 60),
-      left: rect.left + rect.width / 2,
+      top: Math.max(Math.min(rect.top, window.innerHeight - 390), 16),
+      left: Math.min(Math.max(rect.left + rect.width / 2, 152), window.innerWidth - 152),
     })
   }, [selectedDay])
 
@@ -146,8 +159,8 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     suppressCloseRef.current = true
     const rect = event.currentTarget.getBoundingClientRect()
     setPopupPos({
-      top: Math.max(rect.top - 8, 60),
-      left: rect.left + rect.width / 2,
+      top: Math.max(Math.min(rect.top, window.innerHeight - 390), 16),
+      left: Math.min(Math.max(rect.left + rect.width / 2, 152), window.innerWidth - 152),
     })
   }
 
@@ -183,6 +196,63 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   }
   const goPrevYear = () => setViewYear(viewYear - 1)
   const goNextYear = () => setViewYear(viewYear + 1)
+
+  const renderDayDetail = (showClose = false) => selectedDetail && (
+    <>
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{selectedDetail.date}</div>
+          <div className="mt-0.5 text-[11px] text-gray-400">
+            {selectedDetail.canCompareCategories && selectedDetail.previousDate
+              ? `较上一条快照 ${selectedDetail.previousDate}`
+              : '分类资产金额'}
+          </div>
+        </div>
+        {showClose && (
+          <button
+            type="button"
+            className="-mr-1 -mt-1 p-2 text-gray-400"
+            aria-label="关闭分类资产变化"
+            onClick={() => { setSelectedDay(null); setPopupPos(null) }}
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        )}
+      </div>
+      <div className="mt-3 flex items-end justify-between rounded-lg bg-gray-50 dark:bg-gray-900/50 px-3 py-2">
+        <div><div className="text-[10px] text-gray-400">总资产</div><div className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(selectedDetail.total, { decimals: 0 })}</div></div>
+        {selectedDetail.totalChange !== null && (
+          <div className={`text-sm font-semibold ${selectedDetail.totalChange > 0 ? 'text-red-500' : selectedDetail.totalChange < 0 ? 'text-green-600' : 'text-gray-400'}`}>
+            {formatSignedCurrency(selectedDetail.totalChange)}
+          </div>
+        )}
+      </div>
+      {selectedDetail.categories.length > 0 ? (
+        <div className="mt-2 divide-y divide-gray-100 dark:divide-gray-700">
+          {selectedDetail.categories.map((item) => {
+            const displayValue = selectedDetail.canCompareCategories ? item.change : item.currentValue
+            return (
+              <div key={item.key} className="flex h-7 items-center justify-between text-xs">
+                <span className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                  {item.label}
+                </span>
+                <span className={selectedDetail.canCompareCategories
+                  ? displayValue > 0 ? 'font-medium text-red-500' : displayValue < 0 ? 'font-medium text-green-600' : 'text-gray-400'
+                  : 'text-gray-600 dark:text-gray-300'}>
+                  {selectedDetail.canCompareCategories
+                    ? formatSignedCurrency(displayValue)
+                    : formatCurrency(displayValue, { decimals: 0 })}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="py-6 text-center text-xs text-gray-400">该日暂无分类资产快照</div>
+      )}
+    </>
+  )
 
   if (!history.length) {
     return (
@@ -311,20 +381,24 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         })}
       </div>
 
-      {/* 点击弹出当天总资产（跟随日期，滚动时保持相对位置；点击日历外部关闭） */}
-      {selectedDay && popupPos && (
-        <div
-          className="fixed z-30 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 px-3 py-2 text-center whitespace-nowrap pointer-events-none"
-          style={{
-            top: popupPos.top,
-            left: popupPos.left,
-            transform: 'translate(-50%, -100%)',
-          }}
-        >
-          <div className="text-[10px] text-gray-500 dark:text-gray-400">{selectedDay.date}</div>
-          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-            {formatCurrency(selectedDay.total)}
+      {/* 手机端底部面板 */}
+      {selectedDetail && (
+        <>
+          <button type="button" aria-label="关闭分类资产变化" className="fixed inset-0 z-[55] bg-black/25 sm:hidden" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
+          <div className="fixed inset-x-0 bottom-0 z-[60] max-h-[82vh] overflow-y-auto rounded-t-2xl bg-white dark:bg-gray-800 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4 shadow-2xl sm:hidden">
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-600" />
+            {renderDayDetail(true)}
           </div>
+        </>
+      )}
+
+      {/* 桌面端日期旁浮层 */}
+      {selectedDetail && popupPos && (
+        <div
+          className="fixed z-30 hidden w-72 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl dark:border-gray-600 dark:bg-gray-800 sm:block"
+          style={{ top: popupPos.top, left: popupPos.left, transform: 'translateX(-50%)' }}
+        >
+          {renderDayDetail()}
         </div>
       )}
     </div>

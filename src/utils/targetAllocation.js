@@ -35,3 +35,10 @@ export function getTargetAllocationStatus(currentRatio, targetRatio) {
 
   return { status, absoluteDiff, relativeDiff, triggeredBy }
 }
+
+export function getTargetAdjustmentAmount(marketValue, totalMarketValue, targetRatio) {
+  if (!Number.isFinite(marketValue) || !Number.isFinite(totalMarketValue) || !Number.isFinite(targetRatio)) {
+    return null
+  }
+  return totalMarketValue * targetRatio - marketValue
+}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget } from '../utils/dataStore.js'
-import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
+import { getTargetAdjustmentAmount, getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -62,6 +62,11 @@ export default function Target({ refreshKey = 0 }) {
   const underWeight = rows.filter((r) => getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'under')
   const noTarget = rows.filter((r) => r.targetRatio === null)
   const normalWeight = rows.length - overWeight.length - underWeight.length - noTarget.length
+  const adjustmentAmount = (row) => Math.abs(getTargetAdjustmentAmount(
+    Number(row.marketValue),
+    Number(totalRow?.marketValue),
+    Number(row.targetRatio),
+  ) || 0)
 
   if (loading) {
     return (
@@ -142,7 +147,7 @@ export default function Target({ refreshKey = 0 }) {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {overWeight.map((r) => (
                   <span key={r.category} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-xs">
-                    {r.category} +{(r.diff * 100).toFixed(1)}%
+                    {r.category} +{(r.diff * 100).toFixed(1)}% · 建议减少 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}
                   </span>
                 ))}
               </div>
@@ -161,7 +166,7 @@ export default function Target({ refreshKey = 0 }) {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {underWeight.map((r) => (
                   <span key={r.category} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-600 text-xs">
-                    {r.category} {(r.diff * 100).toFixed(1)}%
+                    {r.category} {(r.diff * 100).toFixed(1)}% · 建议增加 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}
                   </span>
                 ))}
               </div>
@@ -302,8 +307,8 @@ export default function Target({ refreshKey = 0 }) {
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[11px]">
                   <span className={isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-400'}>
-                    {isOver && `应降低 ${driftAmount.toFixed(1)} 个百分点`}
-                    {isUnder && `应增加 ${driftAmount.toFixed(1)} 个百分点`}
+                    {isOver && `应降低 ${driftAmount.toFixed(1)} 个百分点 · 建议减少 ${formatCurrency(adjustmentAmount(r), { decimals: 0 })}`}
+                    {isUnder && `应增加 ${driftAmount.toFixed(1)} 个百分点 · 建议增加 ${formatCurrency(adjustmentAmount(r), { decimals: 0 })}`}
                     {hasTarget && !isOver && !isUnder && '当前处于目标提醒范围内'}
                     {!hasTarget && '请先在目标表中设置计划比例'}
                   </span>

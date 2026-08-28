@@ -45,8 +45,8 @@ export const demoHistory = [
   { date: '2026-07-20', total: 541200.0 },
   { date: '2026-07-25', total: 561300.8 },
   { date: '2026-07-26', total: 558900.3 },
-  { date: '2026-07-27', total: 562100.0 },
-  { date: '2026-07-28', total: 560400.0 },
+  { date: '2026-07-27', total: 562100.0, categories: { us: 150000, crypto: 80000, bond: 70000, future: 30000, cn: 50000, gold: 40000, jp: 25000, hk: 30000, cash: 87100 } },
+  { date: '2026-07-28', total: 560400.0, categories: { us: 148000, crypto: 81000, bond: 70100, future: 29500, cn: 50500, gold: 40300, jp: 24800, hk: 29900, cash: 86300 } },
 ]
 
 export const demoPeakValue = 710558.7 
