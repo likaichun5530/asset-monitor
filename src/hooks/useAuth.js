@@ -1,7 +1,5 @@
-import { useState, useCallback, useMemo } from 'react'
-import { apiUrl } from '../utils/api.js'
-
-const AUTH_KEY = 'youshu-auth-token'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { AUTH_EXPIRED_EVENT, AUTH_STORAGE_KEY, requestApiJson } from '../utils/api.js'
 
 // 解析 JWT payload（缓存避免重复解码）
 let cachedPayload = null
@@ -30,9 +28,9 @@ function isTokenExpired(token) {
 
 export function useAuth() {
   const [token, setToken] = useState(() => {
-    const saved = localStorage.getItem(AUTH_KEY)
+    const saved = localStorage.getItem(AUTH_STORAGE_KEY)
     if (saved && !isTokenExpired(saved)) return saved
-    if (saved) localStorage.removeItem(AUTH_KEY)
+    if (saved) localStorage.removeItem(AUTH_STORAGE_KEY)
     return null
   })
   const [loading, setLoading] = useState(false)
@@ -46,30 +44,36 @@ export function useAuth() {
   }, [token])
 
   const logout = useCallback(() => {
-    localStorage.removeItem(AUTH_KEY)
+    localStorage.removeItem(AUTH_STORAGE_KEY)
     localStorage.removeItem('youshu-demo-mode')
     cachedToken = null
     cachedPayload = null
     setToken(null)
   }, [])
 
+  useEffect(() => {
+    const onExpired = () => {
+      cachedToken = null
+      cachedPayload = null
+      setToken(null)
+    }
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired)
+  }, [])
+
   const login = useCallback(async (username, password) => {
     setLoading(true)
     setError(null)
     try {
-      const resp = await fetch(apiUrl('auth/login'), {
+      const data = await requestApiJson('auth/login', {
         method: 'POST',
+        auth: false,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
-      if (!resp.ok) {
-        const err = await resp.json()
-        throw new Error(err.error || '登录失败')
-      }
-      const data = await resp.json()
       cachedToken = data.token
       cachedPayload = null
-      localStorage.setItem(AUTH_KEY, data.token)
+      localStorage.setItem(AUTH_STORAGE_KEY, data.token)
       localStorage.setItem('youshu-demo-mode', 'false')
       setToken(data.token)
       window.location.reload()

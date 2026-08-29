@@ -41,10 +41,9 @@ export default async function handler(req, res) {
   }
   if (!['GET', 'PUT'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
 
-  if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
-
   try {
-    if (req.method === 'PUT') requireAuth(req)
+    requireAuth(req)
+    if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
     const result = await readSheet('History')
     const rawRows = result.rawRows || [] // 原始行数组，不依赖表头映射
 
@@ -90,6 +89,6 @@ export default async function handler(req, res) {
       syncedAt: new Date().toISOString(),
     })
   } catch (e) {
-    return json(res, e.statusCode || 500, { error: e.message || String(e) })
+    return json(res, e.statusCode || 500, { error: e.statusCode ? e.message : '历史数据操作失败' })
   }
 }

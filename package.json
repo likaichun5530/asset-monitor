@@ -1,11 +1,11 @@
 {
   "name": "asset-monitor",
   "private": true,
-  "version": "2.0.0.12",
+  "version": "2.1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cd server && https_proxy=http://127.0.0.1:7890 node index.js & vite --host",
-    "dev:server": "cd server && https_proxy=http://127.0.0.1:7890 node index.js",
+    "dev": "cd server && node index.js & vite --host",
+    "dev:server": "cd server && node index.js",
     "test": "node --test",
     "build": "vite build",
     "preview": "vite preview --host"

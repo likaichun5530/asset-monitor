@@ -8,7 +8,7 @@
 // Google 凭据通过 Vercel 环境变量注入，永远不会出现在浏览器中。
 
 import { demoHoldings, demoHistory, demoTarget } from '../data/demo.js'
-import { API_BASE, apiUrl, getApiJson } from './api.js'
+import { API_BASE, getApiJson, requestApiJson } from './api.js'
 
 // Vercel 部署时自动使用当前域名，本地开发时使用完整 URL
 const KEYS = {
@@ -41,14 +41,12 @@ function writeLocal(key, value) {
 
 async function apiPost(endpoint, body) {
   if (!API_BASE) throw new Error('未配置 VITE_API_BASE')
-  const resp = await fetch(apiUrl(endpoint), {
+  return requestApiJson(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(10000),
+    timeoutMs: 10000,
   })
-  if (!resp.ok) throw new Error(`API ${endpoint} 返回 ${resp.status}`)
-  return resp.json()
 }
 
 // ===== Holdings =====
@@ -67,9 +65,7 @@ export async function fetchHoldings() {
         writeLocal(KEYS.lastSync, new Date().toISOString())
         return { holdings, source: 'online', syncedAt: data.syncedAt }
       }
-    } catch (e) {
-      console.warn('[dataStore] API 拉取 holdings 失败', e)
-    }
+    } catch { /* 使用本地缓存 */ }
   }
 
   const cached = readLocal(KEYS.holdings, null)
@@ -114,48 +110,32 @@ export async function fetchHoldingEditorData() {
 
 export async function saveHolding(holding, { editing = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘持仓')
-  const token = localStorage.getItem('youshu-auth-token') || ''
-  if (!token) throw new Error('请重新登录后再操作')
-  let resp
   try {
-    resp = await fetch(apiUrl('holdings'), {
+    return await requestApiJson('holdings', {
       method: editing ? 'PUT' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(holding),
-      signal: AbortSignal.timeout(15000),
+      timeoutMs: 15000,
     })
-  } catch {
+  } catch (error) {
+    if (error?.status) throw error
     throw new Error('网络不可用，表单草稿已保留，请联网后重试')
   }
-  const data = await resp.json().catch(() => ({}))
-  if (!resp.ok) throw new Error(data.error || `保存持仓失败（${resp.status}）`)
-  return data
 }
 
 export async function deleteHolding({ rowNumber, rowVersion }) {
   if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘持仓')
-  const token = localStorage.getItem('youshu-auth-token') || ''
-  if (!token) throw new Error('请重新登录后再操作')
-  let resp
   try {
-    resp = await fetch(apiUrl('holdings'), {
+    return await requestApiJson('holdings', {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rowNumber, rowVersion }),
-      signal: AbortSignal.timeout(15000),
+      timeoutMs: 15000,
     })
-  } catch {
+  } catch (error) {
+    if (error?.status) throw error
     throw new Error('网络不可用，无法删除持仓，请联网后重试')
   }
-  const data = await resp.json().catch(() => ({}))
-  if (!resp.ok) throw new Error(data.error || `删除持仓失败（${resp.status}）`)
-  return data
 }
 
 // ===== History =====
@@ -178,9 +158,7 @@ export async function fetchHistory() {
         writeLocal(KEYS.lastSync, new Date().toISOString())
         return { history: merged, source: 'online', syncedAt: data.syncedAt }
       }
-    } catch (e) {
-      console.warn('[dataStore] API 拉取 history 失败', e)
-    }
+    } catch { /* 使用本地缓存 */ }
   }
 
   const pending = readLocal(KEYS.pending, [])
@@ -192,26 +170,18 @@ export async function fetchHistory() {
 
 export async function saveHistoryNote(date, note) {
   if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘备注')
-  const token = localStorage.getItem('youshu-auth-token') || ''
-  if (!token) throw new Error('请重新登录后再操作')
-
-  let resp
+  let data
   try {
-    resp = await fetch(apiUrl('history'), {
+    data = await requestApiJson('history', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date, note }),
-      signal: AbortSignal.timeout(15000),
+      timeoutMs: 15000,
     })
-  } catch {
+  } catch (error) {
+    if (error?.status) throw error
     throw new Error('网络不可用，无法保存备注，请联网后重试')
   }
-
-  const data = await resp.json().catch(() => ({}))
-  if (!resp.ok) throw new Error(data.error || `保存备注失败（${resp.status}）`)
 
   const cached = readLocal(KEYS.history, null)
   if (cached?.history?.length) {
@@ -251,29 +221,11 @@ export async function addSnapshot(total) {
         synced = true
         const pendingNow = readLocal(KEYS.pending, [])
         writeLocal(KEYS.pending, pendingNow.filter((s) => s.date !== date))
-        await refreshHistoryFromBackend()
       }
-    } catch (e) {
-      console.warn('[dataStore] 同步快照失败', e)
-    }
+    } catch { /* 保留待同步快照 */ }
   }
 
   return { ok: true, date, total, synced }
-}
-
-async function refreshHistoryFromBackend() {
-  if (!API_BASE) return
-  try {
-    const data = await getApiJson('history')
-    const history = (data.history || [])
-      .filter((r) => r.date)
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-    if (history.length) {
-      writeLocal(KEYS.history, { history, syncedAt: data.syncedAt })
-    }
-  } catch {
-    // ignore
-  }
 }
 
 export async function retryPendingSync() {
@@ -310,9 +262,7 @@ export async function fetchTarget() {
         writeLocal('asset-monitor:target', { target, syncedAt: data.syncedAt })
         return { target, source: 'online', syncedAt: data.syncedAt }
       }
-    } catch (e) {
-      console.warn('[dataStore] API 拉取 target 失败', e)
-    }
+    } catch { /* 使用缓存或本地计算 */ }
   }
 
   // 优先读缓存

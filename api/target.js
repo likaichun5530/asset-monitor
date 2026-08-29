@@ -1,5 +1,6 @@
 // Vercel Function: GET /api/target
 import { isConfigured, readSheet, toNumber } from './_google.js'
+import { requireAuth } from './_auth.js'
 
 function stockLabel(market) {
   if (market === 'US') return '美股'
@@ -10,17 +11,21 @@ function stockLabel(market) {
 }
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204)
+    return res.end()
+  }
   if (req.method !== 'GET') {
     res.writeHead(405, { 'Content-Type': 'application/json' })
     return res.end(JSON.stringify({ error: 'Method not allowed' }))
   }
 
-  if (!isConfigured()) {
-    res.writeHead(503, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: 'Google Sheets 未配置' }))
-  }
-
   try {
+    requireAuth(req)
+    if (!isConfigured()) {
+      res.writeHead(503, { 'Content-Type': 'application/json' })
+      return res.end(JSON.stringify({ error: 'Google Sheets 未配置' }))
+    }
     // 并行读取 Holdings 和 target 表
     const [hResult, tResult] = await Promise.all([
       readSheet('Holdings'),
@@ -97,7 +102,7 @@ export default async function handler(req, res) {
       syncedAt: new Date().toISOString(),
     }))
   } catch (e) {
-    res.writeHead(500, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: String(e) }))
+    res.writeHead(e.statusCode || 500, { 'Content-Type': 'application/json' })
+    return res.end(JSON.stringify({ error: e.statusCode ? e.message : '目标配置读取失败' }))
   }
 }

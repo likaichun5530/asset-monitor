@@ -1,7 +1,8 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import { getApiJson } from '../utils/api.js'
+import { useVisiblePolling } from '../hooks/useVisiblePolling.js'
 
 function getMultiplier(symbol) {
   if (!symbol) return 1
@@ -53,30 +54,29 @@ export default function Future({ refreshKey = 0 }) {
     return []
   })
 
-  useEffect(() => {
-    getApiJson('futures')
-      .then((res) => {
-        const data = res.futures || null
-        setFuturesData(data)
-        if (data) {
-          try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
-        }
-      })
-      .catch(() => { /* 静默失败，使用缓存 */ })
-  }, [refreshKey])
+  const loadQuotes = useCallback(async () => {
+    const [futuresResult, marketResult] = await Promise.allSettled([
+      getApiJson('futures', { auth: false }),
+      getApiJson('market', { auth: false }),
+    ])
+    if (futuresResult.status === 'fulfilled') {
+      const res = futuresResult.value
+      const data = res.futures || null
+      setFuturesData(data)
+      if (data) {
+        try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
+      }
+    }
+    if (marketResult.status === 'fulfilled') {
+      const data = marketResult.value.market || []
+      setMarketData(data)
+      if (data.length) {
+        try { localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
+      }
+    }
+  }, [])
 
-  // 同时拉取行情数据获取实时价格
-  useEffect(() => {
-    getApiJson('market')
-      .then((res) => {
-        const data = res.market || []
-        setMarketData(data)
-        if (data.length) {
-          try { localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
-        }
-      })
-      .catch(() => { /* 静默失败，使用缓存 */ })
-  }, [refreshKey])
+  useVisiblePolling(loadQuotes, { refreshKey })
 
   // 从行情数据中查找合约价格（按 symbol 匹配）
   const marketPriceMap = useMemo(() => {

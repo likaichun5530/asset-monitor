@@ -1,88 +1,107 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { loadAll } from '../utils/asset.js'
+import { loadHoldingsData, loadInitialData } from '../utils/asset.js'
 import { getInitialAssetStatus } from '../utils/assetDataStatus.js'
+import { shouldAutoRefresh } from '../utils/refreshPolicy.js'
 
-// 数据加载与刷新的统一 hook
-// 返回:
-//   source: 数据来源 'online' | 'cache' | 'demo' | 'empty'
-//   syncedAt: 最后同步时间
-//   error: 错误信息
-//   refresh: 手动刷新（完成后 bump refreshKey 触发组件更新）
-//   bumpRefreshKey: 触发依赖 refreshKey 的组件刷新（用于快照后）
-export function useAssetData() {
+const HOLDINGS_REFRESH_MS = 5 * 60 * 1000
+
+// 首次进入和手动刷新加载 holdings + history；后台定时任务只刷新 holdings。
+export function useAssetData({ enabled = true } = {}) {
   const initialStatus = useRef(getInitialAssetStatus())
   const [source, setSource] = useState(initialStatus.current.source)
   const [syncedAt, setSyncedAt] = useState(initialStatus.current.syncedAt)
   const [error, setError] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [manualRefreshKey, setManualRefreshKey] = useState(0)
   const mountedRef = useRef(true)
-  const firstLoadDone = useRef(false)
-  const refreshingRef = useRef(false) // 防重入锁
+  const initialLoadRef = useRef(false)
+  const initialInFlightRef = useRef(false)
+  const holdingsInFlightRef = useRef(false)
+  const lastHoldingsRefreshRef = useRef(0)
 
   useEffect(() => {
     mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-    }
+    return () => { mountedRef.current = false }
   }, [])
 
-  const doLoad = useCallback(async (isFirstLoad) => {
-    // 防重入：本次加载未完成时忽略新的触发
-    if (refreshingRef.current && !isFirstLoad) return
-    if (isFirstLoad) refreshingRef.current = true
+  const applyHoldingsStatus = useCallback((result) => {
+    if (!mountedRef.current) return
+    setSource(result.source || result.holdingsSource)
+    setSyncedAt(result.syncedAt)
+  }, [])
+
+  const loadEverything = useCallback(async () => {
+    if (!enabled || initialInFlightRef.current) return false
+    initialInFlightRef.current = true
     setError(null)
     try {
-      const result = await loadAll()
-      if (!mountedRef.current) return
-      setSource(result.holdingsSource)
-      setSyncedAt(result.syncedAt)
-    } catch (e) {
-      if (!mountedRef.current) return
-      setError(e?.message || String(e))
+      const result = await loadInitialData()
+      applyHoldingsStatus(result)
+      lastHoldingsRefreshRef.current = Date.now()
+      return true
+    } catch (loadError) {
+      if (mountedRef.current) setError(loadError?.message || String(loadError))
+      return false
     } finally {
-      refreshingRef.current = false
-      if (mountedRef.current) {
-        if (isFirstLoad) firstLoadDone.current = true
-      }
+      initialInFlightRef.current = false
+      initialLoadRef.current = true
     }
-  }, [])
+  }, [applyHoldingsStatus, enabled])
+
+  const refreshHoldings = useCallback(async (force = false) => {
+    const visible = typeof document === 'undefined' || document.visibilityState !== 'hidden'
+    if (!enabled || (!force && !shouldAutoRefresh({
+      visible,
+      inFlight: holdingsInFlightRef.current || initialInFlightRef.current,
+      lastFetchedAt: lastHoldingsRefreshRef.current,
+      maxAgeMs: HOLDINGS_REFRESH_MS,
+    }))) return false
+    if (holdingsInFlightRef.current || initialInFlightRef.current) return false
+
+    holdingsInFlightRef.current = true
+    try {
+      const result = await loadHoldingsData()
+      applyHoldingsStatus(result)
+      lastHoldingsRefreshRef.current = Date.now()
+      if (mountedRef.current) setRefreshKey((key) => key + 1)
+      return true
+    } catch (loadError) {
+      if (mountedRef.current) setError(loadError?.message || String(loadError))
+      return false
+    } finally {
+      holdingsInFlightRef.current = false
+    }
+  }, [applyHoldingsStatus, enabled])
 
   const refresh = useCallback(async () => {
-    // 先读取缓存数据（已在 dataStore/assets 中管理）
-    // 加载新数据
-    await doLoad(false)
-    // 在数据更新到内存后，bump refreshKey 触发组件重新计算
-    if (mountedRef.current) {
-      setRefreshKey((k) => k + 1)
+    const loaded = await loadEverything()
+    if (loaded && mountedRef.current) {
+      setRefreshKey((key) => key + 1)
+      setManualRefreshKey((key) => key + 1)
     }
-  }, [doLoad])
+  }, [loadEverything])
 
-  const bumpRefreshKey = useCallback(() => {
-    setRefreshKey((k) => k + 1)
-  }, [])
+  const bumpRefreshKey = useCallback(() => setRefreshKey((key) => key + 1), [])
 
-  // 首次加载 — 完成后 bump refreshKey 让组件使用新数据
   useEffect(() => {
-    doLoad(true).then(() => {
-      if (mountedRef.current) {
-        setRefreshKey((k) => k + 1)
-      }
+    if (!enabled || initialLoadRef.current) return
+    loadEverything().then((loaded) => {
+      if (loaded && mountedRef.current) setRefreshKey((key) => key + 1)
     })
-  }, [doLoad])
+  }, [enabled, loadEverything])
 
-  // 自动刷新：每 5 分钟刷新一次（仅页面可见时，且首次加载完成后）
   useEffect(() => {
-    const interval = 5 * 60 * 1000
-    const id = setInterval(() => {
-      // 首次加载未完成或页面不可见时跳过
-      if (!firstLoadDone.current) return
-      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
-      doLoad(false).then(() => {
-        if (mountedRef.current) setRefreshKey((k) => k + 1)
-      })
-    }, interval)
-    return () => clearInterval(id)
-  }, [doLoad])
+    if (!enabled) return undefined
+    const timer = setInterval(() => { refreshHoldings(false) }, HOLDINGS_REFRESH_MS)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshHoldings(false)
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [enabled, refreshHoldings])
 
-  return { source, syncedAt, error, refresh, refreshKey, bumpRefreshKey }
+  return { source, syncedAt, error, refresh, refreshKey, manualRefreshKey, bumpRefreshKey }
 }

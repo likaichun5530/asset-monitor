@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { getApiJson } from '../utils/api.js'
+import { useVisiblePolling } from '../hooks/useVisiblePolling.js'
 
 const CACHE_KEY = 'asset-monitor:market'
 
@@ -57,18 +58,18 @@ export default function Market({ refreshKey = 0 }) {
   })
   const [loading, setLoading] = useState(!data.length)
 
-  useEffect(() => {
-    getApiJson('market')
-      .then((res) => {
-        const marketData = res.market || []
-        setData(marketData)
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
-        setLoading(false)
-      })
-      .catch(() => {
-        if (!data.length) setLoading(false)
-      })
-  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const loadMarket = useCallback(async () => {
+    try {
+      const res = await getApiJson('market', { auth: false })
+      const marketData = res.market || []
+      setData(marketData)
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useVisiblePolling(loadMarket, { refreshKey })
 
   // 找中证500现货价格（Google Sheets 可能存为"中证500"或包含"中证500"的名称）
   const zz500Spot = useMemo(() => {

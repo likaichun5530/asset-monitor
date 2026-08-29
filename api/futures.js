@@ -118,8 +118,8 @@ export default async function handler(req, res) {
 
     res.writeHead(200, { 'Content-Type': 'application/json' })
     return res.end(JSON.stringify({ futures: data, syncedAt: new Date().toISOString() }))
-  } catch (e) {
+  } catch {
     res.writeHead(500, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: String(e) }))
+    return res.end(JSON.stringify({ error: '期货行情读取失败' }))
   }
 }

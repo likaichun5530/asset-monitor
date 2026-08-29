@@ -1,9 +1,6 @@
-// 快照管理 - 旧接口兼容层
-// 实际逻辑已迁移到 dataStore.js
-// 此文件保留是为了 asset.js 中 getMergedHistory/getCurrentPeak 的引用
+// 历史快照的内存缓存与高点计算。
 
 import { demoHistory, demoPeakValue, demoPeakDate } from '../data/demo.js'
-import { fetchHistory, addSnapshot as dsAddSnapshot } from './dataStore.js'
 
 // 从 localStorage 同步读取缓存的历史数据
 function getCachedHistoryFromStorage() {
@@ -21,7 +18,7 @@ function getCachedHistoryFromStorage() {
   return null
 }
 
-// 缓存最新加载的历史数据（由 loadAll 触发更新，优先从 localStorage 同步读取）
+// 缓存最新加载的历史数据，优先从 localStorage 同步读取。
 let cachedHistory = getCachedHistoryFromStorage()
 
 // 同步获取合并后的历史数据（从缓存读取，初始回退到本地缓存或静态数据）
@@ -40,7 +37,7 @@ export function getMergedHistory() {
   return []
 }
 
-// 更新内存缓存（供 loadAll 后调用）
+// 更新内存缓存（供首次、手动和历史变更后的刷新调用）。
 export function setCachedHistory(history) {
   cachedHistory = history
 }
@@ -69,21 +66,4 @@ export function getCurrentPeak() {
     }
   }
   return peak
-}
-
-// 生成快照（委托给 dataStore）
-export async function addSnapshot(total) {
-  const result = await dsAddSnapshot(total)
-  // 同步更新内存缓存
-  if (cachedHistory) {
-    const idx = cachedHistory.findIndex((s) => s.date === result.date)
-    const snap = { date: result.date, total: result.total }
-    if (idx >= 0) {
-      cachedHistory[idx] = snap
-    } else {
-      cachedHistory.push(snap)
-      cachedHistory.sort((a, b) => new Date(a.date) - new Date(b.date))
-    }
-  }
-  return result
 }

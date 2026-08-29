@@ -4,14 +4,13 @@ import TrendChart from '../components/TrendChart.jsx'
 import AllocationChart from '../components/AllocationChart.jsx'
 import HoldingsOverview from '../components/HoldingsOverview.jsx'
 import CalendarHeatmap from '../components/CalendarHeatmap.jsx'
+import HomeAssetHero from '../components/HomeAssetHero.jsx'
+import { CurrencyCard, HealthCard, StatMini } from '../components/HomeOverviewCards.jsx'
 import {
   currentTotal, change7d, change30d, changeYtd, drawdownFromPeak,
   lastUpdateDate, generateSnapshot, hasBackend,
-  groupByCurrency, getActiveHoldings, holdingMarketValue, totalMarketValue,
 } from '../utils/asset.js'
-import { getPendingCount, fetchTarget } from '../utils/dataStore.js'
-import { formatCurrency, formatPercent, formatChange, formatDateLong, formatDateMid, formatNumber } from '../utils/format.js'
-import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
+import { getPendingCount } from '../utils/dataStore.js'
 import { findBestCardOverlap, getCardInsertDirection, reorderCardIds } from '../utils/cardSort.js'
 
 const CARD_KEY = 'youshu-home-cards'
@@ -58,194 +57,7 @@ const CARD_LABELS = {
   trend: '资产趋势图', allocation: '资产配置', holdings: '持仓概况', calendar: '收益日历',
 }
 
-function StatMini({ label, change, changePct }) {
-  const isUp = Number(change) > 0; const isDown = Number(change) < 0
-  const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
-  const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
-  return (
-    <div className="card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px]">
-      <div className="flex w-full items-center justify-between">
-        <div className="text-xs sm:text-sm font-medium text-gray-500">{label}</div>
-        <span className={`hidden sm:block h-2 w-2 rounded-full ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
-      </div>
-      <div className={`text-base sm:text-2xl font-bold mt-2 sm:mt-3 ${color}`}>{formatChange(change)}</div>
-      <div className="mt-2 flex items-center gap-1.5">
-        <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs sm:text-sm ${bg} ${color}`}>
-          {isUp && <span>▲</span>} {isDown && <span>▼</span>} {formatPercent(Math.abs(changePct))}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-function getMultiplier(symbol) {
-  if (!symbol) return 1
-  if (symbol.startsWith('IC') || symbol.startsWith('IM')) return 200
-  if (symbol.startsWith('IF') || symbol.startsWith('IH')) return 300
-  return 1
-}
-
-// 货币比例卡片（环形图）
-function CurrencyCard() {
-  const holdings = useMemo(() => getActiveHoldings(), [])
-  const total = useMemo(() => totalMarketValue(), [])
-
-  const pieData = useMemo(() => {
-    // 从持仓中计算虚拟币总额（按 assetType），从法币中排除
-    const cryptoHoldings = holdings.filter(h => h.assetType === '虚拟币')
-    const cryptoAmount = cryptoHoldings.reduce((s, h) => s + holdingMarketValue(h), 0)
-
-    // 法币金额：从所有持仓中排除虚拟币后，按 currency 汇总
-    const fiatHoldings = holdings.filter(h => h.assetType !== '虚拟币')
-    let cnyAmount = 0, usdAmount = 0, hkdAmount = 0
-    for (const h of fiatHoldings) {
-      const mv = holdingMarketValue(h)
-      if (h.currency === 'CNY') cnyAmount += mv
-      else if (h.currency === 'USD') usdAmount += mv
-      else if (h.currency === 'HKD') hkdAmount += mv
-    }
-
-    const items = [
-      { name: '人民币', value: Math.round(cnyAmount), color: '#ef4444' },
-      { name: '美元', value: Math.round(usdAmount), color: '#3b82f6' },
-      { name: '港币', value: Math.round(hkdAmount), color: '#8b5cf6' },
-      { name: '虚拟币', value: Math.round(cryptoAmount), color: '#f97316' },
-    ].filter(d => d.value > 0).sort((a, b) => b.value - a.value)
-
-    const totalVal = items.reduce((s, d) => s + d.value, 0)
-    return items.map(d => ({ ...d, ratio: totalVal ? (d.value / totalVal) * 100 : 0 }))
-  }, [holdings, total])
-
-  // 半圆环（SVG 实现，跨浏览器可靠）：从左(180°)到右(0°)，各币种按比例用 dash 分段
-  const halfRing = useMemo(() => {
-    const r = 50
-    const halfCirc = Math.PI * r // 半圆周长 ≈ 157
-    let acc = 0
-    const segments = pieData.map((d) => {
-      const seg = { color: d.color, len: (d.ratio / 100) * halfCirc, offset: acc }
-      acc += seg.len
-      return seg
-    })
-    return { segments, totalLen: acc || halfCirc }
-  }, [pieData])
-
-  return (
-    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
-      <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
-      <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        {/* 半圆堆叠环（SVG，粗 14px） */}
-        <svg viewBox="0 0 128 64" className="w-32 h-16 shrink-0">
-          {/* 背景轨道 */}
-          <path d="M 14 60 A 50 50 0 0 1 114 60" fill="none" stroke="#e5e7eb" strokeWidth="14" />
-          {/* 各币种分段 */}
-          {halfRing.segments.map((s, i) => (
-            <path
-              key={i}
-              d="M 14 60 A 50 50 0 0 1 114 60"
-              fill="none"
-              stroke={s.color}
-              strokeWidth="14"
-              strokeDasharray={`${s.len} ${halfRing.totalLen - s.len}`}
-              strokeDashoffset={-s.offset}
-            />
-          ))}
-        </svg>
-        {/* 图例（单列竖排，shrink-0 防止被压缩消失） */}
-        <div className="w-full flex flex-col gap-0.5 shrink-0">
-          {pieData.map((d) => (
-            <div key={d.name} className="flex items-center justify-between px-8 text-[10px]">
-              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
-                <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: d.color }} />
-                <span className="truncate">{d.name}</span>
-              </span>
-              <span className="text-gray-800 dark:text-gray-200 font-medium shrink-0">{Math.round(d.ratio)}%</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// 账户健康度卡片
-function HealthCard({ refreshKey }) {
-  const [targetData, setTargetData] = useState([])
-  useEffect(() => {
-    fetchTarget()
-      .then((data) => setTargetData(data.target || []))
-      .catch(() => {})
-  }, [refreshKey])
-
-  const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
-  const total = useMemo(() => totalMarketValue(), [refreshKey])
-
-  // 超配/低配类别名（只显示名称，不显示金额）
-  const { overCategories, underCategories, futureUsageRate } = useMemo(() => {
-    const overs = []
-    const unders = []
-
-    if (targetData.length) {
-      for (const r of targetData) {
-        if (r.isTotal || r.targetRatio === null || r.diff === null) continue
-        const { status } = getTargetAllocationStatus(r.currentRatio, r.targetRatio)
-        if (status === 'over') overs.push(r.category)
-        if (status === 'under') unders.push(r.category)
-      }
-    }
-
-    // 期货保证金使用率（与 Future.jsx 计算方式一致）
-    const futures = holdings.filter(h => h.assetType === '期货')
-    let maxUsage = 0
-    for (const h of futures) {
-      const depositMargin = holdingMarketValue(h)
-      const multiplier = getMultiplier(h.symbol)
-      const contractValue = (h.price || 0) * (h.quantity || 0) * multiplier
-      const requiredMargin = contractValue * 0.14
-      const usageRate = depositMargin ? (requiredMargin / depositMargin) * 100 : 0
-      if (usageRate > maxUsage) maxUsage = usageRate
-    }
-
-    return { overCategories: overs, underCategories: unders, futureUsageRate: maxUsage }
-  }, [holdings, total, targetData])
-
-  const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
-  const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
-
-  return (
-    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
-      <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
-      <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
-        <div className="text-gray-500">现金建议：</div>
-        <div>
-          <span className="text-gray-500">减持：</span>
-          {overCategories.length ? (
-            overCategories.map((c, i) => <span key={c} className="text-red-500 font-medium">{i > 0 ? '、' : ''}{c}</span>)
-          ) : <span className="text-gray-400">无</span>}
-        </div>
-        <div>
-          <span className="text-gray-500">加仓：</span>
-          {underCategories.length ? (
-            underCategories.map((c, i) => <span key={c} className="text-green-600 font-medium">{i > 0 ? '、' : ''}{c}</span>)
-          ) : <span className="text-gray-400">无</span>}
-        </div>
-        <div className="border-t border-gray-100 my-1" />
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500">期货保证金</span>
-          <span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}%</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500">状态</span>
-          <span className="font-medium" style={{ color: usageColor }}>{usageText}</span>
-        </div>
-        <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: Math.min(futureUsageRate, 100) + '%', backgroundColor: usageColor }} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default function Home({ refreshKey, onSnapshot, onRefresh }) {
+export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
   const [snapshotLoading, setSnapshotLoading] = useState(false)
   const [snapshotMsg, setSnapshotMsg] = useState(null)
   const [cardConfig, setCardConfig] = useState(readCardConfig)
@@ -432,8 +244,8 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
   }
 
   function renderCard(key) {
-    if (key === 'currency') return <CurrencyCard />
-    if (key === 'health') return <HealthCard refreshKey={refreshKey} />
+    if (key === 'currency') return <CurrencyCard refreshKey={refreshKey} />
+    if (key === 'health') return <HealthCard refreshKey={refreshKey} targetRefreshKey={targetRefreshKey} />
     switch (key) {
       case 'trend': return <TrendChart refreshKey={refreshKey} />
       case 'allocation': return <AllocationChart refreshKey={refreshKey} />
@@ -455,43 +267,16 @@ export default function Home({ refreshKey, onSnapshot, onRefresh }) {
         </div>
       )}
 
-      <div className="card home-hero-card py-2 px-4 sm:p-5 flex flex-col justify-center min-h-[85px] sm:min-h-[150px] relative overflow-hidden">
-        <div>
-          <div className="relative flex items-start justify-between gap-6">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-500"><span className="hidden sm:inline-block h-2 w-2 rounded-full bg-brand-500" />总资产（人民币）</div>
-              <div className="text-3xl sm:text-[38px] sm:leading-tight font-bold mt-1 sm:mt-3 text-gray-900 tracking-tight">{formatCurrency(total)}</div>
-              <div className="mt-1 sm:mt-3 text-xs text-gray-400">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
-            </div>
-            <div className="relative flex shrink-0 items-center gap-2">
-              <button type="button" onClick={() => setEditMode((value) => !value)} className="hidden sm:inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-4 text-sm font-medium text-slate-600 shadow-sm hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
-                {editMode ? '退出编辑' : '编辑布局'}
-              </button>
-              <button onClick={handleSnapshot} disabled={snapshotLoading}
-                className="inline-flex items-center justify-center gap-2 w-7 h-7 sm:w-auto sm:h-10 sm:px-4 rounded-full sm:rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-medium shadow-sm transition-colors disabled:opacity-60 shrink-0"
-              >
-                {snapshotLoading ? (
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
-                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                  </svg>
-                ) : (
-                  <svg className="w-3 h-3 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                )}
-                <span className="hidden sm:inline">生成快照</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="mt-1 flex items-center gap-2 flex-wrap">
-          {pendingCount > 0 && <span className="text-xs text-yellow-600">{pendingCount} 条待同步</span>}
-          {snapshotMsg && <span className={`text-xs truncate ${snapshotMsg.type === 'error' ? 'text-red-500' : snapshotMsg.type === 'warn' ? 'text-yellow-600' : 'text-green-600'}`}>{snapshotMsg.text}</span>}
-        </div>
-      </div>
+      <HomeAssetHero
+        total={total}
+        updateDate={updateDate}
+        pendingCount={pendingCount}
+        snapshotMsg={snapshotMsg}
+        snapshotLoading={snapshotLoading}
+        editMode={editMode}
+        onToggleEdit={() => setEditMode((value) => !value)}
+        onSnapshot={handleSnapshot}
+      />
 
       <div ref={sortRef} className="flex flex-wrap items-stretch -mx-0.5 sm:-mx-1.5">
         {visibleItems.map((key) => {

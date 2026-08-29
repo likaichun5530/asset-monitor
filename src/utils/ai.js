@@ -1,16 +1,10 @@
-import { apiUrl } from './api.js'
+import { apiFetch, requestApiJson } from './api.js'
 
 export const AI_ENABLED_KEY = 'youshu-ai-enabled'
 export const AI_CONSENT_KEY = 'youshu-ai-consent'
 export const AI_MESSAGES_KEY = 'youshu-ai-messages'
 export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
-
-function authHeaders() {
-  const token = localStorage.getItem('youshu-auth-token') || ''
-  if (!token) throw new Error('请先登录实盘账户')
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-}
 
 export function isAiEnabled() {
   try { return localStorage.getItem(AI_ENABLED_KEY) === 'true' } catch { return false }
@@ -49,39 +43,30 @@ export function clearAiMessages() {
 }
 
 export async function getAiRules() {
-  const response = await fetch(apiUrl('ai-rules'), { headers: authHeaders(), cache: 'no-store' })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.error || `读取 AI 规则失败（${response.status}）`)
-  return data
+  return requestApiJson('ai-rules')
 }
 
 export async function saveAiRules(rules) {
-  const response = await fetch(apiUrl('ai-rules'), {
+  return requestApiJson('ai-rules', {
     method: 'PUT',
-    headers: authHeaders(),
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rules }),
   })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.error || `保存 AI 规则失败（${response.status}）`)
-  return data
 }
 
 export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
-  const token = localStorage.getItem('youshu-auth-token') || ''
-  if (!token) throw new Error('请先登录实盘账户')
   let response
   try {
-    response = await fetch(apiUrl('ai-chat'), {
+    response = await apiFetch('ai-chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: messages.slice(-8), page }),
       signal,
+      timeoutMs: 0,
     })
   } catch (error) {
     if (error?.name === 'AbortError') throw error
+    if (error?.status) throw error
     throw new Error('网络不可用，无法连接 AI 助手')
   }
 

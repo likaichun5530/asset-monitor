@@ -2,18 +2,23 @@
 // 由 vercel.json crons 配置触发
 import { isConfigured } from './_google.js'
 import { calculateSnapshot, saveSnapshot } from './_snapshot.js'
-
-const CRON_SECRET = process.env.CRON_SECRET || ''
+import { secureTextEqual } from './_auth.js'
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Vercel Cron 自动携带 x-vercel-cron 头，手动调用需传 CRON_SECRET
-  const isVercelCron = req.headers['x-vercel-cron'] === '1'
-  const isValidAuth = CRON_SECRET && req.headers['authorization'] === `Bearer ${CRON_SECRET}`
-  if (!isVercelCron && !isValidAuth) {
+  // Vercel 会在配置 CRON_SECRET 后自动附加该 Authorization 头。
+  // x-vercel-cron 可由外部请求伪造，因此不能作为鉴权依据。
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    return res.status(503).json({ error: '服务端 CRON_SECRET 未配置' })
+  }
+  if (!secureTextEqual(req.headers.authorization, `Bearer ${cronSecret}`)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
@@ -38,7 +43,7 @@ export default async function handler(req, res) {
       categories,
       action,
     })
-  } catch (e) {
-    return res.status(500).json({ error: String(e) })
+  } catch {
+    return res.status(500).json({ error: '自动快照生成失败' })
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { apiUrl } from '../utils/api.js'
+import { requestApiJson } from '../utils/api.js'
 import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
 import RobotIcon from '../components/RobotIcon.jsx'
@@ -75,23 +75,20 @@ export default function Settings({ auth } = {}) {
 
   async function handleVerify() {
     if (!pwd) { setPwdError('请输入密码'); return }
+    if (!auth?.username) { setPwdError('登录已失效，请重新登录'); return }
     setPwdLoading(true)
     setPwdError('')
     try {
-      const resp = await fetch(apiUrl('auth/login'), {
+      await requestApiJson('auth/login', {
         method: 'POST',
+        auth: false,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: auth?.username || 'admin', password: pwd }),
+        body: JSON.stringify({ username: auth.username, password: pwd }),
       })
-      if (resp.ok) {
-        setShowPwdDialog(false)
-        setDemoMode(false)
-        localStorage.setItem('youshu-demo-mode', 'false')
-        window.location.reload()
-      } else {
-        const err = await resp.json()
-        setPwdError(err.error || '密码错误')
-      }
+      setShowPwdDialog(false)
+      setDemoMode(false)
+      localStorage.setItem('youshu-demo-mode', 'false')
+      window.location.reload()
     } catch (e) {
       setPwdError(e.message || '验证失败')
     } finally {

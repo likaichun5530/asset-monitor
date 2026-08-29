@@ -115,7 +115,7 @@ VITE_API_BASE=http://localhost:8787
 
 API 不可用时，应用会读取浏览器中最近一次成功同步的缓存；快照会先写入 localStorage，待 API 恢复后重试同步。
 
-> 登录用于前端实盘/演示模式切换。持仓新增、编辑和删除接口会校验该 JWT；行情等只读 API 仍为公开读取，如部署到公网并需要完整数据隔离，应继续在网关或 API 层增加访问控制。
+> 所有包含个人资产数据的 API（包括读取接口）都必须携带登录 JWT。健康检查以及仅包含公开行情的 Market、Futures 接口保持公开。前端请求由统一 API 客户端自动附加令牌，并一致处理登录失效。
 
 ## 🚀 部署上线（通过域名访问）
 
@@ -149,11 +149,11 @@ vercel
 | `SPREADSHEET_ID` | Google Sheets 文件 ID | `1abc...` |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | 服务账号邮箱 | `xxx@xxx.iam.gserviceaccount.com` |
 | `GOOGLE_PRIVATE_KEY` | 服务账号私钥 | `-----BEGIN PRIVATE KEY-----\n...` |
-| `JWT_SECRET` | JWT 签名密钥（生产环境应配置；代码中存在开发默认值） | 长随机字符串 |
+| `JWT_SECRET` | JWT 签名密钥（必填；缺失时登录和私人 API 均拒绝工作） | 使用密码管理器生成的长随机字符串 |
 | `AUTH_USERNAME` | 登录用户名 | 自定义 |
 | `AUTH_PASSWORD` | 登录密码 | 自定义 |
 | `CRON_SECRET` | 自动快照 Cron 调用密钥 | 长随机字符串 |
-| `DEEPSEEK_API_KEY` | DeepSeek 开放平台 API Key，仅供服务端调用 | `sk-...` |
+| `DEEPSEEK_API_KEY` | DeepSeek 开放平台 API Key，仅供服务端调用 | 从 DeepSeek 控制台创建后仅存入服务端环境变量 |
 | `DEEPSEEK_BASE_URL` | DeepSeek OpenAI 兼容接口地址；官方平台可不填 | `https://api.deepseek.com` |
 | `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
 | `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
@@ -208,7 +208,12 @@ Asset-Monitor/
 ├── .env.example              # 前端环境变量示例
 ├── api/                       # Vercel Serverless Functions（生产环境 API）
 │   ├── _google.js             # Google Service Account JWT 认证（零外部依赖）
+│   ├── _auth.js               # JWT 签发与私人 API 统一鉴权（无默认密钥）
+│   ├── _login-rate-limit.js   # 登录失败延迟与暖实例轻量限流
 │   ├── _http.js               # Serverless / Express 通用请求解析
+│   ├── _holdings-schema.js    # Holdings schema、归一化与输入校验
+│   ├── _holdings-formulas.js  # Holdings Google Sheets 公式和行生成
+│   ├── _holdings-service.js   # Holdings 读取、版本校验与编辑选项
 │   ├── _snapshot.js           # 手动与定时快照的共享逻辑
 │   ├── auth/
 │   │   └── login.js           # POST /api/auth/login（签发 JWT）
@@ -228,6 +233,8 @@ Asset-Monitor/
 │   ├── App.jsx
 │   ├── index.css
 │   ├── components/
+│   │   ├── HomeAssetHero.jsx    # 首页总资产区域
+│   │   ├── HomeOverviewCards.jsx # 首页稳定概览卡片
 │   │   ├── Layout.jsx           # 桌面侧边栏 + 移动端顶部栏/底部 Tab
 │   │   ├── StatCard.jsx
 │   │   ├── TrendChart.jsx       # 趋势图（月/季/半年/年/全部 + 高点标注）
@@ -248,11 +255,13 @@ Asset-Monitor/
 │   │   └── holdings.js          # 分类、市场和币种的显示配置
 │   ├── hooks/
 │   │   ├── useAssetData.js      # 数据加载/刷新/自动同步 hook
+│   │   ├── useVisiblePolling.js # 独立数据源的可见性轮询与并发保护
 │   │   └── useAuth.js           # 登录状态 / JWT 管理
 │   └── utils/
 │       ├── asset.js             # 资产计算（聚合/涨跌/回撤）
 │       ├── dataStore.js         # 离线优先数据存储（Google Sheets + localStorage）
-│       ├── api.js               # API 地址统一生成
+│       ├── api.js               # API 地址、鉴权头、401 与 GET 去重
+│       ├── refreshPolicy.js     # 可见性、过期时间和并发刷新判断
 │       ├── snapshot.js          # 快照内存缓存管理
 │       └── format.js            # 数值/日期格式化
 ├── server/                      # 本地 Express 后端（开发环境可选）
@@ -307,7 +316,8 @@ Asset-Monitor/
 ### 同步状态显示
 - 顶部导航栏显示在线、离线缓存或演示状态
 - 首页快照按钮旁显示「N 条待同步」提示
-- 每 5 分钟自动刷新一次（在线时拉取最新数据）
+- Holdings、Market、Futures 按各自周期独立刷新；页面隐藏时暂停，重新可见且缓存过期后再刷新
+- History 首次进入时读取，生成快照、修改历史或手动刷新后才重新读取，不再固定每 5 分钟请求
 - 支持手动点击刷新按钮
 
 ### 本地缓存键（localStorage）
@@ -333,13 +343,15 @@ Asset-Monitor/
 | `/api/ai-chat` | POST | 登录后读取资产数据并流式调用 DeepSeek |
 | `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `AIConfig` 表 |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
-| `/api/holdings` | GET / POST / PUT / DELETE | 读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓；写操作需要登录令牌及行版本校验 |
-| `/api/history` | GET / PUT | 读取 History；登录后可按日期更新当天最后一列备注 |
-| `/api/snapshot` | POST | 从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
-| `/api/snapshot-auto` | GET | 每日北京时间 23:00 自动快照（Vercel Cron；手动调用需 `CRON_SECRET`） |
-| `/api/target` | GET | 读取 target 表 + 实时持仓计算，返回目标配置对比数据 |
+| `/api/holdings` | GET / POST / PUT / DELETE | 私人；读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓，写操作另有行版本校验 |
+| `/api/history` | GET / PUT | 私人；读取 History 或按日期更新当天最后一列备注 |
+| `/api/snapshot` | POST | 私人；从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
+| `/api/snapshot-auto` | GET | 服务调用；每日北京时间 23:00 自动快照，必须使用 `CRON_SECRET` Bearer 鉴权 |
+| `/api/target` | GET | 私人；读取 target 表 + 实时持仓计算，返回目标配置对比数据 |
 | `/api/market` | GET | 读取 Market 表行情（公开） |
 | `/api/futures` | GET | 中证500股指期货贴水（公开） |
+
+登录接口会对连续失败进行延迟和暖实例内的轻量限流。Vercel Serverless 不保证同一请求落到同一实例，因此这不是跨实例严格限流；如需更强防护，建议后续在 Vercel Firewall 配置登录路由速率限制，无需改动应用数据结构。
 
 ### Google Sheets 凭据获取
 

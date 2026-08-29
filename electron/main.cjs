@@ -20,8 +20,6 @@ async function startServer() {
     ? path.join(__dirname, '..', 'server')
     : path.join(process.resourcesPath, 'server')
 
-  console.log('Starting server from:', serverPath)
-
   // 先杀掉可能占用 8787 端口的进程
   killPort(8787)
 
@@ -40,12 +38,6 @@ async function startServer() {
           process.env[match[1].trim()] = match[2].trim().replace(/^["']|["']$/g, '')
         }
       })
-    }
-
-    // 设置代理，确保 Node.js 能访问 Google API
-    if (!process.env.HTTPS_PROXY && !process.env.https_proxy) {
-      process.env.HTTPS_PROXY = 'http://127.0.0.1:7890'
-      process.env.https_proxy = 'http://127.0.0.1:7890'
     }
 
     // 动态 import 后端（ES module）

@@ -1,56 +1,60 @@
 // Vercel Function: POST /api/auth/login
-import crypto from 'crypto'
+import { secureTextEqual, signAuthToken } from '../_auth.js'
 import { readJsonBody } from '../_http.js'
+import {
+  clearLoginFailures,
+  loginFailureDelay,
+  loginRateLimitStatus,
+  registerLoginFailure,
+} from '../_login-rate-limit.js'
 
-const AUTH_USERNAME = process.env.AUTH_USERNAME || ''
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD || ''
-const JWT_SECRET = process.env.JWT_SECRET || 'youshu-default-secret-change-me'
-
-function base64url(buf) {
-  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+function json(res, status, body, headers = {}) {
+  res.writeHead(status, { 'Content-Type': 'application/json', ...headers })
+  return res.end(JSON.stringify(body))
 }
 
-function signToken(payload) {
-  const header = { alg: 'HS256', typ: 'JWT' }
-  const headerB64 = base64url(Buffer.from(JSON.stringify(header)))
-  const payloadB64 = base64url(Buffer.from(JSON.stringify(payload)))
-  const signature = base64url(
-    crypto.createHmac('sha256', JWT_SECRET).update(`${headerB64}.${payloadB64}`).digest()
-  )
-  return `${headerB64}.${payloadB64}.${signature}`
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.writeHead(405, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: 'Method not allowed' }))
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204)
+    return res.end()
   }
+  if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' })
 
-  if (!AUTH_USERNAME || !AUTH_PASSWORD) {
-    res.writeHead(500, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: '未配置登录凭据' }))
-  }
+  const authUsername = String(process.env.AUTH_USERNAME || '')
+  const authPassword = String(process.env.AUTH_PASSWORD || '')
+  if (!String(process.env.JWT_SECRET || '').trim()) return json(res, 503, { error: '服务端 JWT_SECRET 未配置' })
+  if (!authUsername || !authPassword) return json(res, 503, { error: '服务端登录凭据未配置' })
 
   let credentials
   try {
     credentials = await readJsonBody(req)
   } catch {
-    res.writeHead(400, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: '请求体必须是有效的 JSON' }))
+    return json(res, 400, { error: '请求体必须是有效的 JSON' })
   }
-  const { username, password } = credentials
-
-  if (username !== AUTH_USERNAME || password !== AUTH_PASSWORD) {
-    res.writeHead(401, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: '用户名或密码错误' }))
+  const username = String(credentials?.username || '')
+  const password = String(credentials?.password || '')
+  const rateLimit = loginRateLimitStatus(req, username)
+  if (rateLimit.blocked) {
+    return json(res, 429, { error: '登录尝试过于频繁，请稍后再试' }, { 'Retry-After': String(rateLimit.retryAfter) })
   }
 
-  const token = signToken({
-    username,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 86400 * 30,
-  })
+  // 位运算符确保用户名和密码都完成恒定时间摘要比较，不因用户名错误提前返回。
+  const credentialsValid = secureTextEqual(username, authUsername) & secureTextEqual(password, authPassword)
+  if (!credentialsValid) {
+    const failure = registerLoginFailure(req, username)
+    await delay(loginFailureDelay(failure.failures))
+    if (failure.blocked) {
+      return json(res, 429, { error: '登录尝试过于频繁，请稍后再试' }, { 'Retry-After': String(failure.retryAfter) })
+    }
+    return json(res, 401, { error: '用户名或密码错误' })
+  }
 
-  res.writeHead(200, { 'Content-Type': 'application/json' })
-  return res.end(JSON.stringify({ ok: true, token, username }))
+  clearLoginFailures(req, username)
+  const now = Math.floor(Date.now() / 1000)
+  const token = signAuthToken({ username: authUsername, iat: now, exp: now + 86400 * 30 })
+  return json(res, 200, { ok: true, token, username: authUsername })
 }

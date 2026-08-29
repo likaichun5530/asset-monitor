@@ -248,19 +248,27 @@ export function lastUpdateDate() {
 
 // ===== 动态加载（从 Google Sheets / 本地缓存） =====
 
-// 一次性加载 holdings + history，更新 activeHoldings
-// 返回 { source, syncedAt }
-export async function loadAll() {
+export async function loadHoldingsData() {
+  const holdingsResult = await fetchHoldings()
+  setActiveHoldings(holdingsResult.holdings)
+  return holdingsResult
+}
+
+export async function loadHistoryData() {
+  const historyResult = await fetchHistory()
+  setCachedHistory(historyResult.history)
+  return historyResult
+}
+
+// 首次加载和手动刷新读取全部数据；定时刷新只调用 loadHoldingsData。
+export async function loadInitialData() {
+  if (hasBackend()) await retryPendingSync()
   const [holdingsResult, historyResult] = await Promise.all([
     fetchHoldings(),
     fetchHistory(),
   ])
   setActiveHoldings(holdingsResult.holdings)
   setCachedHistory(historyResult.history)
-  // 尝试重试待同步的快照
-  if (hasBackend()) {
-    await retryPendingSync()
-  }
   return {
     holdingsSource: holdingsResult.source,
     historySource: historyResult.source,
@@ -271,10 +279,7 @@ export async function loadAll() {
 // 生成快照（写入本地 + 尝试同步 Google Sheets）
 export async function generateSnapshot(total) {
   const result = await addSnapshot(total)
-  // 重新从 dataStore 拉取最新历史数据，更新 snapshot.js 内存缓存
-  // 这样趋势图 refreshKey 变化时 getMergedHistory() 能读到最新数据
-  const historyResult = await fetchHistory()
-  setCachedHistory(historyResult.history)
+  await loadHistoryData()
   return result
 }
 
