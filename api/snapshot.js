@@ -1,10 +1,11 @@
 // Vercel Function: POST /api/snapshot
 import { isConfigured } from './_google.js'
-import { readJsonBody } from './_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { calculateSnapshot, saveSnapshot } from './_snapshot.js'
 import { requireAuth } from './_auth.js'
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()

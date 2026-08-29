@@ -1,7 +1,7 @@
 // Vercel Function: GET / POST / PUT / DELETE /api/holdings
 import { appendRows, deleteSheetRow, isConfigured, updateRows } from './_google.js'
 import { requireAuth } from './_auth.js'
-import { readJsonBody } from './_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { buildRow, columnLetter } from './_holdings-formulas.js'
 import { parseInput } from './_holdings-schema.js'
 import { editorOptions, findVersionedRow, loadHoldings } from './_holdings-service.js'
@@ -16,6 +16,7 @@ function json(res, status, body) {
 }
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()

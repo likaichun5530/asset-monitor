@@ -1,6 +1,6 @@
 import { isConfigured } from './_google.js'
 import { requireAuth } from './_auth.js'
-import { readJsonBody } from './_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { buildAssetAiContext } from './_ai-context.js'
 import { createDeepSeekStream, normalizeAiMessages } from './_deepseek.js'
 import { readAiRules } from './_ai-rules.js'
@@ -11,6 +11,7 @@ function json(res, status, body) {
 }
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()
@@ -32,7 +33,7 @@ export default async function handler(req, res) {
 
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
+      'Cache-Control': 'private, no-store, no-transform',
       'X-Content-Type-Options': 'nosniff',
       'X-AI-Model': model,
       'X-Asset-As-Of': context.dataAsOf || '',

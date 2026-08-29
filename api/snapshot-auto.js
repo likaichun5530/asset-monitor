@@ -3,8 +3,10 @@
 import { isConfigured } from './_google.js'
 import { calculateSnapshot, saveSnapshot } from './_snapshot.js'
 import { secureTextEqual } from './_auth.js'
+import { setPrivateResponseHeaders } from './_http.js'
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     return res.status(204).end()
   }

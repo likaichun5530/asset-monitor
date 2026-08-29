@@ -1,6 +1,7 @@
 // Vercel Function: GET /api/target
 import { isConfigured, readSheet, toNumber } from './_google.js'
 import { requireAuth } from './_auth.js'
+import { setPrivateResponseHeaders } from './_http.js'
 
 function stockLabel(market) {
   if (market === 'US') return '美股'
@@ -11,6 +12,7 @@ function stockLabel(market) {
 }
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()

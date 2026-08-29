@@ -6,3 +6,8 @@ export async function readJsonBody(req) {
   for await (const chunk of req) body += chunk
   return body ? JSON.parse(body) : {}
 }
+
+export function setPrivateResponseHeaders(res) {
+  res.setHeader?.('Cache-Control', 'private, no-store')
+  res.setHeader?.('Pragma', 'no-cache')
+}

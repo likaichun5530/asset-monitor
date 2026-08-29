@@ -1,6 +1,6 @@
 import { requireAuth } from './_auth.js'
 import { isConfigured } from './_google.js'
-import { readJsonBody } from './_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { DEFAULT_AI_RULES, MAX_AI_RULES_LENGTH, readAiRules, writeAiRules } from './_ai-rules.js'
 
 function json(res, status, body) {
@@ -9,6 +9,7 @@ function json(res, status, body) {
 }
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()

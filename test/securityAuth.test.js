@@ -21,7 +21,8 @@ function mockResponse() {
     statusCode: null,
     headers: {},
     body: '',
-    writeHead(statusCode, headers = {}) { this.statusCode = statusCode; this.headers = headers },
+    writeHead(statusCode, headers = {}) { this.statusCode = statusCode; Object.assign(this.headers, headers) },
+    setHeader(name, value) { this.headers[name.toLowerCase()] = value },
     end(chunk = '') { this.body += chunk; return this },
     json(body) { this.body = JSON.stringify(body); return this },
     status(statusCode) { this.statusCode = statusCode; return this },
@@ -67,6 +68,7 @@ test('无 token 和无效 token 访问私人 API 返回 401', async () => {
       const missing = mockResponse()
       await handler(request('GET'), missing)
       assert.equal(missing.statusCode, 401)
+      assert.equal(missing.headers['cache-control'], 'private, no-store')
 
       const invalid = mockResponse()
       await handler(request('GET', { authorization: 'Bearer invalid.token.value' }), invalid)

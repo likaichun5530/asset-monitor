@@ -1,6 +1,6 @@
 // Vercel Function: POST /api/auth/login
 import { secureTextEqual, signAuthToken } from '../_auth.js'
-import { readJsonBody } from '../_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from '../_http.js'
 import {
   clearLoginFailures,
   loginFailureDelay,
@@ -18,6 +18,7 @@ function delay(ms) {
 }
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()

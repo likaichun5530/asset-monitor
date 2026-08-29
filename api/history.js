@@ -1,6 +1,6 @@
 // Vercel Function: GET / PUT /api/history
 import { isConfigured, readSheet, toNumber, updateRows } from './_google.js'
-import { readJsonBody } from './_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { requireAuth } from './_auth.js'
 
 function normalizeDate(s) {
@@ -35,6 +35,7 @@ function json(res, status, body) {
 const CATEGORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
 
 export default async function handler(req, res) {
+  setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()
