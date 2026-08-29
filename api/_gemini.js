@@ -1,7 +1,7 @@
 import { DEFAULT_AI_RULES } from './_ai-rules.js'
 import { normalizeAiMessages } from './_deepseek.js'
 
-const CONNECTION_TIMEOUTS = [18_000, 30_000]
+const CONNECTION_TIMEOUTS = [45_000, 45_000]
 const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 export const DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 8192
 export const GEMINI_STREAM_TIMEOUT_MS = 110_000
@@ -12,7 +12,16 @@ export function getGeminiMaxOutputTokens(value = process.env.GEMINI_MAX_OUTPUT_T
   return parsed
 }
 
-export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, maxOutputTokens = getGeminiMaxOutputTokens()) {
+export function getGeminiThinkingLevel(value = process.env.GEMINI_THINKING_LEVEL) {
+  const normalized = String(value || 'low').trim().toLowerCase()
+  return ['low', 'medium', 'high'].includes(normalized) ? normalized : 'low'
+}
+
+export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, maxOutputTokens = getGeminiMaxOutputTokens(), model = '') {
+  const generationConfig = { maxOutputTokens }
+  if (/^gemini-3(?:\.|-)/.test(String(model))) {
+    generationConfig.thinkingConfig = { thinkingLevel: getGeminiThinkingLevel() }
+  }
   return {
     systemInstruction: {
       parts: [{
@@ -23,7 +32,7 @@ export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, 
       role: message.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: message.content }],
     })),
-    generationConfig: { maxOutputTokens },
+    generationConfig,
   }
 }
 
@@ -58,6 +67,9 @@ async function requestGemini(url, options) {
     } catch (error) {
       clearTimeout(timeout)
       if (error?.statusCode) throw error
+      if (error?.name === 'AbortError' || error?.name === 'TimeoutError') {
+        throw Object.assign(new Error('Gemini 等待首个响应超时，请稍后重试'), { statusCode: 504, code: 'GEMINI_CONNECTION_TIMEOUT' })
+      }
       lastError = error
     }
   }
@@ -78,7 +90,7 @@ export async function createGeminiStream(context, messages, rules = DEFAULT_AI_R
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey,
       },
-      body: JSON.stringify(buildGeminiRequest(context, messages, rules)),
+      body: JSON.stringify(buildGeminiRequest(context, messages, rules, getGeminiMaxOutputTokens(), model)),
     },
   )
   return { response, model, streamTimeoutMs: GEMINI_STREAM_TIMEOUT_MS }

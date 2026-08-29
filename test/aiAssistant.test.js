@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { buildAiContextFromSheets, compactAiHistory } from '../api/_ai-context.js'
 import { DEFAULT_AI_RULES, MAX_AI_RULES_LENGTH, normalizeAiRules } from '../api/_ai-rules.js'
 import { buildDeepSeekMessages, createDeepSeekStream, normalizeAiMessages } from '../api/_deepseek.js'
-import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, extractGeminiText, getGeminiFinishReason, getGeminiMaxOutputTokens } from '../api/_gemini.js'
+import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, extractGeminiText, getGeminiFinishReason, getGeminiMaxOutputTokens, getGeminiThinkingLevel } from '../api/_gemini.js'
 import { AI_MODELS, createAiStream, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
 import { createSseDataParser } from '../api/_ai-stream.js'
 import { DEFAULT_AI_MODELS, normalizeAiModels, readAiModels } from '../api/_ai-models.js'
@@ -130,6 +130,9 @@ test('Gemini 使用官方流式接口格式，并保持资产数据为只读系�
   assert.equal(request.generationConfig.maxOutputTokens, 8192)
   assert.equal(getGeminiMaxOutputTokens('16384'), 16384)
   assert.equal(getGeminiMaxOutputTokens('999999'), DEFAULT_GEMINI_MAX_OUTPUT_TOKENS)
+  assert.equal(getGeminiThinkingLevel('invalid'), 'low')
+  assert.deepEqual(buildGeminiRequest({}, [{ role: 'user', content: '分析' }], undefined, 8192, 'gemini-3.7-flash').generationConfig.thinkingConfig, { thinkingLevel: 'low' })
+  assert.equal(buildGeminiRequest({}, [{ role: 'user', content: '分析' }], undefined, 8192, 'gemini-2.5-flash').generationConfig.thinkingConfig, undefined)
   assert.equal(extractGeminiText({ candidates: [{ content: { parts: [{ text: '第一段' }, { text: '第二段' }] } }] }), '第一段第二段')
   assert.equal(getGeminiFinishReason({ candidates: [{ finishReason: 'MAX_TOKENS' }] }), 'MAX_TOKENS')
   assert.equal(extractAiStreamText('gemini', { candidates: [{ content: { parts: [{ text: '回答' }] } }] }), '回答')

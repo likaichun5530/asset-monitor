@@ -65,7 +65,11 @@ export default async function handler(req, res) {
     }
     return res.end()
   } catch (error) {
-    if (res.headersSent) return res.end('\n\nAI回答中断，请稍后重试。')
+    if (res.headersSent) {
+      console.warn('AI stream interrupted', { statusCode: error.statusCode || 500, code: error.code || 'AI_STREAM_ERROR' })
+      return res.end('\n\nAI回答中断，请稍后重试。')
+    }
+    console.warn('AI request failed before streaming', { statusCode: error.statusCode || 500, code: error.code || 'AI_REQUEST_ERROR' })
     return json(res, error.statusCode || 500, { error: error.message || 'AI 分析失败' })
   }
 }

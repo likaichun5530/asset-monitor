@@ -166,6 +166,7 @@ vercel
 | `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
 | `GEMINI_API_KEY` | Google Gemini API Key，仅供服务端调用 | 从 Google AI Studio 创建后仅存入服务端环境变量 |
 | `GEMINI_MAX_OUTPUT_TOKENS` | Gemini 单次回答输出上限（1024～32768，无效值回退 8192） | `8192` |
+| `GEMINI_THINKING_LEVEL` | Gemini 3.x 推理级别；默认 low，降低 AI 对话首包延迟 | `low` |
 | `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
 
 配置后重新部署使环境变量生效：
