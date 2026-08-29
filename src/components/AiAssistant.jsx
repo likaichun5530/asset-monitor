@@ -482,8 +482,8 @@ export default function AiAssistant({ auth } = {}) {
                         className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left ${selectedModel === model.id ? 'bg-brand-50 dark:bg-brand-500/10' : 'hover:bg-gray-50 dark:hover:bg-gray-600'}`}
                       >
                         <span className="min-w-0">
-                          <span className="block truncate text-[11px] font-medium leading-4 text-gray-700 dark:text-gray-200">{model.label}</span>
-                          <span className="block truncate text-[9px] leading-3.5 text-gray-400">{model.description}</span>
+                          <span className="block truncate text-[14px] font-medium leading-5 text-gray-700 dark:text-gray-200">{model.label}</span>
+                          <span className="block truncate text-[11px] leading-4 text-gray-400">{model.description}</span>
                         </span>
                         {selectedModel === model.id && <span className="shrink-0 text-[10px] text-brand-600">✓</span>}
                       </button>
