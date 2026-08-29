@@ -11,13 +11,20 @@ test('AI 机器人开关正确定位滑块并表达实际可用状态', async ()
   assert.match(source, /shrink-0/)
 })
 
-test('设置页按数据、AI、安全和应用信息归类', async () => {
+test('设置页使用一级分类进入对应的二级设置', async () => {
   const source = await readFile(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
 
   for (const section of ['数据与外观', 'AI 与智能分析', '账户与安全', '关于应用']) {
     assert.match(source, new RegExp(section))
   }
 
-  assert.match(source, /sm:grid-cols-2/)
-  assert.match(source, />v\{packageJson\.version\}<\/span>/)
+  assert.match(source, /const \[activeSection, setActiveSection\] = useState\(null\)/)
+  assert.match(source, /!activeSection/)
+  assert.match(source, /setActiveSection\(item\.key\)/)
+  assert.match(source, /setActiveSection\(null\)/)
+  assert.match(source, /activeSection === 'appearance'/)
+  assert.match(source, /activeSection === 'ai'/)
+  assert.match(source, /activeSection === 'security'/)
+  assert.match(source, /activeSection === 'about'/)
+  assert.match(source, /value: `v\$\{packageJson\.version\}`/)
 })
