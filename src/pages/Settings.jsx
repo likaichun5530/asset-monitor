@@ -3,6 +3,7 @@ import { requestApiJson } from '../utils/api.js'
 import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
 import RobotIcon from '../components/RobotIcon.jsx'
+import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
 
 const THEME_KEY = 'youshu-theme'
 
@@ -26,6 +27,7 @@ export default function Settings({ auth } = {}) {
   const [pwd, setPwd] = useState('')
   const [pwdError, setPwdError] = useState('')
   const [pwdLoading, setPwdLoading] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const [aiEnabled, setAiEnabledState] = useState(() => isAiEnabled())
   const [showAiConsent, setShowAiConsent] = useState(false)
   const [showAiRules, setShowAiRules] = useState(false)
@@ -259,8 +261,11 @@ export default function Settings({ auth } = {}) {
 
       {isLoggedIn && (
         <div className="card">
-          <h3 className="text-base font-semibold text-gray-800 mb-4">账户</h3>
+          <h3 className="text-base font-semibold text-gray-800 mb-4">账号安全</h3>
           <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">当前登录账户：{auth?.username}</p>
+          <button type="button" onClick={() => setShowChangePassword(true)}
+            className="mb-3 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:text-gray-300"
+          >修改密码</button>
           <button onClick={auth?.logout}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors"
           >退出登录</button>
@@ -275,6 +280,15 @@ export default function Settings({ auth } = {}) {
           <div className="flex justify-between sm:py-3 sm:last:pb-0"><span className="text-gray-500">Slogan</span><span className="text-gray-800">资产配置，心中有数</span></div>
         </div>
       </div>
+
+      <ChangePasswordDialog
+        open={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        onChanged={() => {
+          setShowChangePassword(false)
+          auth?.logout?.()
+        }}
+      />
 
       {/* 密码验证弹窗 */}
       {showPwdDialog && (

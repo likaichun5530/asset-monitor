@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    requireAuth(req)
+    await requireAuth(req)
     if (!isConfigured()) {
       res.writeHead(503, { 'Content-Type': 'application/json' })
       return res.end(JSON.stringify({ error: 'Google Sheets 未配置' }))

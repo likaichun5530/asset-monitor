@@ -55,6 +55,11 @@
 - DeepSeek API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
 - AI 分析仅作资产整理与风险提示，不会修改持仓或执行交易
 
+### 🔐 账号安全
+- 登录状态下可在“设置 → 账号安全”修改密码，不修改用户名
+- 首次修改前继续使用服务端 `AUTH_PASSWORD`；修改成功后仅在 Google Sheets `AuthConfig` 保存 scrypt hash、随机 salt 和 tokenVersion
+- 修改密码会使旧 JWT 失效，并自动退出到登录页；密码不会写入浏览器存储或日志
+
 ### 📱 响应式设计
 - 桌面端：顶部导航 + 宽屏布局
 - 移动端：底部 Tab 导航 + 单列卡片布局
@@ -209,6 +214,8 @@ Asset-Monitor/
 ├── api/                       # Vercel Serverless Functions（生产环境 API）
 │   ├── _google.js             # Google Service Account JWT 认证（零外部依赖）
 │   ├── _auth.js               # JWT 签发与私人 API 统一鉴权（无默认密钥）
+│   ├── _auth-config.js        # AuthConfig 读写、校验与 20 秒短缓存
+│   ├── _password.js           # scrypt 密码哈希、校验与恒定时间比较
 │   ├── _login-rate-limit.js   # 登录失败延迟与暖实例轻量限流
 │   ├── _http.js               # Serverless / Express 通用请求解析
 │   ├── _holdings-schema.js    # Holdings schema、归一化与输入校验
@@ -216,7 +223,8 @@ Asset-Monitor/
 │   ├── _holdings-service.js   # Holdings 读取、版本校验与编辑选项
 │   ├── _snapshot.js           # 手动与定时快照的共享逻辑
 │   ├── auth/
-│   │   └── login.js           # POST /api/auth/login（签发 JWT）
+│   │   ├── login.js           # POST /api/auth/login（签发 JWT）
+│   │   └── change-password.js # POST /api/auth/change-password
 │   ├── futures.js             # GET  /api/futures
 │   ├── health.js              # GET  /api/health
 │   ├── holdings.js            # GET  /api/holdings
@@ -237,6 +245,7 @@ Asset-Monitor/
 │   ├── components/
 │   │   ├── HomeAssetHero.jsx    # 首页总资产区域
 │   │   ├── HomeOverviewCards.jsx # 首页稳定概览卡片
+│   │   ├── ChangePasswordDialog.jsx # 修改密码弹窗
 │   │   ├── Layout.jsx           # 桌面侧边栏 + 移动端顶部栏/底部 Tab
 │   │   ├── StatCard.jsx
 │   │   ├── TrendChart.jsx       # 趋势图（月/季/半年/年/全部 + 高点标注）
@@ -251,7 +260,7 @@ Asset-Monitor/
 │   │   ├── Login.jsx            # 登录页
 │   │   ├── Market.jsx           # 行情页
 │   │   ├── Future.jsx           # 期货页（期现贴水）
-│   │   └── Settings.jsx         # 设置（主题切换）
+│   │   └── Settings.jsx         # 设置（数据模式、AI、账号安全、主题）
 │   ├── data/
 │   │   ├── demo.js              # 演示模式数据
 │   │   └── holdings.js          # 分类、市场和币种的显示配置
@@ -263,6 +272,7 @@ Asset-Monitor/
 │       ├── asset.js             # 资产计算（聚合/涨跌/回撤）
 │       ├── dataStore.js         # 离线优先数据存储（Google Sheets + localStorage）
 │       ├── api.js               # API 地址、鉴权头、401 与 GET 去重
+│       ├── password.js          # 前端修改密码基础校验
 │       ├── refreshPolicy.js     # 可见性、过期时间和并发刷新判断
 │       ├── snapshot.js          # 快照内存缓存管理
 │       └── format.js            # 数值/日期格式化
@@ -304,6 +314,10 @@ Google Sheets 的 Market 行情刷新脚本以单文件形式保存在 [`apps-sc
 ### 历史数据（`History` 表）
 
 每日一条 `{ date, total, categories?, note? }` 快照。手动和定时快照都会从 `Holdings` 实时汇总总资产与九类资产数据；美股历史按账户口径包含 US 现金，A股和港股历史只包含股票（现金列仍保留全部现金，总资产只累计一次），同日已有记录时覆盖并保留原备注，否则追加。
+
+### 认证配置（`AuthConfig` 表）
+
+首次成功修改密码时自动创建，使用固定 key/value 结构：`username`、`passwordHash`、`passwordSalt`、`tokenVersion`、`updatedAt`。其中密码使用 Node.js 原生 scrypt 和随机 salt 生成，表中不保存明文密码；`JWT_SECRET` 仍只存在服务端环境变量。AuthConfig 未初始化时登录继续验证 `AUTH_PASSWORD`，实现无感迁移。
 
 ## 离线优先（Offline-First）架构
 
@@ -350,6 +364,7 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | 接口 | 方法 | 说明 |
 | --- | --- | --- |
 | `/api/auth/login` | POST | 登录，返回 JWT token |
+| `/api/auth/change-password` | POST | 私人；验证当前密码后写入 AuthConfig，并使旧 JWT 失效 |
 | `/api/ai-chat` | POST | 登录后读取资产数据并流式调用 DeepSeek |
 | `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `AIConfig` 表 |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
@@ -361,7 +376,7 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | `/api/market` | GET | 读取 Market 表行情（公开） |
 | `/api/futures` | GET | 中证500股指期货贴水（公开） |
 
-登录接口会对连续失败进行延迟和暖实例内的轻量限流。Vercel Serverless 不保证同一请求落到同一实例，因此这不是跨实例严格限流；如需更强防护，建议后续在 Vercel Firewall 配置登录路由速率限制，无需改动应用数据结构。
+登录接口会对连续失败进行延迟和暖实例内的轻量限流。AuthConfig 在每个服务端实例内缓存 20 秒并合并并发读取；修改密码会立即清除当前实例缓存。Vercel Serverless 不保证同一请求落到同一实例，因此登录限流不是跨实例严格限流，其他暖实例也可能在最多 20 秒内继续接受旧 tokenVersion；如需强一致失效，需要外部共享存储或边缘层支持。
 
 ### Google Sheets 凭据获取
 

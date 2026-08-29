@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   if (!['GET', 'PUT'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
 
   try {
-    requireAuth(req)
+    await requireAuth(req)
     if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
     if (req.method === 'GET') {
       const rules = await readAiRules()

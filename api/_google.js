@@ -160,6 +160,20 @@ export async function ensureSheet(sheetName) {
   return true
 }
 
+// 只检查工作表是否存在，不创建工作表。
+export async function sheetExists(sheetName) {
+  if (!isConfigured()) throw new Error('Google Sheets 未配置')
+  const token = await getAccessToken()
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties(title)`
+  const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`读取工作表信息失败: ${resp.status} ${text}`)
+  }
+  const metadata = await resp.json()
+  return Boolean(metadata.sheets?.some(({ properties }) => properties?.title === sheetName))
+}
+
 // 物理删除指定工作表中的一行，其下方数据会自动上移
 export async function deleteSheetRow(sheetName, rowNumber) {
   if (!isConfigured()) throw new Error('Google Sheets 未配置')

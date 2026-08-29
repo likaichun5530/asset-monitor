@@ -43,7 +43,7 @@ export default async function handler(req, res) {
   if (!['GET', 'PUT'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
 
   try {
-    requireAuth(req)
+    await requireAuth(req)
     if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
     const result = await readSheet('History')
     const rawRows = result.rawRows || [] // 原始行数组，不依赖表头映射

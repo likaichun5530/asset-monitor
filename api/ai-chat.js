@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' })
 
   try {
-    requireAuth(req)
+    await requireAuth(req)
     if (process.env.AI_ASSISTANT_ENABLED === 'false') return json(res, 503, { error: 'AI 助手已在服务端关闭' })
     if (!process.env.DEEPSEEK_API_KEY) return json(res, 503, { error: 'DeepSeek API 尚未配置' })
     if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })

@@ -1,4 +1,8 @@
 import crypto from 'crypto'
+import { DEFAULT_TOKEN_VERSION, getAuthConfig } from './_auth-config.js'
+import { secureTextEqual } from './_password.js'
+
+export { secureTextEqual } from './_password.js'
 
 function authError(statusCode, message, code) {
   return Object.assign(new Error(message), { statusCode, code })
@@ -12,14 +16,13 @@ function jwtSecret() {
   return secret
 }
 
-function signatureFor(input, secret) {
-  return crypto.createHmac('sha256', secret).update(input).digest()
+export function assertJwtConfigured() {
+  jwtSecret()
+  return true
 }
 
-export function secureTextEqual(actual, expected) {
-  const actualHash = crypto.createHash('sha256').update(String(actual ?? '')).digest()
-  const expectedHash = crypto.createHash('sha256').update(String(expected ?? '')).digest()
-  return crypto.timingSafeEqual(actualHash, expectedHash)
+function signatureFor(input, secret) {
+  return crypto.createHmac('sha256', secret).update(input).digest()
 }
 
 export function signAuthToken(payload) {
@@ -30,7 +33,7 @@ export function signAuthToken(payload) {
   return `${headerB64}.${payloadB64}.${signature}`
 }
 
-export function requireAuth(req) {
+export async function requireAuth(req, { loadAuthConfig = getAuthConfig } = {}) {
   // 配置校验必须先于 token 校验，JWT_SECRET 缺失时所有私人接口 fail closed。
   const secret = jwtSecret()
   const authorization = String(req.headers?.authorization || '')
@@ -64,5 +67,38 @@ export function requireAuth(req) {
   }
   if (payload.nbf && payload.nbf > now) throw authError(401, '登录凭据无效', 'AUTH_INVALID')
   if (!payload.username) throw authError(401, '登录凭据无效', 'AUTH_INVALID')
-  return payload
+
+  const authUsername = String(process.env.AUTH_USERNAME || '')
+  if (!authUsername) throw authError(503, '服务端登录用户名未配置', 'AUTH_CONFIGURATION_ERROR')
+  if (!secureTextEqual(payload.username, authUsername)) {
+    throw authError(401, '登录凭据无效', 'AUTH_INVALID')
+  }
+
+  let authConfig
+  try {
+    authConfig = await loadAuthConfig()
+  } catch (error) {
+    if (error?.statusCode) throw error
+    throw authError(503, '认证配置读取失败', 'AUTH_CONFIGURATION_ERROR')
+  }
+  if (authConfig.initialized && !secureTextEqual(authConfig.username, authUsername)) {
+    throw authError(503, 'AuthConfig 用户名与服务端配置不一致', 'AUTH_CONFIGURATION_ERROR')
+  }
+
+  const tokenVersion = payload.tokenVersion === undefined
+    ? DEFAULT_TOKEN_VERSION
+    : Number(payload.tokenVersion)
+  if (!Number.isInteger(tokenVersion) || tokenVersion < DEFAULT_TOKEN_VERSION) {
+    throw authError(401, '登录凭据无效', 'AUTH_INVALID')
+  }
+  const currentTokenVersion = authConfig.initialized
+    ? authConfig.tokenVersion
+    : DEFAULT_TOKEN_VERSION
+  if (tokenVersion !== currentTokenVersion) {
+    throw authError(401, '登录状态已失效，请重新登录', 'AUTH_TOKEN_VERSION_MISMATCH')
+  }
+  const authorized = { ...payload, tokenVersion }
+  // 供修改密码接口复用已读取配置，但即使误将鉴权结果 JSON 化也不会暴露 hash/salt。
+  Object.defineProperty(authorized, 'authConfig', { value: authConfig, enumerable: false })
+  return authorized
 }

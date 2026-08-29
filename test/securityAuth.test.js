@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import { requireAuth, signAuthToken } from '../api/_auth.js'
-import loginHandler from '../api/auth/login.js'
+import loginHandler, { handleLogin } from '../api/auth/login.js'
 import holdingsHandler from '../api/holdings.js'
 import historyHandler from '../api/history.js'
 import snapshotAutoHandler from '../api/snapshot-auto.js'
@@ -15,6 +15,8 @@ import {
 
 const TEST_SECRET = crypto.randomBytes(32).toString('hex')
 const TEST_PASSWORD = crypto.randomBytes(20).toString('hex')
+const UNINITIALIZED_AUTH = Object.freeze({ initialized: false, tokenVersion: 1 })
+const loadUninitializedAuth = async () => UNINITIALIZED_AUTH
 
 function mockResponse() {
   return {
@@ -58,7 +60,7 @@ function withAuthEnvironment(values, fn) {
 test('JWT_SECRET 未配置时拒绝签发和验证 token', async () => {
   await withAuthEnvironment({ JWT_SECRET: undefined }, () => {
     assert.throws(() => signAuthToken({ username: 'owner', exp: Date.now() / 1000 + 60 }), /JWT_SECRET 未配置/)
-    assert.throws(() => requireAuth(request('GET')), (error) => error.statusCode === 503)
+    return assert.rejects(requireAuth(request('GET')), (error) => error.statusCode === 503)
   })
 })
 
@@ -78,10 +80,13 @@ test('无 token 和无效 token 访问私人 API 返回 401', async () => {
 })
 
 test('有效 token 可通过鉴权并让私人 API 继续执行', async () => {
-  await withAuthEnvironment({ JWT_SECRET: TEST_SECRET }, async () => {
+  await withAuthEnvironment({ JWT_SECRET: TEST_SECRET, AUTH_USERNAME: 'owner' }, async () => {
     const now = Math.floor(Date.now() / 1000)
-    const token = signAuthToken({ username: 'owner', iat: now, exp: now + 60 })
-    assert.equal(requireAuth(request('GET', { authorization: `Bearer ${token}` })).username, 'owner')
+    const token = signAuthToken({ username: 'owner', tokenVersion: 1, iat: now, exp: now + 60 })
+    assert.equal((await requireAuth(
+      request('GET', { authorization: `Bearer ${token}` }),
+      { loadAuthConfig: loadUninitializedAuth }
+    )).username, 'owner')
 
     // 测试环境没有 Google 凭据；503 说明请求已越过鉴权并进入后续配置检查。
     for (const handler of [holdingsHandler, historyHandler]) {
@@ -105,7 +110,7 @@ test('登录凭据或 JWT 配置缺失时安全失败', async () => {
     const response = mockResponse()
     await loginHandler(request('POST', { body: { username: 'owner', password: TEST_PASSWORD } }), response)
     assert.equal(response.statusCode, 503)
-    assert.match(response.body, /登录凭据未配置/)
+    assert.match(response.body, /登录用户名未配置/)
   })
 })
 
@@ -117,15 +122,26 @@ test('正确登录签发可验证 token，错误信息不泄露用户名存在�
   }, async () => {
     resetLoginRateLimitForTests()
     const invalid = mockResponse()
-    await loginHandler(request('POST', { body: { username: 'unknown', password: `${TEST_PASSWORD}-invalid` } }), invalid)
+    await handleLogin(
+      request('POST', { body: { username: 'unknown', password: `${TEST_PASSWORD}-invalid` } }),
+      invalid,
+      { loadAuthConfig: loadUninitializedAuth }
+    )
     assert.equal(invalid.statusCode, 401)
     assert.equal(JSON.parse(invalid.body).error, '用户名或密码错误')
 
     const valid = mockResponse()
-    await loginHandler(request('POST', { body: { username: 'owner', password: TEST_PASSWORD } }), valid)
+    await handleLogin(
+      request('POST', { body: { username: 'owner', password: TEST_PASSWORD } }),
+      valid,
+      { loadAuthConfig: loadUninitializedAuth }
+    )
     assert.equal(valid.statusCode, 200)
     const data = JSON.parse(valid.body)
-    assert.equal(requireAuth(request('GET', { authorization: `Bearer ${data.token}` })).username, 'owner')
+    assert.equal((await requireAuth(
+      request('GET', { authorization: `Bearer ${data.token}` }),
+      { loadAuthConfig: loadUninitializedAuth }
+    )).username, 'owner')
   })
 })
 

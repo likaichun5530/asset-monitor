@@ -1,6 +1,8 @@
 // Vercel Function: POST /api/auth/login
-import { secureTextEqual, signAuthToken } from '../_auth.js'
+import { assertJwtConfigured, secureTextEqual, signAuthToken } from '../_auth.js'
+import { DEFAULT_TOKEN_VERSION, getAuthConfig } from '../_auth-config.js'
 import { readJsonBody, setPrivateResponseHeaders } from '../_http.js'
+import { verifyPassword } from '../_password.js'
 import {
   clearLoginFailures,
   loginFailureDelay,
@@ -17,7 +19,7 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export default async function handler(req, res) {
+export async function handleLogin(req, res, { loadAuthConfig = getAuthConfig } = {}) {
   setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
@@ -27,8 +29,25 @@ export default async function handler(req, res) {
 
   const authUsername = String(process.env.AUTH_USERNAME || '')
   const authPassword = String(process.env.AUTH_PASSWORD || '')
-  if (!String(process.env.JWT_SECRET || '').trim()) return json(res, 503, { error: '服务端 JWT_SECRET 未配置' })
-  if (!authUsername || !authPassword) return json(res, 503, { error: '服务端登录凭据未配置' })
+  try {
+    assertJwtConfigured()
+  } catch (error) {
+    return json(res, error.statusCode || 503, { error: error.message || '服务端认证配置错误' })
+  }
+  if (!authUsername) return json(res, 503, { error: '服务端登录用户名未配置' })
+
+  let authConfig
+  try {
+    authConfig = await loadAuthConfig()
+  } catch (error) {
+    return json(res, error.statusCode || 503, { error: error.statusCode ? error.message : '认证配置读取失败' })
+  }
+  if (authConfig.initialized && !secureTextEqual(authConfig.username, authUsername)) {
+    return json(res, 503, { error: 'AuthConfig 用户名与服务端配置不一致' })
+  }
+  if (!authConfig.initialized && !authPassword) {
+    return json(res, 503, { error: '服务端登录密码未配置' })
+  }
 
   let credentials
   try {
@@ -43,8 +62,11 @@ export default async function handler(req, res) {
     return json(res, 429, { error: '登录尝试过于频繁，请稍后再试' }, { 'Retry-After': String(rateLimit.retryAfter) })
   }
 
-  // 位运算符确保用户名和密码都完成恒定时间摘要比较，不因用户名错误提前返回。
-  const credentialsValid = secureTextEqual(username, authUsername) & secureTextEqual(password, authPassword)
+  // 用户名错误时仍完成密码校验，避免通过响应耗时判断用户名是否存在。
+  const passwordValid = authConfig.initialized
+    ? await verifyPassword(password, authConfig.passwordHash, authConfig.passwordSalt)
+    : secureTextEqual(password, authPassword)
+  const credentialsValid = Boolean(secureTextEqual(username, authUsername) & passwordValid)
   if (!credentialsValid) {
     const failure = registerLoginFailure(req, username)
     await delay(loginFailureDelay(failure.failures))
@@ -56,6 +78,11 @@ export default async function handler(req, res) {
 
   clearLoginFailures(req, username)
   const now = Math.floor(Date.now() / 1000)
-  const token = signAuthToken({ username: authUsername, iat: now, exp: now + 86400 * 30 })
+  const tokenVersion = authConfig.initialized ? authConfig.tokenVersion : DEFAULT_TOKEN_VERSION
+  const token = signAuthToken({ username: authUsername, tokenVersion, iat: now, exp: now + 86400 * 30 })
   return json(res, 200, { ok: true, token, username: authUsername })
+}
+
+export default function handler(req, res) {
+  return handleLogin(req, res)
 }
