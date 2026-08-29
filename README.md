@@ -164,7 +164,6 @@ vercel
 | `DEEPSEEK_BASE_URL` | DeepSeek OpenAI 兼容接口地址；官方平台可不填 | `https://api.deepseek.com` |
 | `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
 | `GEMINI_API_KEY` | Google Gemini API Key，仅供服务端调用 | 从 Google AI Studio 创建后仅存入服务端环境变量 |
-| `GEMINI_BASE_URL` | Gemini REST API 地址；官方平台可不填 | `https://generativelanguage.googleapis.com/v1beta` |
 | `GEMINI_MODEL` | Gemini 模型名称 | `gemini-2.5-flash` |
 | `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
 

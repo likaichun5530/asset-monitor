@@ -2,6 +2,7 @@ import { DEFAULT_AI_RULES } from './_ai-rules.js'
 import { normalizeAiMessages } from './_deepseek.js'
 
 const REQUEST_TIMEOUTS = [18_000, 30_000]
+const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES) {
   return {
@@ -57,10 +58,9 @@ async function requestGemini(url, options) {
 export async function createGeminiStream(context, messages, rules = DEFAULT_AI_RULES) {
   const apiKey = process.env.GEMINI_API_KEY || ''
   if (!apiKey) throw Object.assign(new Error('Gemini API 尚未配置'), { statusCode: 503 })
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
-  const baseUrl = (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/$/, '')
+  const model = String(process.env.GEMINI_MODEL || '').trim() || 'gemini-2.5-flash'
   const response = await requestGemini(
-    `${baseUrl}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,
+    `${GEMINI_API_BASE_URL}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,
     {
       method: 'POST',
       headers: {

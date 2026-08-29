@@ -4,6 +4,7 @@ import RobotIcon from './RobotIcon.jsx'
 import {
   AI_MESSAGES_KEY,
   AI_MESSAGES_CLEARED_EVENT,
+  AI_PROVIDER_CHANGED_EVENT,
   AI_SETTING_EVENT,
   getCachedAiProvider,
   isAiEnabled,
@@ -119,6 +120,9 @@ export default function AiAssistant({ auth } = {}) {
         setEnabled(nextEnabled)
         if (!nextEnabled) close()
       }
+      if (event.key === 'youshu-ai-provider') {
+        setAiProvider(event.newValue === 'gemini' ? 'gemini' : 'deepseek')
+      }
     }
     const onMessagesCleared = () => {
       abortRef.current?.abort()
@@ -127,12 +131,17 @@ export default function AiAssistant({ auth } = {}) {
       setDataAsOf(null)
       setLoading(false)
     }
+    const onProviderChanged = (event) => {
+      setAiProvider(event.detail?.provider === 'gemini' ? 'gemini' : 'deepseek')
+    }
     window.addEventListener(AI_SETTING_EVENT, onSetting)
     window.addEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
+    window.addEventListener(AI_PROVIDER_CHANGED_EVENT, onProviderChanged)
     window.addEventListener('storage', onStorage)
     return () => {
       window.removeEventListener(AI_SETTING_EVENT, onSetting)
       window.removeEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
+      window.removeEventListener(AI_PROVIDER_CHANGED_EVENT, onProviderChanged)
       window.removeEventListener('storage', onStorage)
     }
   }, [close])

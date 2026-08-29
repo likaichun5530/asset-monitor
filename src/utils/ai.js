@@ -6,6 +6,7 @@ export const AI_MESSAGES_KEY = 'youshu-ai-messages'
 export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
 export const AI_PROVIDER_KEY = 'youshu-ai-provider'
+export const AI_PROVIDER_CHANGED_EVENT = 'youshu-ai-provider-changed'
 
 export function getCachedAiProvider() {
   try { return localStorage.getItem(AI_PROVIDER_KEY) === 'gemini' ? 'gemini' : 'deepseek' } catch { return 'deepseek' }
@@ -14,6 +15,9 @@ export function getCachedAiProvider() {
 export function cacheAiProvider(provider) {
   const normalized = provider === 'gemini' ? 'gemini' : 'deepseek'
   localStorage.setItem(AI_PROVIDER_KEY, normalized)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(AI_PROVIDER_CHANGED_EVENT, { detail: { provider: normalized } }))
+  }
   return normalized
 }
 

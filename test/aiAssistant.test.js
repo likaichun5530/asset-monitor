@@ -156,6 +156,9 @@ test('Gemini 使用官方流式接口格式，并保持资产数据为只读系�
   }
   assert.equal(normalizeAiProvider('Gemini'), 'gemini')
   assert.throws(() => normalizeAiProvider('unknown'), /不支持/)
+  const geminiSource = await readFile(new URL('../api/_gemini.js', import.meta.url), 'utf8')
+  assert.match(geminiSource, /https:\/\/generativelanguage\.googleapis\.com\/v1beta/)
+  assert.doesNotMatch(geminiSource, /process\.env\.GEMINI_BASE_URL/)
 })
 
 test('AI使用设置页保存的统一回答规则', () => {
@@ -197,5 +200,6 @@ test('模型选择仅保存在当前设备，并由后端严格校验后执行',
   assert.match(settingsSource, /cacheAiProvider\(provider\)/)
   assert.match(settingsSource, /clearAiMessages\(\)/)
   assert.match(clientSource, /provider: getCachedAiProvider\(\)/)
+  assert.match(clientSource, /AI_PROVIDER_CHANGED_EVENT/)
   assert.doesNotMatch(clientSource, /ai-settings/)
 })
