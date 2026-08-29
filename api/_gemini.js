@@ -1,10 +1,18 @@
 import { DEFAULT_AI_RULES } from './_ai-rules.js'
 import { normalizeAiMessages } from './_deepseek.js'
 
-const REQUEST_TIMEOUTS = [18_000, 30_000]
+const CONNECTION_TIMEOUTS = [18_000, 30_000]
 const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
+export const DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 8192
+export const GEMINI_STREAM_TIMEOUT_MS = 110_000
 
-export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES) {
+export function getGeminiMaxOutputTokens(value = process.env.GEMINI_MAX_OUTPUT_TOKENS) {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 1024 || parsed > 32768) return DEFAULT_GEMINI_MAX_OUTPUT_TOKENS
+  return parsed
+}
+
+export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, maxOutputTokens = getGeminiMaxOutputTokens()) {
   return {
     systemInstruction: {
       parts: [{
@@ -15,7 +23,7 @@ export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES) 
       role: message.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: message.content }],
     })),
-    generationConfig: { maxOutputTokens: 2048 },
+    generationConfig: { maxOutputTokens },
   }
 }
 
@@ -34,17 +42,21 @@ function providerError(status) {
 
 async function requestGemini(url, options) {
   let lastError
-  for (let attempt = 0; attempt < REQUEST_TIMEOUTS.length; attempt += 1) {
+  for (let attempt = 0; attempt < CONNECTION_TIMEOUTS.length; attempt += 1) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), CONNECTION_TIMEOUTS[attempt])
     try {
       const response = await fetch(url, {
         ...options,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUTS[attempt]),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
       if (response.ok) return response
       await response.body?.cancel?.().catch(() => {})
-      if (response.status < 500 || attempt === REQUEST_TIMEOUTS.length - 1) throw providerError(response.status)
+      if (response.status < 500 || attempt === CONNECTION_TIMEOUTS.length - 1) throw providerError(response.status)
       lastError = providerError(response.status)
     } catch (error) {
+      clearTimeout(timeout)
       if (error?.statusCode) throw error
       lastError = error
     }
@@ -55,10 +67,9 @@ async function requestGemini(url, options) {
   throw error
 }
 
-export async function createGeminiStream(context, messages, rules = DEFAULT_AI_RULES) {
+export async function createGeminiStream(context, messages, rules = DEFAULT_AI_RULES, model = 'gemini-3.5-flash-lite') {
   const apiKey = process.env.GEMINI_API_KEY || ''
   if (!apiKey) throw Object.assign(new Error('Gemini API 尚未配置'), { statusCode: 503 })
-  const model = String(process.env.GEMINI_MODEL || '').trim() || 'gemini-2.5-flash'
   const response = await requestGemini(
     `${GEMINI_API_BASE_URL}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,
     {
@@ -70,11 +81,15 @@ export async function createGeminiStream(context, messages, rules = DEFAULT_AI_R
       body: JSON.stringify(buildGeminiRequest(context, messages, rules)),
     },
   )
-  return { response, model }
+  return { response, model, streamTimeoutMs: GEMINI_STREAM_TIMEOUT_MS }
 }
 
 export function extractGeminiText(event) {
   return (event?.candidates?.[0]?.content?.parts || [])
     .map((part) => String(part?.text || ''))
     .join('')
+}
+
+export function getGeminiFinishReason(event) {
+  return String(event?.candidates?.[0]?.finishReason || '').trim().toUpperCase() || null
 }

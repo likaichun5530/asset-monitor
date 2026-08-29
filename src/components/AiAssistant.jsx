@@ -4,9 +4,13 @@ import RobotIcon from './RobotIcon.jsx'
 import {
   AI_MESSAGES_KEY,
   AI_MESSAGES_CLEARED_EVENT,
-  AI_PROVIDER_CHANGED_EVENT,
+  AI_MODEL_CHANGED_EVENT,
+  AI_MODEL_KEY,
+  AI_MODEL_OPTIONS,
   AI_SETTING_EVENT,
-  getCachedAiProvider,
+  cacheAiModel,
+  getAiModelOption,
+  getCachedAiModel,
   isAiEnabled,
   setAiEnabled,
   loadAiMessages,
@@ -83,7 +87,8 @@ export default function AiAssistant({ auth } = {}) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dataAsOf, setDataAsOf] = useState(null)
-  const [aiProvider, setAiProvider] = useState(getCachedAiProvider)
+  const [selectedModel, setSelectedModel] = useState(getCachedAiModel)
+  const [actualModel, setActualModel] = useState(null)
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
@@ -120,8 +125,8 @@ export default function AiAssistant({ auth } = {}) {
         setEnabled(nextEnabled)
         if (!nextEnabled) close()
       }
-      if (event.key === 'youshu-ai-provider') {
-        setAiProvider(event.newValue === 'gemini' ? 'gemini' : 'deepseek')
+      if (event.key === AI_MODEL_KEY) {
+        setSelectedModel(getAiModelOption(event.newValue).id)
       }
     }
     const onMessagesCleared = () => {
@@ -129,19 +134,20 @@ export default function AiAssistant({ auth } = {}) {
       setMessages([])
       setError('')
       setDataAsOf(null)
+      setActualModel(null)
       setLoading(false)
     }
-    const onProviderChanged = (event) => {
-      setAiProvider(event.detail?.provider === 'gemini' ? 'gemini' : 'deepseek')
+    const onModelChanged = (event) => {
+      setSelectedModel(getAiModelOption(event.detail?.model).id)
     }
     window.addEventListener(AI_SETTING_EVENT, onSetting)
     window.addEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
-    window.addEventListener(AI_PROVIDER_CHANGED_EVENT, onProviderChanged)
+    window.addEventListener(AI_MODEL_CHANGED_EVENT, onModelChanged)
     window.addEventListener('storage', onStorage)
     return () => {
       window.removeEventListener(AI_SETTING_EVENT, onSetting)
       window.removeEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
-      window.removeEventListener(AI_PROVIDER_CHANGED_EVENT, onProviderChanged)
+      window.removeEventListener(AI_MODEL_CHANGED_EVENT, onModelChanged)
       window.removeEventListener('storage', onStorage)
     }
   }, [close])
@@ -232,7 +238,8 @@ export default function AiAssistant({ auth } = {}) {
         setMessages([...requestMessages, { role: 'assistant', content: answer }])
       }, { signal: controller.signal })
       setDataAsOf(meta.dataAsOf)
-      setAiProvider(meta.provider)
+      setSelectedModel(meta.selectionId)
+      setActualModel(meta.model)
       if (!answer.trim()) throw new Error('AI没有返回有效内容，请重试')
     } catch (requestError) {
       if (requestError?.name !== 'AbortError') setError(requestError?.message || 'AI分析失败')
@@ -317,8 +324,19 @@ export default function AiAssistant({ auth } = {}) {
     setMessages([])
     setError('')
     setDataAsOf(null)
+    setActualModel(null)
     localStorage.removeItem(AI_MESSAGES_KEY)
   }
+
+  const handleModelChange = (event) => {
+    if (loading) return
+    const next = cacheAiModel(event.target.value)
+    if (next === selectedModel) return
+    setSelectedModel(next)
+    clearMessages()
+  }
+
+  const selectedModelOption = getAiModelOption(selectedModel)
 
   return (
     <>
@@ -362,7 +380,7 @@ export default function AiAssistant({ auth } = {}) {
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
                 <div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">有数资产管理助手</div>
-                  <div className="text-[10px] text-gray-400">{dataAsOf ? `数据截至 ${dataAsOf}` : '发送问题时读取最新资产数据'}</div>
+                  <div className="text-[10px] text-gray-400">{actualModel ? `${actualModel}${dataAsOf ? ` · 数据截至 ${dataAsOf}` : ''}` : '发送问题时读取最新资产数据'}</div>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -375,7 +393,7 @@ export default function AiAssistant({ auth } = {}) {
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
-                    我会读取 Holdings、History 和目标配置来回答。资产金额、账户、代码和备注会发送给{aiProvider === 'gemini' ? ' Google Gemini' : ' DeepSeek'}，请勿在问题中填写密码或API密钥。
+                    我会读取 Holdings、History 和目标配置来回答。资产金额、账户、代码和备注会发送给{selectedModelOption.provider === 'gemini' ? ' Google Gemini' : ' DeepSeek'}，请勿在问题中填写密码或API密钥。
                   </div>
                   <div className="mt-4 text-xs font-medium text-gray-500">你可以这样问</div>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -410,6 +428,20 @@ export default function AiAssistant({ auth } = {}) {
                 <button type="button" onClick={() => sendMessage()} disabled={loading || !input.trim()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white disabled:opacity-40" aria-label="发送问题">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
                 </button>
+              </div>
+              <div className="mt-2 flex items-center gap-2 px-1">
+                <label htmlFor="ai-model-select" className="shrink-0 text-[10px] text-gray-400">模型</label>
+                <select
+                  id="ai-model-select"
+                  value={selectedModel}
+                  onChange={handleModelChange}
+                  disabled={loading}
+                  className="min-w-0 flex-1 truncate bg-transparent text-[11px] font-medium text-gray-600 outline-none disabled:opacity-50 dark:text-gray-300"
+                >
+                  {AI_MODEL_OPTIONS.map((model) => (
+                    <option key={model.id} value={model.id}>{model.label} · {model.description}</option>
+                  ))}
+                </select>
               </div>
             </footer>
           </section>

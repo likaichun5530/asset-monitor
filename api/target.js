@@ -1,15 +1,8 @@
 // Vercel Function: GET /api/target
-import { isConfigured, readSheet, toNumber } from './_google.js'
+import { isConfigured, readSheet } from './_google.js'
 import { requireAuth } from './_auth.js'
 import { setPrivateResponseHeaders } from './_http.js'
-
-function stockLabel(market) {
-  if (market === 'US') return '美股'
-  if (market === 'CN') return 'A股'
-  if (market === 'HK') return '港股'
-  if (market === 'JP') return '日股'
-  return '股票'
-}
+import { aggregateHoldingsByCategory, calculateAllocations, parseTargetMap } from './_allocation.js'
 
 export default async function handler(req, res) {
   setPrivateResponseHeaders(res)
@@ -33,60 +26,18 @@ export default async function handler(req, res) {
       readSheet('Holdings'),
       readSheet('target').catch(() => null),
     ])
-    const hData = hResult.data || []
-
-    // 聚合各类资产金额
-    const catMap = new Map()
-    let totalCNY = 0
-    for (let i = 0; i < hData.length; i++) {
-      const row = hData[i]
-      if (!row || !row.AssetType) continue
-      let cat = row.AssetType
-      if (cat === 'Stock') {
-        cat = stockLabel(row.Market)
-      } else {
-        const map = { Crypto: '虚拟币', Gold: '黄金', Cash: '现金', Bond: '债基', Future: '期货', 债券: '债基' }
-        cat = map[cat] || cat
-      }
-      const mv = toNumber(row.MarketValueCNY) || 0
-      totalCNY += mv
-      catMap.set(cat, (catMap.get(cat) || 0) + mv)
-    }
-
-    // 解析 target 表
-    const targetMap = new Map()
-    if (tResult) {
-      const tData = tResult.data || []
-      const tHeaders = tResult.headers || []
-      // 第一列是类别名，第二列是目标值
-      const catCol = tHeaders[0]
-      const valCol = tHeaders.find(h => h && (h.includes('目标') || h.includes('比例'))) || tHeaders[1]
-      for (let i = 0; i < tData.length; i++) {
-        const row = tData[i]
-        const rawCat = String(row[catCol] || '').trim()
-        const cat = rawCat === '债券' ? '债基' : rawCat
-        if (!cat || cat.includes('合计')) continue
-        const target = toNumber(row[valCol])
-        if (target !== null) targetMap.set(cat, target)
-      }
-    }
+    const { categoryTotals, total: totalCNY } = aggregateHoldingsByCategory(hResult.data || [])
+    const targetMap = parseTargetMap(tResult)
 
     // 3. 合并
-    const result = Array.from(catMap.entries())
-      .map(([cat, mv]) => {
-        const currentRatio = totalCNY ? mv / totalCNY : 0
-        const targetRatio = targetMap.has(cat) ? targetMap.get(cat) : null
-        const diff = targetRatio !== null ? currentRatio - targetRatio : null
-        return {
-          category: cat,
-          marketValue: Math.round(mv * 100) / 100,
-          currentRatio,
-          targetRatio,
-          diff,
-          isTotal: false,
-        }
-      })
-      .sort((a, b) => b.marketValue - a.marketValue)
+    const result = calculateAllocations(categoryTotals, totalCNY, targetMap).map((row) => ({
+      category: row.category,
+      marketValue: Math.round(row.marketValue * 100) / 100,
+      currentRatio: row.currentRatio,
+      targetRatio: row.targetRatio,
+      diff: row.difference,
+      isTotal: false,
+    }))
 
     const totalTarget = Array.from(targetMap.values()).reduce((s, v) => s + v, 0)
     result.push({

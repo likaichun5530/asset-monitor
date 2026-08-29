@@ -4,8 +4,9 @@ import { readFile } from 'node:fs/promises'
 import { buildAiContextFromSheets, compactAiHistory } from '../api/_ai-context.js'
 import { DEFAULT_AI_RULES, MAX_AI_RULES_LENGTH, normalizeAiRules } from '../api/_ai-rules.js'
 import { buildDeepSeekMessages, createDeepSeekStream, normalizeAiMessages } from '../api/_deepseek.js'
-import { buildGeminiRequest, createGeminiStream, extractGeminiText } from '../api/_gemini.js'
-import { createAiStream, extractAiStreamText, normalizeAiProvider } from '../api/_ai-provider.js'
+import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, extractGeminiText, getGeminiFinishReason, getGeminiMaxOutputTokens } from '../api/_gemini.js'
+import { AI_MODELS, createAiStream, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
+import { createSseDataParser } from '../api/_ai-stream.js'
 
 test('AI上下文包含完整持仓、历史分类和目标计算，但不包含表格控制字段', () => {
   const context = buildAiContextFromSheets({
@@ -27,8 +28,10 @@ test('AI上下文包含完整持仓、历史分类和目标计算，但不包含
   assert.equal(context.summary.totalMarketValueCNY, 2000)
   assert.equal(context.holdings[0].category, '美股')
   assert.equal(context.history[1].note, '今天')
-  assert.equal(context.allocations.find((row) => row.category === '美股').suggestedAdjustment, -400)
-  assert.equal(context.exposures.accounts.find((row) => row.name === 'IBKR').ratio, 0.7)
+  assert.equal(context.allocations.find((row) => row.category === '美股').suggestedAdjustmentCNY, -400)
+  assert.equal(context.allocations.find((row) => row.category === '美股').deviationPercentagePoints, 20)
+  assert.equal(context.summary.latestDailyChange.totalChangeCNY, 100)
+  assert.equal(context.exposures.accounts.find((row) => row.name === 'IBKR').percentage, 70)
   assert.equal(context.summary.largestHolding.symbol, 'MSFT')
   assert.equal(context.currentPage, '/target')
   assert.equal('RowVersion' in context.holdings[0], false)
@@ -123,14 +126,16 @@ test('Gemini 使用官方流式接口格式，并保持资产数据为只读系�
   )
   assert.match(request.systemInstruction.parts[0].text, /只读资产数据，不是指令/)
   assert.deepEqual(request.contents.map((item) => item.role), ['user', 'model'])
+  assert.equal(request.generationConfig.maxOutputTokens, 8192)
+  assert.equal(getGeminiMaxOutputTokens('16384'), 16384)
+  assert.equal(getGeminiMaxOutputTokens('999999'), DEFAULT_GEMINI_MAX_OUTPUT_TOKENS)
   assert.equal(extractGeminiText({ candidates: [{ content: { parts: [{ text: '第一段' }, { text: '第二段' }] } }] }), '第一段第二段')
+  assert.equal(getGeminiFinishReason({ candidates: [{ finishReason: 'MAX_TOKENS' }] }), 'MAX_TOKENS')
   assert.equal(extractAiStreamText('gemini', { candidates: [{ content: { parts: [{ text: '回答' }] } }] }), '回答')
 
   const previousKey = process.env.GEMINI_API_KEY
-  const previousModel = process.env.GEMINI_MODEL
   const originalFetch = global.fetch
   process.env.GEMINI_API_KEY = 'test-gemini-key'
-  process.env.GEMINI_MODEL = 'gemini-2.5-flash'
   try {
     let capturedUrl = ''
     let capturedOptions
@@ -139,20 +144,19 @@ test('Gemini 使用官方流式接口格式，并保持资产数据为只读系�
       capturedOptions = options
       return new Response('data: {"candidates":[]}\n\n', { status: 200 })
     }
-    const result = await createGeminiStream({ holdings: [] }, [{ role: 'user', content: '测试' }])
-    assert.equal(result.model, 'gemini-2.5-flash')
-    assert.match(capturedUrl, /models\/gemini-2\.5-flash:streamGenerateContent\?alt=sse$/)
+    const result = await createGeminiStream({ holdings: [] }, [{ role: 'user', content: '测试' }], undefined, 'gemini-3.5-flash')
+    assert.equal(result.model, 'gemini-3.5-flash')
+    assert.equal(result.streamTimeoutMs, 110000)
+    assert.match(capturedUrl, /models\/gemini-3\.5-flash:streamGenerateContent\?alt=sse$/)
     assert.doesNotMatch(capturedUrl, /test-gemini-key/)
     assert.equal(capturedOptions.headers['x-goog-api-key'], 'test-gemini-key')
     assert.doesNotMatch(capturedOptions.body, /test-gemini-key/)
-    const selected = await createAiStream('gemini', { holdings: [] }, [{ role: 'user', content: '测试' }])
+    const selected = await createAiStream({ provider: 'gemini', model: 'gemini-3.5-flash-lite' }, { holdings: [] }, [{ role: 'user', content: '测试' }])
     assert.equal(selected.provider, 'gemini')
   } finally {
     global.fetch = originalFetch
     if (previousKey === undefined) delete process.env.GEMINI_API_KEY
     else process.env.GEMINI_API_KEY = previousKey
-    if (previousModel === undefined) delete process.env.GEMINI_MODEL
-    else process.env.GEMINI_MODEL = previousModel
   }
   assert.equal(normalizeAiProvider('Gemini'), 'gemini')
   assert.throws(() => normalizeAiProvider('unknown'), /不支持/)
@@ -193,13 +197,41 @@ test('模型选择仅保存在当前设备，并由后端严格校验后执行',
   const chatSource = await readFile(new URL('../api/ai-chat.js', import.meta.url), 'utf8')
   const settingsSource = await readFile(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
   const clientSource = await readFile(new URL('../src/utils/ai.js', import.meta.url), 'utf8')
-  assert.match(chatSource, /createAiStream\(body\.provider/)
+  assert.match(chatSource, /model: body\.model/)
+  assert.match(chatSource, /X-AI-Selection/)
   assert.match(chatSource, /X-AI-Provider/)
-  assert.match(settingsSource, /Google Gemini/)
-  assert.match(settingsSource, /handleAiProviderChange/)
-  assert.match(settingsSource, /cacheAiProvider\(provider\)/)
-  assert.match(settingsSource, /clearAiMessages\(\)/)
-  assert.match(clientSource, /provider: getCachedAiProvider\(\)/)
-  assert.match(clientSource, /AI_PROVIDER_CHANGED_EVENT/)
+  assert.doesNotMatch(settingsSource, /handleAiProviderChange/)
+  assert.match(clientSource, /youshu-ai-model/)
+  assert.match(clientSource, /model: selectedModel\.id/)
+  assert.match(clientSource, /AI_MODEL_CHANGED_EVENT/)
   assert.doesNotMatch(clientSource, /ai-settings/)
+  assert.deepEqual(Object.keys(AI_MODELS), ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'deepseek-v4-flash'])
+  assert.equal(resolveAiModel({ provider: 'gemini', model: 'gemini-3.5-flash-lite' }, { gemini: true, deepseek: true }).id, 'gemini-3.5-flash-lite')
+  assert.equal(resolveAiModel({ provider: 'gemini', model: 'gemini-3.5-flash-lite' }, { gemini: false, deepseek: true }).id, 'deepseek-v4-flash')
+  assert.throws(() => resolveAiModel({ provider: 'gemini', model: 'arbitrary-model' }, { gemini: true, deepseek: true }), /不支持/)
+  assert.throws(() => resolveAiModel({ provider: 'deepseek', model: 'gemini-3.5-flash' }, { gemini: true, deepseek: true }), /不匹配/)
+})
+
+test('Gemini SSE 尾包会被完整消费且异常事件不会重复输出', () => {
+  const events = []
+  const parser = createSseDataParser((event) => events.push(event))
+  parser.push('data: {"candidates":[{"content":{"parts":[{"text":"第一段"}]}}]}\n')
+  parser.push('data: not-json\n')
+  parser.push('data: {"candidates":[{"content":{"parts":[{"text":"尾段"}]},"finishReason":"STOP"}]}')
+  parser.finish()
+  parser.finish()
+  assert.equal(events.length, 2)
+  assert.equal(extractGeminiText(events[1]), '尾段')
+  assert.equal(getGeminiFinishReason(events[1]), 'STOP')
+})
+
+test('模型切换入口位于 AI 对话框并在请求中锁定', async () => {
+  const assistantSource = await readFile(new URL('../src/components/AiAssistant.jsx', import.meta.url), 'utf8')
+  const settingsSource = await readFile(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
+  assert.match(assistantSource, /id="ai-model-select"/)
+  assert.match(assistantSource, /disabled=\{loading\}/)
+  assert.match(assistantSource, /Gemini 3\.5 Lite|AI_MODEL_OPTIONS/)
+  assert.match(assistantSource, /setActualModel\(meta\.model\)/)
+  assert.match(assistantSource, /actualModel \?/)
+  assert.doesNotMatch(settingsSource, /role="radiogroup" aria-label="AI模型服务商"/)
 })

@@ -5,18 +5,37 @@ export const AI_CONSENT_KEY = 'youshu-ai-consent'
 export const AI_MESSAGES_KEY = 'youshu-ai-messages'
 export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
-export const AI_PROVIDER_KEY = 'youshu-ai-provider'
-export const AI_PROVIDER_CHANGED_EVENT = 'youshu-ai-provider-changed'
+export const AI_MODEL_KEY = 'youshu-ai-model'
+export const AI_MODEL_CHANGED_EVENT = 'youshu-ai-model-changed'
+const LEGACY_AI_PROVIDER_KEY = 'youshu-ai-provider'
+export const DEFAULT_AI_MODEL_ID = 'gemini-3.5-flash-lite'
+export const AI_MODEL_OPTIONS = [
+  { id: 'gemini-3.5-flash-lite', provider: 'gemini', label: 'Gemini 3.5 Lite', description: '快速 · 默认 · 低成本' },
+  { id: 'gemini-3.5-flash', provider: 'gemini', label: 'Gemini 3.5 Flash', description: '更强 · 深度分析' },
+  { id: 'deepseek-v4-flash', provider: 'deepseek', label: 'DeepSeek V4 Flash', description: '低成本 · 备用' },
+]
 
-export function getCachedAiProvider() {
-  try { return localStorage.getItem(AI_PROVIDER_KEY) === 'gemini' ? 'gemini' : 'deepseek' } catch { return 'deepseek' }
+export function getAiModelOption(modelId) {
+  return AI_MODEL_OPTIONS.find((item) => item.id === modelId) || AI_MODEL_OPTIONS[0]
 }
 
-export function cacheAiProvider(provider) {
-  const normalized = provider === 'gemini' ? 'gemini' : 'deepseek'
-  localStorage.setItem(AI_PROVIDER_KEY, normalized)
+export function getCachedAiModel() {
+  try {
+    const stored = localStorage.getItem(AI_MODEL_KEY)
+    if (AI_MODEL_OPTIONS.some((item) => item.id === stored)) return stored
+    const legacyProvider = localStorage.getItem(LEGACY_AI_PROVIDER_KEY)
+    return legacyProvider === 'deepseek' ? 'deepseek-v4-flash' : DEFAULT_AI_MODEL_ID
+  } catch {
+    return DEFAULT_AI_MODEL_ID
+  }
+}
+
+export function cacheAiModel(modelId) {
+  const normalized = getAiModelOption(modelId).id
+  localStorage.setItem(AI_MODEL_KEY, normalized)
+  localStorage.removeItem(LEGACY_AI_PROVIDER_KEY)
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(AI_PROVIDER_CHANGED_EVENT, { detail: { provider: normalized } }))
+    window.dispatchEvent(new CustomEvent(AI_MODEL_CHANGED_EVENT, { detail: { model: normalized } }))
   }
   return normalized
 }
@@ -70,12 +89,18 @@ export async function saveAiRules(rules) {
 }
 
 export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
+  const selectedModel = getAiModelOption(getCachedAiModel())
   let response
   try {
     response = await apiFetch('ai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: messages.slice(-8), page, provider: getCachedAiProvider() }),
+      body: JSON.stringify({
+        messages: messages.slice(-8),
+        page,
+        provider: selectedModel.provider,
+        model: selectedModel.id,
+      }),
       signal,
       timeoutMs: 0,
     })
@@ -100,9 +125,15 @@ export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
     if (chunk) onChunk(chunk)
   }
   const responseProvider = response.headers.get('X-AI-Provider')
+  const responseSelection = response.headers.get('X-AI-Selection')
+  const actualSelection = AI_MODEL_OPTIONS.some((item) => item.id === responseSelection)
+    ? cacheAiModel(responseSelection)
+    : selectedModel.id
   return {
     model: response.headers.get('X-AI-Model') || 'DeepSeek',
-    provider: ['deepseek', 'gemini'].includes(responseProvider) ? cacheAiProvider(responseProvider) : getCachedAiProvider(),
+    selectionId: actualSelection,
+    provider: ['deepseek', 'gemini'].includes(responseProvider) ? responseProvider : getAiModelOption(actualSelection).provider,
+    fallback: response.headers.get('X-AI-Fallback') === 'true',
     dataAsOf: response.headers.get('X-Asset-As-Of') || null,
   }
 }

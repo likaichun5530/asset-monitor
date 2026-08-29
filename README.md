@@ -48,9 +48,9 @@
 
 ### 🤖 AI 资产助手
 - 设置中可独立开启或关闭；开启后仅在登录状态的首页显示机器人入口，拖动松手后自动吸附到距离最近的屏幕左侧或右侧；长按入口可显示关闭按钮
-- Vercel 后端实时读取 Holdings、History 和 target，将规范化后的资产数据交给设置中选择的 DeepSeek 或 Google Gemini 分析
+- Vercel 后端实时读取 Holdings、History 和 target，将应用预先计算好的资产金额、比例、配置偏差和历史变化交给所选模型解释
 - 支持流式多轮对话和当前页面快捷问题，对话仅保存在当前浏览器
-- 设置页可在 DeepSeek 与 Google Gemini 间切换；选择仅保存在当前设备，不写入 Google Sheets
+- AI 对话框输入区可选择 Gemini 3.5 Lite（默认）、Gemini 3.5 Flash 或 DeepSeek V4 Flash；选择仅保存在当前设备，不写入 Google Sheets
 - 设置页使用一个统一编辑框维护全部 AI 回答规则；点击顶部保存按钮后写入 Google Sheets 的 `SystemSettings` 表，保存成功会清空旧对话并在下一次提问生效
 - 规则可统一配置助手身份、收益口径、事实边界、回答风格和分析偏好；登录鉴权和密钥隔离仍由服务端代码强制执行
 - DeepSeek/Gemini API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
@@ -164,7 +164,7 @@ vercel
 | `DEEPSEEK_BASE_URL` | DeepSeek OpenAI 兼容接口地址；官方平台可不填 | `https://api.deepseek.com` |
 | `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
 | `GEMINI_API_KEY` | Google Gemini API Key，仅供服务端调用 | 从 Google AI Studio 创建后仅存入服务端环境变量 |
-| `GEMINI_MODEL` | Gemini 模型名称 | `gemini-2.5-flash` |
+| `GEMINI_MAX_OUTPUT_TOKENS` | Gemini 单次回答输出上限（1024～32768，无效值回退 8192） | `8192` |
 | `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
 
 配置后重新部署使环境变量生效：
@@ -362,7 +362,7 @@ Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheet
 | `youshu-ai-enabled` | 是否在页面显示 AI 助手 |
 | `youshu-ai-consent` | 是否已确认资产数据会发送给所选模型服务商 |
 | `youshu-ai-messages` | 当前浏览器最近的 AI 对话 |
-| `youshu-ai-provider` | 当前设备选择的模型服务商（DeepSeek 或 Gemini） |
+| `youshu-ai-model` | 当前设备在 AI 对话框中选择的模型；旧版 `youshu-ai-provider` 会自动迁移并删除 |
 
 JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。前端不执行动态 HTML、AI 回复只按纯文本渲染，并且 localStorage 不保存密码、API Key 或 Google 凭据。
 

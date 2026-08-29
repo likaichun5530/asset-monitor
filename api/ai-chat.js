@@ -3,8 +3,9 @@ import { requireAuth } from './_auth.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { buildAssetAiContext } from './_ai-context.js'
 import { normalizeAiMessages } from './_deepseek.js'
-import { createAiStream, extractAiStreamText } from './_ai-provider.js'
+import { createAiStream, extractAiStreamEvent } from './_ai-provider.js'
 import { readAiRules } from './_ai-rules.js'
+import { createSseDataParser, readStreamWithDeadline } from './_ai-stream.js'
 
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' })
@@ -29,7 +30,8 @@ export default async function handler(req, res) {
     const page = String(body.page || '/').slice(0, 80)
     const [context, rules] = await Promise.all([buildAssetAiContext(page), readAiRules()])
     if (!context.holdings.length && !context.history.length) return json(res, 422, { error: '没有可供 AI 分析的资产数据' })
-    const { response, model, provider } = await createAiStream(body.provider, context, messages, rules)
+    const selection = { provider: body.provider, model: body.model }
+    const { response, model, provider, selectionId, fallback, streamTimeoutMs = 110_000 } = await createAiStream(selection, context, messages, rules)
 
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
@@ -37,32 +39,29 @@ export default async function handler(req, res) {
       'X-Content-Type-Options': 'nosniff',
       'X-AI-Model': model,
       'X-AI-Provider': provider,
+      'X-AI-Selection': selectionId,
+      'X-AI-Fallback': fallback ? 'true' : 'false',
       'X-Asset-As-Of': context.dataAsOf || '',
     })
     res.flushHeaders?.()
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
-    let buffer = ''
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      for (const rawLine of lines) {
-        const line = rawLine.trim()
-        if (!line.startsWith('data:')) continue
-        const data = line.slice(5).trim()
-        if (!data || data === '[DONE]') continue
-        try {
-          const event = JSON.parse(data)
-          const content = extractAiStreamText(provider, event)
-          if (content) res.write(content)
-        } catch {
-          // 忽略不完整或非 JSON 的供应商事件
-        }
-      }
+    let finishReason = null
+    const parser = createSseDataParser((event) => {
+      const parsed = extractAiStreamEvent(provider, event)
+      if (parsed.content) res.write(parsed.content)
+      if (parsed.finishReason) finishReason = parsed.finishReason
+    })
+    await readStreamWithDeadline(reader, streamTimeoutMs, (value) => {
+      parser.push(decoder.decode(value, { stream: true }))
+    })
+    parser.finish(decoder.decode())
+    if (finishReason === 'MAX_TOKENS') {
+      console.warn('AI stream finished at token limit', { provider, model, finishReason })
+      res.write('\n\n（回答达到长度上限）')
+    } else if (finishReason && finishReason !== 'STOP') {
+      console.warn('AI stream ended with non-standard reason', { provider, model, finishReason })
     }
     return res.end()
   } catch (error) {

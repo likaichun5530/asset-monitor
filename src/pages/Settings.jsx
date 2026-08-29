@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { requestApiJson } from '../utils/api.js'
-import { AI_CONSENT_KEY, cacheAiProvider, clearAiMessages, getAiRules, getCachedAiProvider, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
+import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
 import RobotIcon from '../components/RobotIcon.jsx'
 import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
@@ -39,7 +39,6 @@ export default function Settings({ auth } = {}) {
   const [aiRulesError, setAiRulesError] = useState('')
   const [aiRulesSaved, setAiRulesSaved] = useState(false)
   const [aiRulesDirty, setAiRulesDirty] = useState(false)
-  const [aiProvider, setAiProvider] = useState(getCachedAiProvider)
   const latestAiRulesRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
   const aiControlEnabled = aiEnabled && isLoggedIn && !demoMode
@@ -178,13 +177,6 @@ export default function Settings({ auth } = {}) {
     }
   }
 
-  function handleAiProviderChange(provider) {
-    if (provider === aiProvider) return
-    const selected = cacheAiProvider(provider)
-    setAiProvider(selected)
-    clearAiMessages()
-  }
-
   const themes = [
     { key: 'light', label: '白天模式', icon: '☀️' },
     { key: 'dark', label: '暗夜模式', icon: '🌙' },
@@ -243,26 +235,7 @@ export default function Settings({ auth } = {}) {
             <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
           </span>
         </button>
-        <div className="mt-3 grid grid-cols-2 gap-2" role="radiogroup" aria-label="AI模型服务商">
-          {[
-            { id: 'deepseek', label: 'DeepSeek' },
-            { id: 'gemini', label: 'Google Gemini' },
-          ].map((provider) => (
-            <button
-              key={provider.id}
-              type="button"
-              role="radio"
-              aria-checked={aiProvider === provider.id}
-              disabled={!isLoggedIn || demoMode}
-              onClick={() => handleAiProviderChange(provider.id)}
-              className={`rounded-lg border px-3 py-2 text-left transition-colors ${aiProvider === provider.id ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-gray-200 text-gray-600 dark:border-gray-600 dark:text-gray-300'} disabled:cursor-not-allowed disabled:opacity-45`}
-            >
-              <span className="block text-xs font-medium">{provider.label}</span>
-              <span className="mt-0.5 block text-[9px] text-gray-400">{aiProvider === provider.id ? '当前设备使用' : '点击切换'}</span>
-            </button>
-          ))}
-        </div>
-        <p className="mt-3 text-[10px] leading-4 text-gray-400">开启后，具体资产金额、账户、代码和备注会通过 Vercel 后端发送给当前选择的模型服务商。</p>
+        <p className="mt-3 text-[10px] leading-4 text-gray-400">开启后，可在 AI 对话框中选择模型。具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
         <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">
           查看和修改回答规则
         </button>

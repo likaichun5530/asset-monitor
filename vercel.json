@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/**/*.js": {
-      "maxDuration": 60
+      "maxDuration": 120
     }
   },
   "crons": [
@@ -17,7 +17,7 @@
         { "key": "Access-Control-Allow-Origin", "value": "https://asset.kenny5530.asia" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" },
-        { "key": "Access-Control-Expose-Headers", "value": "X-AI-Model, X-AI-Provider, X-Asset-As-Of" }
+        { "key": "Access-Control-Expose-Headers", "value": "X-AI-Model, X-AI-Provider, X-AI-Selection, X-AI-Fallback, X-Asset-As-Of" }
       ]
     }
   ]

@@ -57,10 +57,10 @@ async function requestDeepSeek(url, options) {
   throw error
 }
 
-export async function createDeepSeekStream(context, messages, rules = DEFAULT_AI_RULES) {
+export async function createDeepSeekStream(context, messages, rules = DEFAULT_AI_RULES, requestedModel) {
   const apiKey = process.env.DEEPSEEK_API_KEY || ''
   if (!apiKey) throw Object.assign(new Error('DeepSeek API 尚未配置'), { statusCode: 503 })
-  const model = process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash'
+  const model = String(process.env.DEEPSEEK_MODEL || requestedModel || 'deepseek-v4-flash').trim()
   const baseUrl = (process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com').replace(/\/$/, '')
   const response = await requestDeepSeek(`${baseUrl}/chat/completions`, {
     method: 'POST',
