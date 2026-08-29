@@ -13,12 +13,25 @@ export default function AiModelSettingsDialog({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return undefined
-    const previousOverflow = document.body.style.overflow
+    const scrollY = window.scrollY
+    const previousBody = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    }
+    const previousHtmlOverflow = document.documentElement.style.overflow
     document.body.dataset.modalOpen = 'true'
+    document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
     return () => {
       delete document.body.dataset.modalOpen
-      document.body.style.overflow = previousOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
+      Object.assign(document.body.style, previousBody)
+      window.scrollTo(0, scrollY)
     }
   }, [open])
 
@@ -56,6 +69,13 @@ export default function AiModelSettingsDialog({ open, onClose }) {
     setSaved(false)
   }
 
+  const addModel = () => {
+    if (models.length >= maxModels) return
+    setModels((current) => [...current, { ...EMPTY_MODEL }])
+    setSaved(false)
+    setError('')
+  }
+
   const handleSave = async () => {
     if (saving) return
     setSaving(true)
@@ -74,9 +94,9 @@ export default function AiModelSettingsDialog({ open, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[86] flex items-end justify-center sm:items-center sm:px-4" data-pull-refresh-ignore="true">
-      <button type="button" className="fixed inset-0 bg-black/40" onClick={onClose} aria-label="关闭AI模型设置" />
-      <section role="dialog" aria-modal="true" aria-label="AI模型清单" className="relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:max-w-2xl sm:rounded-2xl">
+    <div className="fixed inset-0 z-[86] flex items-end justify-center overflow-hidden overscroll-none sm:items-center sm:px-4" data-pull-refresh-ignore="true">
+      <button type="button" className="fixed inset-0 touch-none bg-black/40" onClick={onClose} aria-label="关闭AI模型设置" />
+      <section role="dialog" aria-modal="true" aria-label="AI模型清单" className="relative flex h-[calc(100dvh-8px)] min-h-0 w-full flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:h-auto sm:max-h-[92dvh] sm:max-w-2xl sm:rounded-2xl">
         <header className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
           <div>
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 模型清单</h3>
@@ -87,12 +107,17 @@ export default function AiModelSettingsDialog({ open, onClose }) {
             <button type="button" onClick={onClose} className="p-2 text-gray-400" aria-label="关闭"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
           </div>
         </header>
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {!loading && (
+            <button type="button" onClick={addModel} disabled={models.length >= maxModels} className="w-full rounded-xl border border-dashed border-brand-200 bg-brand-50/60 px-3 py-2.5 text-xs font-medium text-brand-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-brand-500/30 dark:bg-brand-500/10">
+              ＋ 新增模型（当前 {models.length}/{maxModels}）
+            </button>
+          )}
           {loading ? <div className="py-16 text-center text-sm text-gray-400">正在读取模型清单…</div> : models.map((model, index) => (
             <div key={index} className="rounded-xl border border-gray-200 p-3 dark:border-gray-600">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">模型 {index + 1}{index === 0 ? ' · 默认' : ''}</span>
-                <button type="button" onClick={() => removeModel(index)} className="text-[11px] text-red-400">删除</button>
+                <button type="button" onClick={() => removeModel(index)} disabled={models.length <= 1} className="rounded-md px-2 py-1 text-[11px] font-medium text-red-500 disabled:cursor-not-allowed disabled:opacity-35">删除模型</button>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <label className="text-[10px] text-gray-400">服务商
@@ -110,7 +135,6 @@ export default function AiModelSettingsDialog({ open, onClose }) {
               </div>
             </div>
           ))}
-          {!loading && models.length < maxModels && <button type="button" onClick={() => { setModels((current) => [...current, { ...EMPTY_MODEL }]); setSaved(false) }} className="w-full rounded-xl border border-dashed border-gray-300 px-3 py-2.5 text-xs text-gray-500 dark:border-gray-600">＋ 新增模型</button>}
           {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{error}</div>}
           {saved && <div className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600 dark:bg-green-500/10 dark:text-green-400">模型清单已保存到 Google Sheet。</div>}
         </div>
