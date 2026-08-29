@@ -186,8 +186,14 @@ export default function Settings({ auth } = {}) {
   ]
 
   return (
-    <div className="space-y-[4px] sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
-      <div className="card sm:min-h-[260px]">
+    <div className="space-y-6">
+      <section aria-labelledby="settings-data-appearance">
+        <div className="mb-2 px-1">
+          <h2 id="settings-data-appearance" className="text-xs font-semibold text-gray-500 dark:text-gray-400">数据与外观</h2>
+          <p className="mt-0.5 text-[10px] text-gray-400">选择数据环境和界面显示方式</p>
+        </div>
+        <div className="space-y-[4px] sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
+          <div className="card sm:min-h-[260px]">
         <h3 className="text-base font-semibold text-gray-800 mb-4">数据模式</h3>
         <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">选择真实账户数据或演示数据</p>
         <div className="space-y-[4px] sm:space-y-3">
@@ -213,9 +219,34 @@ export default function Settings({ auth } = {}) {
             {demoMode && <svg className="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
           </button>
         </div>
-      </div>
+          </div>
 
-      <div className="card sm:min-h-[260px]">
+          <div className="card sm:min-h-[260px]">
+            <h3 className="text-base font-semibold text-gray-800 mb-4">皮肤选择</h3>
+            <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">设置界面明暗外观</p>
+            <div className="space-y-[4px] sm:space-y-3">
+              {themes.map((t) => (
+                <button key={t.key} onClick={() => handleThemeChange(t.key)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${theme === t.key ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{t.icon}</span>
+                    <span className="text-sm font-medium text-gray-800">{t.label}</span>
+                  </div>
+                  {theme === t.key && <svg className="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="settings-ai">
+        <div className="mb-2 px-1">
+          <h2 id="settings-ai" className="text-xs font-semibold text-gray-500 dark:text-gray-400">AI 与智能分析</h2>
+          <p className="mt-0.5 text-[10px] text-gray-400">管理助手显示、回答规则和模型清单</p>
+        </div>
+        <div className="card">
         <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">AI 资产助手</h3>
         <p className="mb-5 text-xs leading-5 text-gray-400">使用所选大模型分析 Holdings、History 和目标配置</p>
         <button
@@ -244,47 +275,44 @@ export default function Settings({ auth } = {}) {
         <button type="button" onClick={() => setShowAiModels(true)} disabled={!isLoggedIn || demoMode} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">
           管理 AI 模型清单
         </button>
-      </div>
-
-      <div className="card sm:min-h-[260px]">
-        <h3 className="text-base font-semibold text-gray-800 mb-4">皮肤选择</h3>
-        <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">设置界面明暗外观</p>
-        <div className="space-y-[4px] sm:space-y-3">
-          {themes.map((t) => (
-            <button key={t.key} onClick={() => handleThemeChange(t.key)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${theme === t.key ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:border-brand-400' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'}`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{t.icon}</span>
-                <span className="text-sm font-medium text-gray-800">{t.label}</span>
-              </div>
-              {theme === t.key && <svg className="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
-            </button>
-          ))}
         </div>
-      </div>
+      </section>
 
       {isLoggedIn && (
-        <div className="card">
-          <h3 className="text-base font-semibold text-gray-800 mb-4">账号安全</h3>
-          <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">当前登录账户：{auth?.username}</p>
-          <button type="button" onClick={() => setShowChangePassword(true)}
-            className="mb-3 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:text-gray-300"
-          >修改密码</button>
-          <button onClick={auth?.logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors"
-          >退出登录</button>
-        </div>
+        <section aria-labelledby="settings-security">
+          <div className="mb-2 px-1">
+            <h2 id="settings-security" className="text-xs font-semibold text-gray-500 dark:text-gray-400">账户与安全</h2>
+            <p className="mt-0.5 text-[10px] text-gray-400">管理登录密码和当前会话</p>
+          </div>
+          <div className="card">
+            <h3 className="text-base font-semibold text-gray-800 mb-4">账号安全</h3>
+            <p className="hidden sm:block -mt-2 mb-5 text-xs text-gray-400">当前登录账户：{auth?.username}</p>
+            <button type="button" onClick={() => setShowChangePassword(true)}
+              className="mb-3 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:text-gray-300"
+            >修改密码</button>
+            <button onClick={auth?.logout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors"
+            >退出登录</button>
+          </div>
+        </section>
       )}
 
-      <div className={`card ${!isLoggedIn ? 'sm:col-span-2' : ''}`}>
-        <h3 className="text-base font-semibold text-gray-800 mb-4">关于</h3>
-        <div className="space-y-[4px] sm:space-y-0 text-sm sm:divide-y sm:divide-slate-100 dark:sm:divide-gray-700">
-          <div className="flex justify-between sm:py-3 sm:first:pt-0"><span className="text-gray-500">应用名称</span><span className="text-gray-800 font-medium">有数</span></div>
-          <div className="flex justify-between sm:py-3"><span className="text-gray-500">版本</span><span className="text-gray-800">{packageJson.version}</span></div>
-          <div className="flex justify-between sm:py-3 sm:last:pb-0"><span className="text-gray-500">Slogan</span><span className="text-gray-800">资产配置，心中有数</span></div>
+      <section aria-labelledby="settings-about">
+        <div className="mb-2 px-1">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="settings-about" className="text-xs font-semibold text-gray-500 dark:text-gray-400">关于应用</h2>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">v{packageJson.version}</span>
+          </div>
+          <p className="mt-0.5 text-[10px] text-gray-400">查看应用信息和当前版本</p>
         </div>
-      </div>
+        <div className="card">
+          <div className="space-y-[4px] sm:space-y-0 text-sm sm:divide-y sm:divide-slate-100 dark:sm:divide-gray-700">
+            <div className="flex justify-between sm:py-3 sm:first:pt-0"><span className="text-gray-500">应用名称</span><span className="text-gray-800 font-medium">有数</span></div>
+            <div className="flex justify-between sm:py-3"><span className="text-gray-500">版本</span><span className="text-gray-800">{packageJson.version}</span></div>
+            <div className="flex justify-between sm:py-3 sm:last:pb-0"><span className="text-gray-500">Slogan</span><span className="text-gray-800">资产配置，心中有数</span></div>
+          </div>
+        </div>
+      </section>
 
       <ChangePasswordDialog
         open={showChangePassword}
