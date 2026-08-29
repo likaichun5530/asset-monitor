@@ -60,6 +60,20 @@ export default function AiModelSettingsDialog({ open, onClose }) {
     setSaved(false)
   }
 
+  const moveModel = (index, direction) => {
+    const nextIndex = index + direction
+    if (nextIndex < 0 || nextIndex >= models.length) return
+    setModels((current) => {
+      const reordered = [...current]
+      const moved = reordered[index]
+      reordered[index] = reordered[nextIndex]
+      reordered[nextIndex] = moved
+      return reordered
+    })
+    setSaved(false)
+    setError('')
+  }
+
   const addModel = () => {
     if (models.length >= maxModels) return
     setModels((current) => [...current, { ...EMPTY_MODEL }])
@@ -106,9 +120,13 @@ export default function AiModelSettingsDialog({ open, onClose }) {
           )}
           {loading ? <div className="py-16 text-center text-sm text-gray-400">正在读取模型清单…</div> : models.map((model, index) => (
             <div key={index} className="rounded-xl border border-gray-200 p-3 dark:border-gray-600">
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">模型 {index + 1}{index === 0 ? ' · 默认' : ''}</span>
-                <button type="button" onClick={() => removeModel(index)} disabled={models.length <= 1} className="rounded-md px-2 py-1 text-[11px] font-medium text-red-500 disabled:cursor-not-allowed disabled:opacity-35">删除模型</button>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => moveModel(index, -1)} disabled={index === 0} className="rounded-md border border-gray-200 px-2 py-1 text-[11px] text-gray-500 disabled:cursor-not-allowed disabled:opacity-30 dark:border-gray-600 dark:text-gray-300" aria-label={`上移${model.label || `模型${index + 1}`}`}>上移</button>
+                  <button type="button" onClick={() => moveModel(index, 1)} disabled={index === models.length - 1} className="rounded-md border border-gray-200 px-2 py-1 text-[11px] text-gray-500 disabled:cursor-not-allowed disabled:opacity-30 dark:border-gray-600 dark:text-gray-300" aria-label={`下移${model.label || `模型${index + 1}`}`}>下移</button>
+                  <button type="button" onClick={() => removeModel(index)} disabled={models.length <= 1} className="rounded-md px-2 py-1 text-[11px] font-medium text-red-500 disabled:cursor-not-allowed disabled:opacity-35">删除</button>
+                </div>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <label className="text-[10px] text-gray-400">服务商

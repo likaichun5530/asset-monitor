@@ -206,7 +206,9 @@ test('AI 模型清单接口要求登录，设置页提供增删编辑入口', as
   assert.match(settingsSource, /max-h-\[calc\(100dvh-8px\)\]/)
   assert.match(settingsSource, /document\.body\.style\.overscrollBehavior = 'none'/)
   assert.match(settingsSource, /removeModel/)
-  assert.match(settingsSource, /删除模型/)
+  assert.match(settingsSource, /moveModel/)
+  assert.match(settingsSource, />上移</)
+  assert.match(settingsSource, />下移</)
   assert.match(settingsSource, /saveAiModels\(models\)/)
 })
 
