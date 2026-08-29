@@ -58,6 +58,7 @@
 ### 🔐 账号安全
 - 登录状态下可在“设置 → 账号安全”修改密码，不修改用户名
 - 首次修改前继续使用服务端 `AUTH_PASSWORD`；修改成功后仅在 Google Sheets `AuthConfig` 保存 scrypt hash、随机 salt 和 tokenVersion
+- 修改前通过 HIBP Pwned Passwords 的 k-anonymity 范围接口拦截公开泄漏密码；只发送 SHA-1 前 5 位，不发送密码或完整哈希
 - 修改密码会使旧 JWT 失效，并自动退出到登录页；密码不会写入浏览器存储或日志
 
 ### 📱 响应式设计
@@ -216,6 +217,7 @@ Asset-Monitor/
 │   ├── _auth.js               # JWT 签发与私人 API 统一鉴权（无默认密钥）
 │   ├── _auth-config.js        # AuthConfig 读写、校验与 20 秒短缓存
 │   ├── _password.js           # scrypt 密码哈希、校验与恒定时间比较
+│   ├── _pwned-password.js     # 公开泄漏密码 k-anonymity 检查
 │   ├── _login-rate-limit.js   # 登录失败延迟与暖实例轻量限流
 │   ├── _http.js               # Serverless / Express 通用请求解析
 │   ├── _holdings-schema.js    # Holdings schema、归一化与输入校验

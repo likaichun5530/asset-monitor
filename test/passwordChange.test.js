@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises'
 import { createAuthConfigStore } from '../api/_auth-config.js'
 import { requireAuth, signAuthToken } from '../api/_auth.js'
 import { hashPassword, validateNewPassword, verifyPassword } from '../api/_password.js'
+import { assertPasswordNotPwned, getPwnedPasswordCount } from '../api/_pwned-password.js'
 import { handleChangePassword } from '../api/auth/change-password.js'
 import { handleLogin } from '../api/auth/login.js'
 import { validateChangePasswordForm } from '../src/utils/password.js'
@@ -96,6 +97,7 @@ async function changePassword(token, body, store, saveAuthConfig = store.write) 
   await handleChangePassword(request('POST', { body, token }), response, {
     loadAuthConfig: store.read,
     saveAuthConfig,
+    checkPasswordCompromised: async () => {},
   })
   return response
 }
@@ -120,6 +122,67 @@ test('scrypt 使用随机 salt，且只接受正确密码', async () => {
   assert.equal(await verifyPassword(NEW_PASSWORD, first.passwordHash, first.passwordSalt), true)
   assert.equal(await verifyPassword('wrong-password', first.passwordHash, first.passwordSalt), false)
   assert.doesNotMatch(JSON.stringify(first), new RegExp(NEW_PASSWORD))
+})
+
+test('泄漏密码检查只发送 SHA-1 前 5 位，并启用响应填充', async () => {
+  const password = 'password'
+  const expectedHash = '5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8'
+  let capturedUrl = ''
+  let capturedOptions
+  const fetchImpl = async (url, options) => {
+    capturedUrl = url
+    capturedOptions = options
+    return {
+      ok: true,
+      text: async () => `${expectedHash.slice(5)}:3861493\r\n${'0'.repeat(35)}:0`,
+    }
+  }
+
+  const count = await getPwnedPasswordCount(password, { fetchImpl })
+  assert.equal(count, 3861493)
+  assert.equal(capturedUrl, `https://api.pwnedpasswords.com/range/${expectedHash.slice(0, 5)}`)
+  assert.doesNotMatch(new URL(capturedUrl).pathname, new RegExp(password, 'i'))
+  assert.doesNotMatch(capturedUrl, new RegExp(expectedHash, 'i'))
+  assert.equal(capturedOptions.headers['Add-Padding'], 'true')
+
+  await assert.rejects(
+    getPwnedPasswordCount(password, { fetchImpl: async () => { throw new Error('offline') } }),
+    (error) => error.statusCode === 503 && error.code === 'PASSWORD_BREACH_CHECK_UNAVAILABLE'
+  )
+})
+
+test('公开泄漏密码会在生成和保存 hash 前被拒绝', async () => {
+  await assert.rejects(
+    assertPasswordNotPwned('compromised-password', {
+      fetchImpl: async () => {
+        const hash = crypto.createHash('sha1').update('compromised-password').digest('hex').toUpperCase()
+        return { ok: true, text: async () => `${hash.slice(5)}:42` }
+      },
+    }),
+    (error) => error.statusCode === 400 && error.code === 'PASSWORD_COMPROMISED'
+  )
+
+  await withAuthEnvironment(async () => {
+    resetLoginRateLimitForTests()
+    const harness = createSheetHarness()
+    const token = JSON.parse((await login(OLD_PASSWORD, harness.store)).body).token
+    const response = mockResponse()
+    await handleChangePassword(request('POST', {
+      token,
+      body: { currentPassword: OLD_PASSWORD, newPassword: NEW_PASSWORD },
+    }), response, {
+      loadAuthConfig: harness.store.read,
+      saveAuthConfig: harness.store.write,
+      checkPasswordCompromised: async () => {
+        throw Object.assign(new Error('该密码已出现在公开泄漏数据中'), {
+          statusCode: 400,
+          code: 'PASSWORD_COMPROMISED',
+        })
+      },
+    })
+    assert.equal(response.statusCode, 400)
+    assert.equal(harness.writes.length, 0)
+  })
 })
 
 test('AuthConfig 不存在时原 AUTH_PASSWORD 可登录，JWT 默认 tokenVersion 为 1', async () => {

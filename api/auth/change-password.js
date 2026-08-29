@@ -2,6 +2,7 @@ import { requireAuth, secureTextEqual } from '../_auth.js'
 import { DEFAULT_TOKEN_VERSION, getAuthConfig, writeAuthConfig } from '../_auth-config.js'
 import { readJsonBody, setPrivateResponseHeaders } from '../_http.js'
 import { hashPassword, validateNewPassword, verifyPassword } from '../_password.js'
+import { assertPasswordNotPwned } from '../_pwned-password.js'
 
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' })
@@ -11,6 +12,7 @@ function json(res, status, body) {
 export async function handleChangePassword(req, res, {
   loadAuthConfig = getAuthConfig,
   saveAuthConfig = writeAuthConfig,
+  checkPasswordCompromised = assertPasswordNotPwned,
 } = {}) {
   setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
@@ -44,6 +46,7 @@ export async function handleChangePassword(req, res, {
       return json(res, 400, { error: '新密码不能与当前密码相同' })
     }
 
+    await checkPasswordCompromised(newPassword)
     const { passwordHash, passwordSalt } = await hashPassword(newPassword)
     const tokenVersion = (auth.authConfig.initialized
       ? auth.authConfig.tokenVersion
