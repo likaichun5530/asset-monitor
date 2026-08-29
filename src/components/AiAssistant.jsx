@@ -89,6 +89,7 @@ export default function AiAssistant({ auth } = {}) {
   const [dataAsOf, setDataAsOf] = useState(null)
   const [selectedModel, setSelectedModel] = useState(getCachedAiModel)
   const [actualModel, setActualModel] = useState(null)
+  const [modelMenuOpen, setModelMenuOpen] = useState(false)
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
@@ -99,6 +100,7 @@ export default function AiAssistant({ auth } = {}) {
   const longPressTriggeredRef = useRef(false)
   const suppressClickRef = useRef(false)
   const historyEntryRef = useRef(false)
+  const modelMenuRef = useRef(null)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
   const visible = enabled && auth?.isLoggedIn && !demoMode && location.pathname === '/'
   const prompts = useMemo(() => PAGE_PROMPTS[location.pathname] || PAGE_PROMPTS['/'], [location.pathname])
@@ -216,6 +218,15 @@ export default function AiAssistant({ auth } = {}) {
   useEffect(() => () => clearTimeout(longPressTimerRef.current), [])
 
   useEffect(() => {
+    if (!modelMenuOpen) return undefined
+    const closeModelMenu = (event) => {
+      if (!modelMenuRef.current?.contains(event.target)) setModelMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', closeModelMenu)
+    return () => document.removeEventListener('pointerdown', closeModelMenu)
+  }, [modelMenuOpen])
+
+  useEffect(() => {
     if (location.pathname !== '/') setShowDismissButton(false)
   }, [location.pathname])
 
@@ -328,9 +339,10 @@ export default function AiAssistant({ auth } = {}) {
     localStorage.removeItem(AI_MESSAGES_KEY)
   }
 
-  const handleModelChange = (event) => {
+  const handleModelChange = (modelId) => {
     if (loading) return
-    const next = cacheAiModel(event.target.value)
+    const next = cacheAiModel(modelId)
+    setModelMenuOpen(false)
     if (next === selectedModel) return
     setSelectedModel(next)
     clearMessages()
@@ -429,19 +441,39 @@ export default function AiAssistant({ auth } = {}) {
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
                 </button>
               </div>
-              <div className="mt-2 flex items-center gap-2 px-1">
-                <label htmlFor="ai-model-select" className="shrink-0 text-[10px] text-gray-400">模型</label>
-                <select
-                  id="ai-model-select"
-                  value={selectedModel}
-                  onChange={handleModelChange}
+              <div ref={modelMenuRef} className="relative mt-2 flex items-center gap-2 px-1">
+                <span className="shrink-0 text-[10px] text-gray-400">模型</span>
+                <button
+                  type="button"
+                  onClick={() => setModelMenuOpen((current) => !current)}
                   disabled={loading}
-                  className="min-w-0 flex-1 truncate bg-transparent text-[11px] font-medium text-gray-600 outline-none disabled:opacity-50 dark:text-gray-300"
+                  aria-haspopup="listbox"
+                  aria-expanded={modelMenuOpen}
+                  className="flex min-w-0 flex-1 items-center justify-between gap-2 bg-transparent text-left text-[11px] font-medium text-gray-600 outline-none disabled:opacity-50 dark:text-gray-300"
                 >
-                  {AI_MODEL_OPTIONS.map((model) => (
-                    <option key={model.id} value={model.id}>{model.label} · {model.description}</option>
-                  ))}
-                </select>
+                  <span className="truncate">{selectedModelOption.label}</span>
+                  <span className={`shrink-0 text-[9px] text-gray-400 transition-transform ${modelMenuOpen ? 'rotate-180' : ''}`}>⌄</span>
+                </button>
+                {modelMenuOpen && (
+                  <div role="listbox" aria-label="选择 AI 模型" className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-xl dark:border-gray-600 dark:bg-gray-700">
+                    {AI_MODEL_OPTIONS.map((model) => (
+                      <button
+                        key={model.id}
+                        type="button"
+                        role="option"
+                        aria-selected={selectedModel === model.id}
+                        onClick={() => handleModelChange(model.id)}
+                        className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left ${selectedModel === model.id ? 'bg-brand-50 dark:bg-brand-500/10' : 'hover:bg-gray-50 dark:hover:bg-gray-600'}`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-[11px] font-medium leading-4 text-gray-700 dark:text-gray-200">{model.label}</span>
+                          <span className="block truncate text-[9px] leading-3.5 text-gray-400">{model.description}</span>
+                        </span>
+                        {selectedModel === model.id && <span className="shrink-0 text-[10px] text-brand-600">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </footer>
           </section>
