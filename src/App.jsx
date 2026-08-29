@@ -30,6 +30,7 @@ export default function App() {
         <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={refresh} source={source} isLoggedIn={auth.isLoggedIn} />} />
         <Route path="target" element={<Target refreshKey={manualRefreshKey} />} />
         <Route path="settings" element={<Settings auth={auth} />} />
+        <Route path="settings/:section" element={<Settings auth={auth} />} />
         <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
         <Route path="cn" element={<AssetDetail refreshKey={refreshKey} assetType="cn" />} />
         <Route path="hk" element={<AssetDetail refreshKey={refreshKey} assetType="hk" />} />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { requestApiJson } from '../utils/api.js'
 import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
@@ -7,6 +8,36 @@ import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
 import AiModelSettingsDialog from '../components/AiModelSettingsDialog.jsx'
 
 const THEME_KEY = 'youshu-theme'
+const SETTINGS_SECTIONS = ['appearance', 'ai', 'security', 'about']
+
+function SettingsSubpage({ title, description, onBack, children }) {
+  return (
+    <section className="mx-auto w-full max-w-2xl space-y-3" aria-label={title}>
+      <header className="flex items-center gap-3 px-1">
+        <button type="button" onClick={onBack} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400" aria-label="返回设置一级菜单">
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
+          <p className="mt-0.5 truncate text-[11px] text-gray-400">{description}</p>
+        </div>
+      </header>
+      <div className="card !p-0 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">{children}</div>
+    </section>
+  )
+}
+
+function SettingsGroup({ title, description, children }) {
+  return (
+    <section className="p-4 sm:p-5">
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
+        {description && <p className="mt-1 text-[11px] leading-4 text-gray-400">{description}</p>}
+      </div>
+      <div className="space-y-2">{children}</div>
+    </section>
+  )
+}
 
 function applyTheme(t) {
   const root = document.documentElement
@@ -22,6 +53,9 @@ export function initTheme() {
 }
 
 export default function Settings({ auth } = {}) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { section } = useParams()
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'system')
   const [demoMode, setDemoMode] = useState(() => localStorage.getItem('youshu-demo-mode') === 'true')
   const [showPwdDialog, setShowPwdDialog] = useState(false)
@@ -41,10 +75,22 @@ export default function Settings({ auth } = {}) {
   const [aiRulesError, setAiRulesError] = useState('')
   const [aiRulesSaved, setAiRulesSaved] = useState(false)
   const [aiRulesDirty, setAiRulesDirty] = useState(false)
-  const [activeSection, setActiveSection] = useState(null)
   const latestAiRulesRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
+  const activeSection = SETTINGS_SECTIONS.includes(section) && (section !== 'security' || isLoggedIn) ? section : null
   const aiControlEnabled = aiEnabled && isLoggedIn && !demoMode
+
+  function openSection(nextSection) {
+    navigate(`/settings/${nextSection}`, { state: { fromSettingsMenu: true } })
+  }
+
+  function returnToSettingsMenu() {
+    if (location.state?.fromSettingsMenu) {
+      navigate(-1)
+      return
+    }
+    navigate('/settings', { replace: true })
+  }
 
   useEffect(() => {
     if (!showAiRules) return undefined
@@ -189,14 +235,14 @@ export default function Settings({ auth } = {}) {
   return (
     <div className="space-y-6">
       {!activeSection && (
-        <section aria-label="设置分类" className="card !p-0 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">
+        <section aria-label="设置分类" className="card !p-0 mx-auto w-full max-w-2xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">
           {[
             { key: 'appearance', icon: '◐', title: '数据与外观', description: '数据模式、界面主题' },
             { key: 'ai', icon: '✦', title: 'AI 与智能分析', description: '助手显示、回答规则、模型清单' },
             ...(isLoggedIn ? [{ key: 'security', icon: '◇', title: '账户与安全', description: '修改密码、退出登录' }] : []),
             { key: 'about', icon: 'ⓘ', title: '关于应用', description: '应用信息', value: `v${packageJson.version}` },
           ].map((item) => (
-            <button key={item.key} type="button" onClick={() => setActiveSection(item.key)} className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
+            <button key={item.key} type="button" onClick={() => openSection(item.key)} className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">{item.icon}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
@@ -209,19 +255,9 @@ export default function Settings({ auth } = {}) {
         </section>
       )}
 
-      {activeSection && (
-        <div className="flex items-center gap-2 px-1">
-          <button type="button" onClick={() => setActiveSection(null)} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700" aria-label="返回设置分类">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
-          </button>
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200">{{ appearance: '数据与外观', ai: 'AI 与智能分析', security: '账户与安全', about: '关于应用' }[activeSection]}</h2>
-        </div>
-      )}
-
       {activeSection === 'appearance' && (
-        <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
-          <div className="card sm:min-h-[260px]">
-            <h3 className="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200">数据模式</h3>
+        <SettingsSubpage title="数据与外观" description="选择数据环境和界面显示方式" onBack={returnToSettingsMenu}>
+          <SettingsGroup title="数据模式" description="选择真实账户数据或演示数据">
             <div className="space-y-2">
               {[{ demo: false, icon: '📊', label: '实盘模式' }, { demo: true, icon: '🎮', label: '演示模式' }].map((option) => {
                 const selected = demoMode === option.demo
@@ -231,45 +267,49 @@ export default function Settings({ auth } = {}) {
                 </button>
               })}
             </div>
-          </div>
-          <div className="card sm:min-h-[260px]">
-            <h3 className="mb-4 text-base font-semibold text-gray-800 dark:text-gray-200">皮肤选择</h3>
+          </SettingsGroup>
+          <SettingsGroup title="皮肤选择" description="设置界面明暗外观">
             <div className="space-y-2">
               {themes.map((item) => <button key={item.key} onClick={() => handleThemeChange(item.key)} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${theme === item.key ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'}`}><span className="flex items-center gap-3"><span className="text-xl">{item.icon}</span><span className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.label}</span></span>{theme === item.key && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}</button>)}
             </div>
-          </div>
-        </div>
+          </SettingsGroup>
+        </SettingsSubpage>
       )}
 
       {activeSection === 'ai' && (
-        <div className="card">
-          <p className="mb-5 text-xs leading-5 text-gray-400">使用所选大模型分析 Holdings、History 和目标配置</p>
+        <SettingsSubpage title="AI 与智能分析" description="管理助手显示、回答规则和模型清单" onBack={returnToSettingsMenu}>
+          <SettingsGroup title="AI 资产助手" description="使用所选大模型分析 Holdings、History 和目标配置">
           <button type="button" onClick={handleAiToggle} disabled={!isLoggedIn || demoMode} role="switch" aria-checked={aiControlEnabled} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${aiControlEnabled ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 dark:border-gray-700'} ${!isLoggedIn || demoMode ? 'cursor-not-allowed opacity-50' : ''}`}>
             <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"><RobotIcon className="h-6 w-6" /></span><span><span className="block text-sm font-medium text-gray-800 dark:text-gray-200">在首页显示 AI 机器人</span><span className="mt-0.5 block text-[10px] text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在首页显示' : '当前已关闭'}</span></span></span>
             <span aria-hidden="true" className={`relative ml-3 h-6 w-11 shrink-0 rounded-full transition-colors ${aiControlEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}><span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} /></span>
           </button>
           <p className="mt-3 text-[10px] leading-4 text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
-          <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">查看和修改回答规则</button>
-          <button type="button" onClick={() => setShowAiModels(true)} disabled={!isLoggedIn || demoMode} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">管理 AI 模型清单</button>
-        </div>
+          </SettingsGroup>
+          <SettingsGroup title="助手配置" description="规则和模型配置会应用于后续对话">
+            <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>回答规则</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" onClick={() => setShowAiModels(true)} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>AI 模型清单</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
+          </SettingsGroup>
+        </SettingsSubpage>
       )}
 
       {activeSection === 'security' && isLoggedIn && (
-        <div className="card">
-          <p className="mb-5 text-xs text-gray-400">当前登录账户：{auth?.username}</p>
-          <button type="button" onClick={() => setShowChangePassword(true)} className="mb-3 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:text-gray-300">修改密码</button>
-          <button type="button" onClick={auth?.logout} className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50">退出登录</button>
-        </div>
+        <SettingsSubpage title="账户与安全" description="管理登录密码和当前会话" onBack={returnToSettingsMenu}>
+          <SettingsGroup title="当前账户" description={`已登录：${auth?.username || ''}`}>
+            <button type="button" onClick={() => setShowChangePassword(true)} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300"><span>修改密码</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" onClick={auth?.logout} className="flex w-full items-center justify-center rounded-lg border border-red-200 px-4 py-3 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10">退出登录</button>
+          </SettingsGroup>
+        </SettingsSubpage>
       )}
 
       {activeSection === 'about' && (
-        <div className="card">
-          <div className="space-y-3 text-sm sm:divide-y sm:divide-slate-100 sm:space-y-0 dark:sm:divide-gray-700">
-            <div className="flex justify-between sm:py-3 sm:first:pt-0"><span className="text-gray-500">应用名称</span><span className="font-medium text-gray-800 dark:text-gray-200">有数</span></div>
-            <div className="flex justify-between sm:py-3"><span className="text-gray-500">版本</span><span className="text-gray-800 dark:text-gray-200">{packageJson.version}</span></div>
-            <div className="flex justify-between sm:py-3 sm:last:pb-0"><span className="text-gray-500">Slogan</span><span className="text-gray-800 dark:text-gray-200">资产配置，心中有数</span></div>
-          </div>
-        </div>
+        <SettingsSubpage title="关于应用" description="应用信息和当前版本" onBack={returnToSettingsMenu}>
+          <SettingsGroup title="有数" description="资产配置，心中有数">
+            <div className="divide-y divide-gray-100 text-sm dark:divide-gray-700">
+              <div className="flex justify-between py-3"><span className="text-gray-500">应用名称</span><span className="font-medium text-gray-800 dark:text-gray-200">有数</span></div>
+              <div className="flex justify-between py-3"><span className="text-gray-500">当前版本</span><span className="text-gray-800 dark:text-gray-200">v{packageJson.version}</span></div>
+            </div>
+          </SettingsGroup>
+        </SettingsSubpage>
       )}
 
       <ChangePasswordDialog
