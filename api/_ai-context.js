@@ -146,8 +146,15 @@ export function buildAiContextFromSheets({ holdingsRows = [], historyRows = [], 
   })).sort((a, b) => b.marketValueCNY - a.marketValueCNY)
 
   return {
-    generatedAt: new Date().toISOString(),
-    currentPage: text(page, 80) || '/',
+    schemaVersion: 1,
+    calculationPolicy: '金额与比例均由应用代码计算。回答时直接引用这些字段，不要由模型重新计算。百分数字段单位为百分比，deviationPercentagePoints 单位为百分点。',
+    // History 在同一天内通常不变，放在动态持仓前面可形成更长、更稳定的提示前缀。
+    historyMeta: {
+      originalRows: fullHistory.length,
+      includedRows: history.length,
+      categoryLabels: CATEGORY_LABELS,
+    },
+    history,
     dataAsOf: latest?.date || null,
     summary: {
       totalMarketValueCNY: round(total),
@@ -168,13 +175,7 @@ export function buildAiContextFromSheets({ holdingsRows = [], historyRows = [], 
       markets: aggregateExposure(enrichedHoldings, 'market', total),
     },
     holdings: enrichedHoldings,
-    history,
-    historyMeta: {
-      originalRows: fullHistory.length,
-      includedRows: history.length,
-      categoryLabels: CATEGORY_LABELS,
-    },
-    calculationPolicy: '金额与比例均由应用代码计算。回答时直接引用这些字段，不要由模型重新计算。百分数字段单位为百分比，deviationPercentagePoints 单位为百分点。',
+    currentPage: text(page, 80) || '/',
   }
 }
 

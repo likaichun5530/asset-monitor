@@ -421,7 +421,7 @@ export default function AiAssistant({ auth } = {}) {
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
-                    我会读取 Holdings、History 和目标配置来回答。资产金额、账户、代码和备注会发送给{selectedModelOption.provider === 'gemini' ? ' Google Gemini' : ' DeepSeek'}，请勿在问题中填写密码或API密钥。
+                    我是您的专属资产管理助手，有什么要求，您尽管吩咐。
                   </div>
                   <div className="mt-4 text-xs font-medium text-gray-500">你可以这样问</div>
                   <div className="mt-2 flex flex-wrap gap-2">
