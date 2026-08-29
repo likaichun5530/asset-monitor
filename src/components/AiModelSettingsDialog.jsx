@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { clearAiMessages, getAiModels, saveAiModels } from '../utils/ai.js'
 
 const EMPTY_MODEL = { provider: 'gemini', id: '', label: '', description: '' }
@@ -13,25 +14,15 @@ export default function AiModelSettingsDialog({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return undefined
-    const scrollY = window.scrollY
-    const previousBody = {
-      overflow: document.body.style.overflow,
-      position: document.body.style.position,
-      top: document.body.style.top,
-      width: document.body.style.width,
-    }
-    const previousHtmlOverflow = document.documentElement.style.overflow
+    const previousOverflow = document.body.style.overflow
+    const previousOverscroll = document.body.style.overscrollBehavior
     document.body.dataset.modalOpen = 'true'
-    document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
+    document.body.style.overscrollBehavior = 'none'
     return () => {
       delete document.body.dataset.modalOpen
-      document.documentElement.style.overflow = previousHtmlOverflow
-      Object.assign(document.body.style, previousBody)
-      window.scrollTo(0, scrollY)
+      document.body.style.overflow = previousOverflow
+      document.body.style.overscrollBehavior = previousOverscroll
     }
   }, [open])
 
@@ -93,10 +84,10 @@ export default function AiModelSettingsDialog({ open, onClose }) {
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[86] flex items-end justify-center overflow-hidden overscroll-none sm:items-center sm:px-4" data-pull-refresh-ignore="true">
       <button type="button" className="fixed inset-0 touch-none bg-black/40" onClick={onClose} aria-label="关闭AI模型设置" />
-      <section role="dialog" aria-modal="true" aria-label="AI模型清单" className="relative flex h-[calc(100dvh-8px)] min-h-0 w-full flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:h-auto sm:max-h-[92dvh] sm:max-w-2xl sm:rounded-2xl">
+      <section role="dialog" aria-modal="true" aria-label="AI模型清单" className="relative flex max-h-[calc(100dvh-8px)] min-h-0 w-full flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:max-h-[92dvh] sm:max-w-2xl sm:rounded-2xl">
         <header className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
           <div>
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 模型清单</h3>
@@ -139,6 +130,7 @@ export default function AiModelSettingsDialog({ open, onClose }) {
           {saved && <div className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600 dark:bg-green-500/10 dark:text-green-400">模型清单已保存到 Google Sheet。</div>}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   )
 }
