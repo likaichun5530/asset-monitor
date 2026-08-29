@@ -75,7 +75,11 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /location\.pathname === '\/'/)
   assert.match(source, /snapButtonToEdge/)
   assert.match(source, /window\.innerWidth \/ 2/)
-  assert.match(source, /transition-\[left,top,filter\]/)
+  assert.match(source, /transition-\[left,top\]/)
+  assert.match(source, /setTimeout\(\(\) =>/)
+  assert.match(source, /setShowDismissButton\(true\)/)
+  assert.match(source, /setAiEnabled\(false\)/)
+  assert.match(source, /有数资产管理助手/)
 })
 
 test('DeepSeek连接异常会自动重试，并区分供应商业务错误', async () => {

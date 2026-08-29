@@ -6,6 +6,7 @@ import {
   AI_MESSAGES_CLEARED_EVENT,
   AI_SETTING_EVENT,
   isAiEnabled,
+  setAiEnabled,
   loadAiMessages,
   saveAiMessages,
   streamAiChat,
@@ -82,9 +83,12 @@ export default function AiAssistant({ auth } = {}) {
   const [dataAsOf, setDataAsOf] = useState(null)
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const [buttonDragging, setButtonDragging] = useState(false)
+  const [showDismissButton, setShowDismissButton] = useState(false)
   const scrollRef = useRef(null)
   const abortRef = useRef(null)
   const dragRef = useRef(null)
+  const longPressTimerRef = useRef(null)
+  const longPressTriggeredRef = useRef(false)
   const suppressClickRef = useRef(false)
   const historyEntryRef = useRef(false)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
@@ -192,6 +196,12 @@ export default function AiAssistant({ auth } = {}) {
 
   useEffect(() => () => abortRef.current?.abort(), [])
 
+  useEffect(() => () => clearTimeout(longPressTimerRef.current), [])
+
+  useEffect(() => {
+    if (location.pathname !== '/') setShowDismissButton(false)
+  }, [location.pathname])
+
   if (!visible) return null
 
   const sendMessage = async (preset) => {
@@ -232,6 +242,14 @@ export default function AiAssistant({ auth } = {}) {
       originY: buttonPosition.y,
       moved: false,
     }
+    longPressTriggeredRef.current = false
+    clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true
+      suppressClickRef.current = true
+      setShowDismissButton(true)
+      navigator.vibrate?.(30)
+    }, 550)
   }
 
   const handleButtonPointerMove = (event) => {
@@ -240,6 +258,7 @@ export default function AiAssistant({ auth } = {}) {
     const deltaX = event.clientX - drag.startX
     const deltaY = event.clientY - drag.startY
     if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return
+    clearTimeout(longPressTimerRef.current)
     drag.moved = true
     setButtonDragging(true)
     suppressClickRef.current = true
@@ -249,6 +268,7 @@ export default function AiAssistant({ auth } = {}) {
   const handleButtonPointerEnd = (event) => {
     const drag = dragRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
+    clearTimeout(longPressTimerRef.current)
     dragRef.current = null
     setButtonDragging(false)
     if (drag.moved) {
@@ -265,7 +285,19 @@ export default function AiAssistant({ auth } = {}) {
       suppressClickRef.current = false
       return
     }
+    if (showDismissButton || longPressTriggeredRef.current) {
+      setShowDismissButton(false)
+      return
+    }
     setOpen(true)
+  }
+
+  const disableAssistant = (event) => {
+    event.stopPropagation()
+    clearTimeout(longPressTimerRef.current)
+    setShowDismissButton(false)
+    setAiEnabled(false)
+    setEnabled(false)
   }
 
   const clearMessages = () => {
@@ -279,32 +311,45 @@ export default function AiAssistant({ auth } = {}) {
   return (
     <>
       {!open && (
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          onPointerDown={handleButtonPointerDown}
-          onPointerMove={handleButtonPointerMove}
-          onPointerUp={handleButtonPointerEnd}
-          onPointerCancel={handleButtonPointerEnd}
-          className={`fixed z-40 flex h-11 w-11 touch-none select-none items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white ring-1 ring-white/40 shadow-lg shadow-brand-600/30 hover:brightness-105 ${buttonDragging ? '' : 'transition-[left,top,filter] duration-200 ease-out'}`}
+        <div
+          className={`fixed z-40 h-11 w-11 ${buttonDragging ? '' : 'transition-[left,top] duration-200 ease-out'}`}
           style={{ left: `${buttonPosition.x}px`, top: `${buttonPosition.y}px` }}
-          title="AI资产助手"
-          aria-label="打开AI资产助手"
           data-pull-refresh-ignore="true"
         >
-          <RobotIcon className="h-7 w-7" />
-        </button>
+          <button
+            type="button"
+            onClick={handleButtonClick}
+            onPointerDown={handleButtonPointerDown}
+            onPointerMove={handleButtonPointerMove}
+            onPointerUp={handleButtonPointerEnd}
+            onPointerCancel={handleButtonPointerEnd}
+            className={`flex h-11 w-11 touch-none select-none items-center justify-center rounded-xl bg-transparent drop-shadow-[0_5px_7px_rgba(79,70,229,0.28)] outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-brand-400 ${showDismissButton ? 'scale-105' : ''}`}
+            title="有数资产管理助手"
+            aria-label="打开有数资产管理助手"
+          >
+            <RobotIcon className="h-11 w-11" />
+          </button>
+          {showDismissButton && (
+            <button
+              type="button"
+              onClick={disableAssistant}
+              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-800 text-sm font-bold leading-none text-white shadow-md dark:border-gray-900"
+              aria-label="关闭AI机器人"
+              title="关闭AI机器人"
+            >×</button>
+          )}
+        </div>
       )}
 
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭AI资产助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="DeepSeek 资产助手" className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[88dvh] min-h-[68dvh] flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:min-h-0 sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
+          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[88dvh] min-h-[68dvh] flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:min-h-0 sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">DeepSeek 资产助手</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">有数资产管理助手</div>
                   <div className="text-[10px] text-gray-400">{dataAsOf ? `数据截至 ${dataAsOf}` : '发送问题时读取最新资产数据'}</div>
                 </div>
               </div>
