@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { categoryColors, marketColors, marketLabels } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
+import { getHoldingCategory } from '../../shared/allocation.js'
 
 const colorMap = {
   ...categoryColors,
@@ -37,8 +38,7 @@ export default function HoldingsOverview({ refreshKey = 0 }) {
   }, [holdings, total, activeFilter])
 
   function getCategory(h) {
-    if (h.assetType === '股票') return stockLabel(h.market)
-    return h.assetType
+    return getHoldingCategory(h.assetType, h.market)
   }
 
   function getColor(h) {
@@ -140,12 +140,4 @@ export default function HoldingsOverview({ refreshKey = 0 }) {
       </div>
     </div>
   )
-}
-
-function stockLabel(market) {
-  if (market === 'US') return '美股'
-  if (market === 'CN') return 'A股'
-  if (market === 'HK') return '港股'
-  if (market === 'JP') return '日股'
-  return '股票'
 }

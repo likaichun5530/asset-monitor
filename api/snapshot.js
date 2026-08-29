@@ -3,6 +3,7 @@ import { isConfigured } from './_google.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { calculateSnapshot, saveSnapshot } from './_snapshot.js'
 import { requireAuth } from './_auth.js'
+import { invalidateAiDataCache } from './_ai-data-cache.js'
 
 export default async function handler(req, res) {
   setPrivateResponseHeaders(res)
@@ -29,6 +30,7 @@ export default async function handler(req, res) {
 
     const { categories, total } = await calculateSnapshot()
     const action = await saveSnapshot(date, total, categories)
+    invalidateAiDataCache('history')
     res.writeHead(200, { 'Content-Type': 'application/json' })
     return res.end(JSON.stringify({ ok: true, synced: true, date, total: Math.round(total * 100) / 100, categories, action }))
   } catch (e) {

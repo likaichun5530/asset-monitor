@@ -18,8 +18,8 @@ function SettingsSubpage({ title, description, onBack, children }) {
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
         </button>
         <div className="min-w-0">
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
-          <p className="mt-0.5 truncate text-[11px] text-gray-400">{description}</p>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
+          <p className="mt-0.5 truncate text-xs text-gray-400">{description}</p>
         </div>
       </header>
       <div className="card !p-0 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">{children}</div>
@@ -32,7 +32,7 @@ function SettingsGroup({ title, description, children }) {
     <section className="p-4 sm:p-5">
       <div className="mb-3">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
-        {description && <p className="mt-1 text-[11px] leading-4 text-gray-400">{description}</p>}
+        {description && <p className="mt-1 text-xs leading-4 text-gray-400">{description}</p>}
       </div>
       <div className="space-y-2">{children}</div>
     </section>
@@ -245,8 +245,8 @@ export default function Settings({ auth } = {}) {
             <button key={item.key} type="button" onClick={() => openSection(item.key)} className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">{item.icon}</span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
-                <span className="mt-0.5 block truncate text-[11px] text-gray-400">{item.description}</span>
+                <span className="block text-[15px] font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
+                <span className="mt-0.5 block truncate text-xs text-gray-400">{item.description}</span>
               </span>
               {item.value && <span className="shrink-0 text-xs text-gray-400">{item.value}</span>}
               <svg className="h-4 w-4 shrink-0 text-gray-300 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
@@ -280,10 +280,10 @@ export default function Settings({ auth } = {}) {
         <SettingsSubpage title="AI 与智能分析" description="管理助手显示、回答规则和模型清单" onBack={returnToSettingsMenu}>
           <SettingsGroup title="AI 资产助手" description="使用所选大模型分析 Holdings、History 和目标配置">
           <button type="button" onClick={handleAiToggle} disabled={!isLoggedIn || demoMode} role="switch" aria-checked={aiControlEnabled} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${aiControlEnabled ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 dark:border-gray-700'} ${!isLoggedIn || demoMode ? 'cursor-not-allowed opacity-50' : ''}`}>
-            <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"><RobotIcon className="h-6 w-6" /></span><span><span className="block text-sm font-medium text-gray-800 dark:text-gray-200">在首页显示 AI 机器人</span><span className="mt-0.5 block text-[10px] text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在首页显示' : '当前已关闭'}</span></span></span>
+            <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"><RobotIcon className="h-6 w-6" /></span><span><span className="block text-sm font-medium text-gray-800 dark:text-gray-200">在业务页面显示 AI 机器人</span><span className="mt-0.5 block text-xs text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在业务页面显示' : '当前已关闭'}</span></span></span>
             <span aria-hidden="true" className={`relative ml-3 h-6 w-11 shrink-0 rounded-full transition-colors ${aiControlEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}><span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} /></span>
           </button>
-          <p className="mt-3 text-[10px] leading-4 text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
+          <p className="mt-3 text-xs leading-4 text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
           </SettingsGroup>
           <SettingsGroup title="助手配置" description="规则和模型配置会应用于后续对话">
             <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>回答规则</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
@@ -374,7 +374,7 @@ export default function Settings({ auth } = {}) {
             <header className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700 sm:px-5">
               <div>
                 <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 回答规则</h3>
-                <p className="mt-0.5 text-[10px] text-gray-400">统一保存到 Google Sheet，下一次提问生效</p>
+                <p className="mt-0.5 text-xs text-gray-400">统一保存到 Google Sheet，下一次提问生效</p>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 <button type="button" onClick={handleSaveAiRules} disabled={aiRulesLoading || aiRulesSaving || !aiRulesDirty || !aiRules.trim()} className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">{aiRulesSaving ? '保存中…' : aiRulesDirty ? '保存' : '已保存'}</button>
@@ -392,7 +392,7 @@ export default function Settings({ auth } = {}) {
                     </div>
                     <p className="mt-1 text-xs leading-5 text-gray-400">统一修改助手身份、收益口径、事实边界、回答风格和分析偏好。</p>
                     <textarea value={aiRules} onChange={(event) => updateAiRules(event.target.value)} maxLength={aiRulesMaxLength} rows={18} className="mt-2 min-h-[50dvh] w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:min-h-[360px]" placeholder="输入希望 AI 助手遵循的全部规则" />
-                    <div className="mt-1 text-right text-[10px] text-gray-400">{aiRules.length}/{aiRulesMaxLength}</div>
+                    <div className="mt-1 text-right text-xs text-gray-400">{aiRules.length}/{aiRulesMaxLength}</div>
                   </div>
                   {aiRulesError && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{aiRulesError}</div>}
                   {aiRulesSaved && <div className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600 dark:bg-green-500/10 dark:text-green-400">已同步到 Google Sheet，旧对话已清空，下一次提问将使用新规则。</div>}

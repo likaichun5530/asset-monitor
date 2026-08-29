@@ -2,6 +2,7 @@
 import { isConfigured, readSheet, toNumber, updateRows } from './_google.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { requireAuth } from './_auth.js'
+import { invalidateAiDataCache } from './_ai-data-cache.js'
 
 function normalizeDate(s) {
   if (!s) return null
@@ -56,6 +57,7 @@ export default async function handler(req, res) {
       if (rowNumber < 0) return json(res, 404, { error: '找不到该日期的历史快照' })
       const note = normalizeHistoryNote(body.note)
       await updateRows('History', `L${rowNumber}`, [[note]])
+      invalidateAiDataCache('history')
       return json(res, 200, { ok: true, date, note, syncedAt: new Date().toISOString() })
     }
 

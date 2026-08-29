@@ -4,6 +4,7 @@ import { holdingMarketValue, totalMarketValue, getActiveHoldings } from '../util
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import HoldingEditor from '../components/HoldingEditor.jsx'
 import { clearHoldingEditorDraft, readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
+import { getHoldingCategory } from '../../shared/allocation.js'
 
 // 筛选标签（股票按市场拆分）
 const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债基', '期货']
@@ -21,14 +22,7 @@ const colorMap = {
 }
 
 function getCategory(h) {
-  if (h.assetType === '股票') {
-    if (h.market === 'US') return '美股'
-    if (h.market === 'CN') return 'A股'
-    if (h.market === 'HK') return '港股'
-    if (h.market === 'JP') return '日股'
-    return '股票'
-  }
-  return h.assetType
+  return getHoldingCategory(h.assetType, h.market)
 }
 
 function getColor(h) {

@@ -34,6 +34,7 @@ const PAGE_PROMPTS = {
   '/future': ['分析期货配置风险', '期货仓位对组合有什么影响'],
   '/cash': ['分析现金配置', '现金是否高于或低于目标'],
 }
+const AI_BUSINESS_PAGES = new Set(Object.keys(PAGE_PROMPTS))
 
 const AI_BUTTON_POSITION_KEY = 'youshu-ai-button-position'
 const BUTTON_SIZE = 44
@@ -103,8 +104,9 @@ export default function AiAssistant({ auth } = {}) {
   const suppressClickRef = useRef(false)
   const historyEntryRef = useRef(false)
   const modelMenuRef = useRef(null)
+  const currentPageRef = useRef(location.pathname)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
-  const visible = enabled && auth?.isLoggedIn && !demoMode && location.pathname === '/'
+  const visible = enabled && auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
   const prompts = useMemo(() => PAGE_PROMPTS[location.pathname] || PAGE_PROMPTS['/'], [location.pathname])
 
   const close = useCallback(() => {
@@ -159,6 +161,15 @@ export default function AiAssistant({ auth } = {}) {
   useEffect(() => {
     if (!visible && open) close()
   }, [close, open, visible])
+
+  useEffect(() => {
+    currentPageRef.current = location.pathname
+    if (!loading) return
+    abortRef.current?.abort()
+    setLoading(false)
+    setError('')
+    setMessages((current) => current.at(-1)?.role === 'assistant' && !current.at(-1)?.content ? current.slice(0, -1) : current)
+  }, [location.pathname])
 
   useEffect(() => { saveAiMessages(messages) }, [messages])
 
@@ -258,22 +269,29 @@ export default function AiAssistant({ auth } = {}) {
     setLoading(true)
     const controller = new AbortController()
     abortRef.current = controller
+    const requestPage = location.pathname
     let answer = ''
     try {
-      const meta = await streamAiChat(requestMessages, location.pathname, (chunk) => {
+      const meta = await streamAiChat(requestMessages, requestPage, (chunk) => {
+        if (currentPageRef.current !== requestPage) return
         answer += chunk
         setMessages([...requestMessages, { role: 'assistant', content: answer }])
       }, { signal: controller.signal, model: selectedModelOption })
+      if (currentPageRef.current !== requestPage) return
       setDataAsOf(meta.dataAsOf)
       setSelectedModel(meta.selectionId)
       setActualModel(meta.model)
       if (!answer.trim()) throw new Error('AI没有返回有效内容，请重试')
     } catch (requestError) {
-      if (requestError?.name !== 'AbortError') setError(requestError?.message || 'AI分析失败')
-      setMessages(requestMessages)
+      if (currentPageRef.current === requestPage) {
+        if (requestError?.name !== 'AbortError') setError(requestError?.message || 'AI分析失败')
+        setMessages(requestMessages)
+      }
     } finally {
-      abortRef.current = null
-      setLoading(false)
+      if (abortRef.current === controller) {
+        abortRef.current = null
+        setLoading(false)
+      }
     }
   }
 

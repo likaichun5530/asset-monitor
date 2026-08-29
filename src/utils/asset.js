@@ -3,6 +3,7 @@
 
 import { getMergedHistory, getCurrentPeak, setCachedHistory } from './snapshot.js'
 import { fetchHoldings, fetchHistory, addSnapshot, retryPendingSync, hasBackend, getPendingCount } from './dataStore.js'
+import { aggregateHoldingsByCategory, getHoldingCategory, getHoldingMarketValueCNY } from '../../shared/allocation.js'
 
 // 检查是否演示模式
 function isDemoMode() {
@@ -41,7 +42,7 @@ export function getActiveHoldings() {
 
 // 单项持仓的人民币市值
 export function holdingMarketValue(h) {
-  return Number(h.marketValueCNY)
+  return getHoldingMarketValueCNY(h)
 }
 
 // 持仓总额（人民币）
@@ -51,37 +52,21 @@ export function totalMarketValue() {
 
 // 按资产大类聚合（股票拆分为美股/A股/港股/日股）
 export function groupByCategory() {
-  const map = new Map()
-  for (const h of activeHoldings) {
-    let cat = h.assetType || '其他'
-    // 股票按市场细分
-    if (cat === '股票') {
-      cat = stockMarketLabel(h.market)
-    }
-    if (!map.has(cat)) {
-      map.set(cat, { category: cat, marketValue: 0, count: 0 })
-    }
-    const item = map.get(cat)
-    item.marketValue += holdingMarketValue(h)
-    item.count += 1
+  const { categoryTotals, total } = aggregateHoldingsByCategory(activeHoldings)
+  const counts = new Map()
+  for (const holding of activeHoldings) {
+    const category = getHoldingCategory(holding.assetType, holding.market)
+    counts.set(category, (counts.get(category) || 0) + 1)
   }
-  const total = totalMarketValue()
   // 按金额从大到小排序
-  return Array.from(map.values())
-    .map((item) => ({
-      ...item,
-      marketValue: Math.round(item.marketValue * 100) / 100,
-      ratio: total ? (item.marketValue / total) * 100 : 0,
+  return Array.from(categoryTotals.entries())
+    .map(([category, marketValue]) => ({
+      category,
+      count: counts.get(category) || 0,
+      marketValue: Math.round(marketValue * 100) / 100,
+      ratio: total ? (marketValue / total) * 100 : 0,
     }))
     .sort((a, b) => b.marketValue - a.marketValue)
-}
-
-function stockMarketLabel(market) {
-  if (market === 'US') return '美股'
-  if (market === 'CN') return 'A股'
-  if (market === 'HK') return '港股'
-  if (market === 'JP') return '日股'
-  return '股票'
 }
 
 // 按币种聚合
@@ -258,22 +243,6 @@ export async function loadHistoryData({ forceRefresh = false } = {}) {
   const historyResult = await fetchHistory({ forceRefresh })
   setCachedHistory(historyResult.history)
   return historyResult
-}
-
-// 首次加载和手动刷新读取全部数据；定时刷新只调用 loadHoldingsData。
-export async function loadInitialData({ forceRefresh = false } = {}) {
-  if (hasBackend()) await retryPendingSync()
-  const [holdingsResult, historyResult] = await Promise.all([
-    fetchHoldings({ forceRefresh }),
-    fetchHistory({ forceRefresh }),
-  ])
-  setActiveHoldings(holdingsResult.holdings)
-  setCachedHistory(historyResult.history)
-  return {
-    holdingsSource: holdingsResult.source,
-    historySource: historyResult.source,
-    syncedAt: holdingsResult.syncedAt || historyResult.syncedAt,
-  }
 }
 
 // 生成快照（写入本地 + 尝试同步 Google Sheets）

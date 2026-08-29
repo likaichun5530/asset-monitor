@@ -14,14 +14,24 @@ test('数据刷新策略仅在可见、过期且没有并发请求时触发', ()
   assert.equal(shouldAutoRefresh({ visible: true, inFlight: false, lastFetchedAt: now - maxAgeMs, maxAgeMs, now }), true)
 })
 
-test('资产自动刷新只加载 holdings，History 只在首次或手动刷新加载', async () => {
+test('资产自动刷新按页面启停，History 不参与周期刷新', async () => {
   const hookSource = await readFile(new URL('../src/hooks/useAssetData.js', import.meta.url), 'utf8')
-  const assetSource = await readFile(new URL('../src/utils/asset.js', import.meta.url), 'utf8')
+  const appSource = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(hookSource, /refreshHoldings/)
   assert.match(hookSource, /loadHoldingsData\(\{ forceRefresh: force \}\)/)
-  assert.doesNotMatch(hookSource, /loadAll/)
-  assert.match(assetSource, /export async function loadInitialData/)
-  assert.match(assetSource, /export async function loadHistoryData/)
+  assert.match(hookSource, /autoRefreshHoldings/)
+  assert.match(hookSource, /setInterval\(\(\) => \{ refreshHoldings\(false\) \}/)
+  assert.match(appSource, /const HOLDINGS_PAGES = new Set/)
+  assert.doesNotMatch(appSource.match(/const HOLDINGS_PAGES[^\n]+/)?.[0] || '', /market|settings/)
+})
+
+test('页面刷新只驱动当前页面的数据源', async () => {
+  const appSource = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(appSource, /path === '\/market'\) \{ bumpPageRefresh\('market'\)/)
+  assert.match(appSource, /path === '\/target'\) \{ bumpPageRefresh\('target'\)/)
+  assert.match(appSource, /path === '\/future'\) \{ bumpPageRefresh\('future'\)/)
+  assert.match(appSource, /path\.startsWith\('\/settings\/'\)\) return/)
+  assert.match(appSource, /<Market refreshKey=\{pageRefreshKeys\.market\}/)
 })
 
 test('期货页复用 futures 响应中的 Market 数据，不重复请求 market 接口', async () => {

@@ -89,8 +89,9 @@ const pageDescriptions = {
 
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
   const location = useLocation()
-  const pageTitle = pageTitles[location.pathname] || '有数'
-  const pageDescription = pageDescriptions[location.pathname] || '资产配置，心中有数'
+  const pagePath = location.pathname.startsWith('/settings/') ? '/settings' : location.pathname
+  const pageTitle = pageTitles[pagePath] || '有数'
+  const pageDescription = pageDescriptions[pagePath] || '资产配置，心中有数'
   const displayLabel = sourceLabels[source] || source
 
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -114,14 +115,14 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
     const ignoredGesture = document.body.dataset.sortableDragging === 'true'
       || document.body.dataset.modalOpen === 'true'
       || shouldIgnorePullRefresh(e.target)
-    if (scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || ignoredGesture) {
+    if (!onRefresh || scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || ignoredGesture) {
       touchStartY.current = null
       pullingRef.current = false
       return
     }
     touchStartY.current = e.touches[0].clientY
     pullingRef.current = false
-  }, [])
+  }, [onRefresh])
 
   const handleTouchMove = useCallback((e) => {
     if (document.body.dataset.modalOpen === 'true' || shouldIgnorePullRefresh(e.target)) {

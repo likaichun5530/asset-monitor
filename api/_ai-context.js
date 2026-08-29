@@ -1,5 +1,6 @@
 import { readSheet, toNumber } from './_google.js'
-import { calculateAllocations, getHoldingCategory, parseTargetMap } from './_allocation.js'
+import { aggregateHoldingsByCategory, calculateAllocations, getHoldingCategory, parseTargetMap } from './_allocation.js'
+import { readCachedAiData } from './_ai-data-cache.js'
 
 const HISTORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
 const CATEGORY_LABELS = {
@@ -124,9 +125,7 @@ export function buildAiContextFromSheets({ holdingsRows = [], historyRows = [], 
   const fullHistory = normalizeAiHistory(historyRows)
   const history = compactAiHistory(fullHistory)
   const targetMap = parseTargetMap(targetResult)
-  const total = holdings.reduce((sum, row) => sum + row.marketValueCNY, 0)
-  const categoryTotals = new Map()
-  for (const row of holdings) categoryTotals.set(row.category, (categoryTotals.get(row.category) || 0) + row.marketValueCNY)
+  const { categoryTotals, total } = aggregateHoldingsByCategory(holdings)
   const allocations = calculateAllocations(categoryTotals, total, targetMap, { includeTargetOnly: true }).map((row) => ({
     category: row.category,
     marketValueCNY: round(row.marketValue),
@@ -181,9 +180,9 @@ export function buildAiContextFromSheets({ holdingsRows = [], historyRows = [], 
 
 export async function buildAssetAiContext(page) {
   const [holdingsResult, historyResult, targetResult] = await Promise.all([
-    readSheet('Holdings'),
-    readSheet('History'),
-    readSheet('target').catch(() => null),
+    readCachedAiData('holdings', () => readSheet('Holdings')),
+    readCachedAiData('history', () => readSheet('History')),
+    readCachedAiData('target', () => readSheet('target').catch(() => null)),
   ])
   return buildAiContextFromSheets({
     holdingsRows: holdingsResult.data || [],

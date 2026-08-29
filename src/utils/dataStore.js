@@ -9,6 +9,7 @@
 
 import { demoHoldings, demoHistory, demoTarget } from '../data/demo.js'
 import { API_BASE, getApiJson, requestApiJson } from './api.js'
+import { aggregateHoldingsByCategory, calculateAllocations } from '../../shared/allocation.js'
 
 // Vercel 部署时自动使用当前域名，本地开发时使用完整 URL
 const KEYS = {
@@ -285,31 +286,16 @@ function normalizeTarget(rows) {
 }
 
 function computeTargetLocal(holdings) {
-  const catMap = new Map()
-  let total = 0
-  for (const h of holdings) {
-    let cat = h.assetType
-    if (cat === '股票') {
-      if (h.market === 'US') cat = '美股'
-      else if (h.market === 'CN') cat = 'A股'
-      else if (h.market === 'HK') cat = '港股'
-      else if (h.market === 'JP') cat = '日股'
-    }
-    const mv = h.marketValueCNY || 0
-    total += mv
-    catMap.set(cat, (catMap.get(cat) || 0) + mv)
-  }
-
-  const result = Array.from(catMap.entries())
-    .map(([cat, mv]) => ({
-      category: cat,
-      marketValue: Math.round(mv * 100) / 100,
-      currentRatio: total ? mv / total : 0,
-      targetRatio: null,
-      diff: null,
+  const { categoryTotals, total } = aggregateHoldingsByCategory(holdings)
+  const result = calculateAllocations(categoryTotals, total)
+    .map((row) => ({
+      category: row.category,
+      marketValue: Math.round(row.marketValue * 100) / 100,
+      currentRatio: row.currentRatio,
+      targetRatio: row.targetRatio,
+      diff: row.difference,
       isTotal: false,
     }))
-    .sort((a, b) => b.marketValue - a.marketValue)
 
   result.push({
     category: '合计',

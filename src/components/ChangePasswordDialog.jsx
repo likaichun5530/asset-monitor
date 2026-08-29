@@ -105,7 +105,7 @@ export default function ChangePasswordDialog({ open, onClose, onChanged }) {
           <label className="block">
             <span className="text-xs font-medium text-gray-600 dark:text-gray-300">新密码</span>
             <input type="password" autoComplete="new-password" value={form.newPassword} onChange={(event) => updateField('newPassword', event.target.value)} disabled={saving || Boolean(success)} maxLength={PASSWORD_MAX_LENGTH} className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-            <span className="mt-1 block text-[10px] text-gray-400">6～128 位，不能全部为空格；检测到公开泄漏记录时会要求确认</span>
+            <span className="mt-1 block text-xs text-gray-400">6～128 位，不能全部为空格；检测到公开泄漏记录时会要求确认</span>
           </label>
           <label className="block">
             <span className="text-xs font-medium text-gray-600 dark:text-gray-300">确认新密码</span>

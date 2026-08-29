@@ -5,6 +5,7 @@ import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { buildRow, columnLetter } from './_holdings-formulas.js'
 import { parseInput } from './_holdings-schema.js'
 import { editorOptions, findVersionedRow, loadHoldings } from './_holdings-service.js'
+import { invalidateAiDataCache } from './_ai-data-cache.js'
 
 export { buildRow, columnLetter, computedFormulas } from './_holdings-formulas.js'
 export { mapAssetType, marketRows, parseInput } from './_holdings-schema.js'
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
       const { rowNumber } = findVersionedRow(body, loaded)
       await deleteSheetRow('Holdings', rowNumber)
+      invalidateAiDataCache('holdings')
       return json(res, 200, { ok: true, action: 'deleted', rowNumber })
     }
 
@@ -63,6 +65,8 @@ export default async function handler(req, res) {
       const row = buildRow(headers, rowNumber, input, current.formulaRow)
       await updateRows('Holdings', `A${rowNumber}:${lastColumn}${rowNumber}`, [row])
     }
+
+    invalidateAiDataCache('holdings')
 
     return json(res, 200, { ok: true, action: req.method === 'POST' ? 'created' : 'updated', rowNumber })
   } catch (error) {

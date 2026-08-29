@@ -8,6 +8,7 @@ import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKEN
 import { AI_MODELS, createAiStream, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
 import { createSseDataParser } from '../api/_ai-stream.js'
 import { DEFAULT_AI_MODELS, normalizeAiModels, readAiModels } from '../api/_ai-models.js'
+import { clearAiDataCache, invalidateAiDataCache, readCachedAiData } from '../api/_ai-data-cache.js'
 
 test('AI上下文包含完整持仓、历史分类和目标计算，但不包含表格控制字段', () => {
   const context = buildAiContextFromSheets({
@@ -80,7 +81,9 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /history\.pushState/)
   assert.match(source, /window\.addEventListener\('popstate'/)
   assert.match(source, /role="dialog" aria-modal="true"/)
-  assert.match(source, /location\.pathname === '\/'/)
+  assert.match(source, /AI_BUSINESS_PAGES\.has\(location\.pathname\)/)
+  assert.match(source, /streamAiChat\(requestMessages, requestPage/)
+  assert.match(source, /currentPageRef\.current !== requestPage/)
   assert.match(source, /snapButtonToEdge/)
   assert.match(source, /window\.innerWidth \/ 2/)
   assert.match(source, /transition-\[left,top\]/)
@@ -88,6 +91,22 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /setShowDismissButton\(true\)/)
   assert.match(source, /setAiEnabled\(false\)/)
   assert.match(source, /有数资产管理助手/)
+})
+
+test('AI服务端数据缓存复用并发请求，失效后重新读取', async () => {
+  clearAiDataCache()
+  let calls = 0
+  const loader = async () => ({ value: ++calls })
+  const [first, second] = await Promise.all([
+    readCachedAiData('holdings', loader),
+    readCachedAiData('holdings', loader),
+  ])
+  assert.equal(calls, 1)
+  assert.deepEqual(first, second)
+  assert.deepEqual(await readCachedAiData('holdings', loader), first)
+  invalidateAiDataCache('holdings')
+  assert.equal((await readCachedAiData('holdings', loader)).value, 2)
+  clearAiDataCache()
 })
 
 test('DeepSeek连接异常会自动重试，并区分供应商业务错误', async () => {
