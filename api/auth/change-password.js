@@ -31,6 +31,7 @@ export async function handleChangePassword(req, res, {
     }
     const currentPassword = typeof body?.currentPassword === 'string' ? body.currentPassword : ''
     const newPassword = typeof body?.newPassword === 'string' ? body.newPassword : ''
+    const allowCompromisedPassword = body?.allowCompromisedPassword === true
     if (!currentPassword) return json(res, 400, { error: '请输入当前密码' })
     validateNewPassword(newPassword)
 
@@ -46,7 +47,12 @@ export async function handleChangePassword(req, res, {
       return json(res, 400, { error: '新密码不能与当前密码相同' })
     }
 
-    await checkPasswordCompromised(newPassword)
+    try {
+      await checkPasswordCompromised(newPassword)
+    } catch (error) {
+      // 只允许用户明确确认后跳过“已泄漏”结果；查询不可用等其他错误仍然 fail closed。
+      if (error?.code !== 'PASSWORD_COMPROMISED' || !allowCompromisedPassword) throw error
+    }
     const { passwordHash, passwordSalt } = await hashPassword(newPassword)
     const tokenVersion = (auth.authConfig.initialized
       ? auth.authConfig.tokenVersion
@@ -62,7 +68,7 @@ export async function handleChangePassword(req, res, {
   } catch (error) {
     const status = error.statusCode || 500
     const message = error.statusCode ? error.message : '密码保存失败，请稍后重试'
-    return json(res, status, { error: message })
+    return json(res, status, { error: message, ...(error.code ? { code: error.code } : {}) })
   }
 }
 

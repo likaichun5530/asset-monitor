@@ -181,6 +181,56 @@ test('公开泄漏密码会在生成和保存 hash 前被拒绝', async () => {
       },
     })
     assert.equal(response.statusCode, 400)
+    assert.equal(JSON.parse(response.body).code, 'PASSWORD_COMPROMISED')
+    assert.equal(harness.writes.length, 0)
+
+    const confirmed = mockResponse()
+    await handleChangePassword(request('POST', {
+      token,
+      body: {
+        currentPassword: OLD_PASSWORD,
+        newPassword: NEW_PASSWORD,
+        allowCompromisedPassword: true,
+      },
+    }), confirmed, {
+      loadAuthConfig: harness.store.read,
+      saveAuthConfig: harness.store.write,
+      checkPasswordCompromised: async () => {
+        throw Object.assign(new Error('该密码已出现在公开泄漏数据中'), {
+          statusCode: 400,
+          code: 'PASSWORD_COMPROMISED',
+        })
+      },
+    })
+    assert.equal(confirmed.statusCode, 200)
+    assert.equal(harness.writes.length, 1)
+  })
+})
+
+test('泄漏查询不可用时不能通过风险确认绕过', async () => {
+  await withAuthEnvironment(async () => {
+    resetLoginRateLimitForTests()
+    const harness = createSheetHarness()
+    const token = JSON.parse((await login(OLD_PASSWORD, harness.store)).body).token
+    const response = mockResponse()
+    await handleChangePassword(request('POST', {
+      token,
+      body: {
+        currentPassword: OLD_PASSWORD,
+        newPassword: NEW_PASSWORD,
+        allowCompromisedPassword: true,
+      },
+    }), response, {
+      loadAuthConfig: harness.store.read,
+      saveAuthConfig: harness.store.write,
+      checkPasswordCompromised: async () => {
+        throw Object.assign(new Error('密码泄漏检查暂时不可用'), {
+          statusCode: 503,
+          code: 'PASSWORD_BREACH_CHECK_UNAVAILABLE',
+        })
+      },
+    })
+    assert.equal(response.statusCode, 503)
     assert.equal(harness.writes.length, 0)
   })
 })
@@ -337,6 +387,9 @@ test('设置页仅通过 password 输入框和请求体提交密码，不写入�
   assert.match(dialog, /requestApiJson\('auth\/change-password'/)
   assert.match(dialog, /currentPassword: form\.currentPassword/)
   assert.match(dialog, /newPassword: form\.newPassword/)
+  assert.match(dialog, /allowCompromisedPassword: compromisedWarning && allowCompromisedPassword/)
+  assert.match(dialog, /requestError\.data\?\.code === 'PASSWORD_COMPROMISED'/)
+  assert.match(dialog, /我了解风险，仍然使用这个密码/)
   assert.doesNotMatch(dialog, /localStorage|sessionStorage|console\./)
   assert.match(dialog, /onChanged\(\)/)
 })

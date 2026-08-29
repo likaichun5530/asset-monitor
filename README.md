@@ -59,7 +59,7 @@
 ### 🔐 账号安全
 - 登录状态下可在“设置 → 账号安全”修改密码，不修改用户名
 - 首次修改前继续使用服务端 `AUTH_PASSWORD`；修改成功后仅在 Google Sheets `SystemSettings` 保存 scrypt hash、随机 salt 和 tokenVersion
-- 修改前通过 HIBP Pwned Passwords 的 k-anonymity 范围接口拦截公开泄漏密码；只发送 SHA-1 前 5 位，不发送密码或完整哈希
+- 修改前通过 HIBP Pwned Passwords 的 k-anonymity 范围接口检查公开泄漏密码；只发送 SHA-1 前 5 位，不发送密码或完整哈希。命中时默认阻止，用户明确确认风险后可以继续
 - 修改密码会使旧 JWT 失效，并自动退出到登录页；密码不会写入浏览器存储或日志
 
 ### 📱 响应式设计
