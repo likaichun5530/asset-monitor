@@ -82,7 +82,7 @@ export async function requireAuth(req, { loadAuthConfig = getAuthConfig } = {}) 
     throw authError(503, '认证配置读取失败', 'AUTH_CONFIGURATION_ERROR')
   }
   if (authConfig.initialized && !secureTextEqual(authConfig.username, authUsername)) {
-    throw authError(503, 'AuthConfig 用户名与服务端配置不一致', 'AUTH_CONFIGURATION_ERROR')
+    throw authError(503, '系统设置中的用户名与服务端配置不一致', 'AUTH_CONFIGURATION_ERROR')
   }
 
   const tokenVersion = payload.tokenVersion === undefined

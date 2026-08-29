@@ -197,7 +197,7 @@ test('AuthConfig 不存在时原 AUTH_PASSWORD 可登录，JWT 默认 tokenVersi
   })
 })
 
-test('AuthConfig 的 20 秒缓存会复用并发读取，并允许主动刷新', async () => {
+test('认证配置的 20 秒缓存会复用并发读取，并允许主动刷新', async () => {
   const harness = createSheetHarness()
   const [first, second, third] = await Promise.all([
     harness.store.read(),
@@ -207,10 +207,11 @@ test('AuthConfig 的 20 秒缓存会复用并发读取，并允许主动刷新',
   assert.equal(first.initialized, false)
   assert.equal(second, first)
   assert.equal(third, first)
-  assert.equal(harness.getReadCount(), 1)
+  // SystemSettings 与旧 AuthConfig 各读取一次；并发调用仍共享同一轮读取。
+  assert.equal(harness.getReadCount(), 2)
 
   await harness.store.read({ forceRefresh: true })
-  assert.equal(harness.getReadCount(), 2)
+  assert.equal(harness.getReadCount(), 4)
 })
 
 test('错误当前密码和不合规新密码都会拒绝修改', async () => {

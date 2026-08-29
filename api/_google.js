@@ -131,6 +131,33 @@ export async function updateRows(sheetName, range, values, { valueInputOption = 
   return resp.json()
 }
 
+// 在一次 Sheets API 请求中更新多个不连续范围，适合需要同步落盘的一组配置。
+export async function batchUpdateRows(sheetName, updates, { valueInputOption = 'USER_ENTERED' } = {}) {
+  if (!isConfigured()) throw new Error('Google Sheets 未配置')
+  if (!Array.isArray(updates) || !updates.length) return null
+  const token = await getAccessToken()
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values:batchUpdate`
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      valueInputOption,
+      data: updates.map(({ range, values }) => ({
+        range: `${sheetName}!${range}`,
+        values,
+      })),
+    }),
+  })
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`批量更新 ${sheetName} 失败: ${resp.status} ${text}`)
+  }
+  return resp.json()
+}
+
 // 确保工作表存在，适合首次启用可选功能时初始化配置表。
 export async function ensureSheet(sheetName) {
   if (!isConfigured()) throw new Error('Google Sheets 未配置')

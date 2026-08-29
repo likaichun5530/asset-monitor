@@ -1,7 +1,9 @@
 import { ensureSheet, isConfigured, readSheet, sheetExists, updateRows } from './_google.js'
 import { isStoredPasswordValid } from './_password.js'
+import { createSystemSettingsStore, SYSTEM_SETTING_KEYS, SYSTEM_SETTINGS_SHEET } from './_system-settings.js'
 
-export const AUTH_CONFIG_SHEET = 'AuthConfig'
+export const LEGACY_AUTH_CONFIG_SHEET = 'AuthConfig'
+export const AUTH_CONFIG_SHEET = SYSTEM_SETTINGS_SHEET
 export const DEFAULT_TOKEN_VERSION = 1
 export const AUTH_CONFIG_CACHE_TTL_MS = 20_000
 
@@ -56,15 +58,38 @@ export function parseAuthConfig(result) {
   })
 }
 
+function authResultFromSystemSettings(settings) {
+  const rows = [
+    ['username', settings.get(SYSTEM_SETTING_KEYS.authUsername)?.value],
+    ['passwordHash', settings.get(SYSTEM_SETTING_KEYS.authPasswordHash)?.value],
+    ['passwordSalt', settings.get(SYSTEM_SETTING_KEYS.authPasswordSalt)?.value],
+    ['tokenVersion', settings.get(SYSTEM_SETTING_KEYS.authTokenVersion)?.value],
+    ['updatedAt', settings.get(SYSTEM_SETTING_KEYS.authUpdatedAt)?.value],
+  ]
+  const hasAnyAuthSetting = rows.some(([, value]) => value !== undefined)
+  if (!hasAnyAuthSetting) return null
+  return { headers: ['key', 'value'], rawRows: rows }
+}
+
 export function createAuthConfigStore({
   isConfiguredFn,
   readSheetFn,
   sheetExistsFn,
   ensureSheetFn,
   updateRowsFn,
+  appendRowsFn,
+  batchUpdateRowsFn,
   now = () => Date.now(),
   ttlMs = AUTH_CONFIG_CACHE_TTL_MS,
 }) {
+  const systemStore = createSystemSettingsStore({
+    readSheetFn,
+    sheetExistsFn,
+    ensureSheetFn,
+    updateRowsFn,
+    appendRowsFn,
+    batchUpdateRowsFn,
+  })
   let cached = null
   let expiresAt = 0
   let pendingRead = null
@@ -78,18 +103,28 @@ export function createAuthConfigStore({
   }
 
   async function readFresh(currentTime, requestEpoch) {
-    let result
+    let result = null
     try {
-      result = await readSheetFn(AUTH_CONFIG_SHEET)
+      const system = await systemStore.read()
+      result = authResultFromSystemSettings(system.settings)
     } catch (error) {
-      let exists
+      throw configError('认证配置读取失败', error)
+    }
+
+    // 旧表仅作为无感迁移期的只读回退；所有新写入统一进入 SystemSettings。
+    if (!result) {
       try {
-        exists = await sheetExistsFn(AUTH_CONFIG_SHEET)
-      } catch (metadataError) {
-        throw configError('认证配置读取失败', metadataError)
+        result = await readSheetFn(LEGACY_AUTH_CONFIG_SHEET)
+      } catch (error) {
+        let exists
+        try {
+          exists = await sheetExistsFn(LEGACY_AUTH_CONFIG_SHEET)
+        } catch (metadataError) {
+          throw configError('认证配置读取失败', metadataError)
+        }
+        if (exists) throw configError('认证配置读取失败', error)
+        result = { headers: [], rawRows: [] }
       }
-      if (exists) throw configError('认证配置读取失败', error)
-      result = { headers: [], rawRows: [] }
     }
 
     const parsed = parseAuthConfig(result)
@@ -128,15 +163,13 @@ export function createAuthConfigStore({
       ],
     })
 
-    await ensureSheetFn(AUTH_CONFIG_SHEET)
-    await updateRowsFn(AUTH_CONFIG_SHEET, 'A1:B6', [
-      ['key', 'value'],
-      ['username', normalized.username],
-      ['passwordHash', normalized.passwordHash],
-      ['passwordSalt', normalized.passwordSalt],
-      ['tokenVersion', normalized.tokenVersion],
-      ['updatedAt', normalized.updatedAt],
-    ], { valueInputOption: 'RAW' })
+    await systemStore.upsert([
+      { key: SYSTEM_SETTING_KEYS.authUsername, value: normalized.username, description: 'Login username' },
+      { key: SYSTEM_SETTING_KEYS.authPasswordHash, value: normalized.passwordHash, description: 'scrypt password hash; never plaintext' },
+      { key: SYSTEM_SETTING_KEYS.authPasswordSalt, value: normalized.passwordSalt, description: 'Random salt for scrypt password hash' },
+      { key: SYSTEM_SETTING_KEYS.authTokenVersion, value: normalized.tokenVersion, description: 'Incremented to invalidate old login tokens' },
+      { key: SYSTEM_SETTING_KEYS.authUpdatedAt, value: normalized.updatedAt, updatedAt: normalized.updatedAt, description: 'Authentication settings update time' },
+    ])
 
     // 只有完整写入成功后才清缓存；失败时旧认证配置继续有效。
     invalidate()

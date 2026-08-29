@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { requestApiJson } from '../utils/api.js'
-import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
+import { AI_CONSENT_KEY, cacheAiProvider, clearAiMessages, getAiRules, getCachedAiProvider, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
 import RobotIcon from '../components/RobotIcon.jsx'
 import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
@@ -39,6 +39,7 @@ export default function Settings({ auth } = {}) {
   const [aiRulesError, setAiRulesError] = useState('')
   const [aiRulesSaved, setAiRulesSaved] = useState(false)
   const [aiRulesDirty, setAiRulesDirty] = useState(false)
+  const [aiProvider, setAiProvider] = useState(getCachedAiProvider)
   const latestAiRulesRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
   const aiControlEnabled = aiEnabled && isLoggedIn && !demoMode
@@ -177,6 +178,13 @@ export default function Settings({ auth } = {}) {
     }
   }
 
+  function handleAiProviderChange(provider) {
+    if (provider === aiProvider) return
+    const selected = cacheAiProvider(provider)
+    setAiProvider(selected)
+    clearAiMessages()
+  }
+
   const themes = [
     { key: 'light', label: '白天模式', icon: '☀️' },
     { key: 'dark', label: '暗夜模式', icon: '🌙' },
@@ -215,7 +223,7 @@ export default function Settings({ auth } = {}) {
 
       <div className="card sm:min-h-[260px]">
         <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">AI 资产助手</h3>
-        <p className="mb-5 text-xs leading-5 text-gray-400">使用 DeepSeek 分析 Holdings、History 和目标配置</p>
+        <p className="mb-5 text-xs leading-5 text-gray-400">使用所选大模型分析 Holdings、History 和目标配置</p>
         <button
           type="button"
           onClick={handleAiToggle}
@@ -235,7 +243,26 @@ export default function Settings({ auth } = {}) {
             <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
           </span>
         </button>
-        <p className="mt-3 text-[10px] leading-4 text-gray-400">开启后，具体资产金额、账户、代码和备注会通过 Vercel 后端发送给 DeepSeek。</p>
+        <div className="mt-3 grid grid-cols-2 gap-2" role="radiogroup" aria-label="AI模型服务商">
+          {[
+            { id: 'deepseek', label: 'DeepSeek' },
+            { id: 'gemini', label: 'Google Gemini' },
+          ].map((provider) => (
+            <button
+              key={provider.id}
+              type="button"
+              role="radio"
+              aria-checked={aiProvider === provider.id}
+              disabled={!isLoggedIn || demoMode}
+              onClick={() => handleAiProviderChange(provider.id)}
+              className={`rounded-lg border px-3 py-2 text-left transition-colors ${aiProvider === provider.id ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-gray-200 text-gray-600 dark:border-gray-600 dark:text-gray-300'} disabled:cursor-not-allowed disabled:opacity-45`}
+            >
+              <span className="block text-xs font-medium">{provider.label}</span>
+              <span className="mt-0.5 block text-[9px] text-gray-400">{aiProvider === provider.id ? '当前设备使用' : '点击切换'}</span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-[10px] leading-4 text-gray-400">开启后，具体资产金额、账户、代码和备注会通过 Vercel 后端发送给当前选择的模型服务商。</p>
         <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">
           查看和修改回答规则
         </button>
@@ -323,9 +350,9 @@ export default function Settings({ auth } = {}) {
         <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
           <div className="fixed inset-0 bg-black/40" onClick={() => setShowAiConsent(false)} />
           <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-gray-800">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">启用 DeepSeek 资产助手</h3>
-            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">系统会将 Holdings、History 和目标配置中的资产金额、账户、证券代码及备注发送给 DeepSeek API，用于回答你的资产分析问题。</p>
-            <p className="mt-2 text-xs leading-5 text-gray-400">Google 凭据、登录令牌、表格公式和 DeepSeek API Key 不会发送给模型。</p>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">启用 AI 资产助手</h3>
+            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">系统会将 Holdings、History 和目标配置中的资产金额、账户、证券代码及备注发送给当前选择的模型服务商，用于回答你的资产分析问题。</p>
+            <p className="mt-2 text-xs leading-5 text-gray-400">Google 凭据、登录令牌、表格公式和模型 API Key 不会发送给模型。</p>
             <div className="mt-5 flex gap-2">
               <button type="button" onClick={() => setShowAiConsent(false)} className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">取消</button>
               <button type="button" onClick={confirmAiConsent} className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white">同意并启用</button>
@@ -358,7 +385,7 @@ export default function Settings({ auth } = {}) {
                       <button type="button" onClick={() => updateAiRules(defaultAiRules)} className="text-xs text-brand-600 disabled:opacity-40" disabled={!defaultAiRules}>恢复默认</button>
                     </div>
                     <p className="mt-1 text-xs leading-5 text-gray-400">统一修改助手身份、收益口径、事实边界、回答风格和分析偏好。</p>
-                    <textarea value={aiRules} onChange={(event) => updateAiRules(event.target.value)} maxLength={aiRulesMaxLength} rows={18} className="mt-2 min-h-[50dvh] w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:min-h-[360px]" placeholder="输入希望 DeepSeek 遵循的全部规则" />
+                    <textarea value={aiRules} onChange={(event) => updateAiRules(event.target.value)} maxLength={aiRulesMaxLength} rows={18} className="mt-2 min-h-[50dvh] w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:min-h-[360px]" placeholder="输入希望 AI 助手遵循的全部规则" />
                     <div className="mt-1 text-right text-[10px] text-gray-400">{aiRules.length}/{aiRulesMaxLength}</div>
                   </div>
                   {aiRulesError && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{aiRulesError}</div>}

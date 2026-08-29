@@ -2,7 +2,8 @@ import { isConfigured } from './_google.js'
 import { requireAuth } from './_auth.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { buildAssetAiContext } from './_ai-context.js'
-import { createDeepSeekStream, normalizeAiMessages } from './_deepseek.js'
+import { normalizeAiMessages } from './_deepseek.js'
+import { createAiStream, extractAiStreamText } from './_ai-provider.js'
 import { readAiRules } from './_ai-rules.js'
 
 function json(res, status, body) {
@@ -21,7 +22,6 @@ export default async function handler(req, res) {
   try {
     await requireAuth(req)
     if (process.env.AI_ASSISTANT_ENABLED === 'false') return json(res, 503, { error: 'AI 助手已在服务端关闭' })
-    if (!process.env.DEEPSEEK_API_KEY) return json(res, 503, { error: 'DeepSeek API 尚未配置' })
     if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
     const body = await readJsonBody(req)
     const messages = normalizeAiMessages(body.messages)
@@ -29,13 +29,14 @@ export default async function handler(req, res) {
     const page = String(body.page || '/').slice(0, 80)
     const [context, rules] = await Promise.all([buildAssetAiContext(page), readAiRules()])
     if (!context.holdings.length && !context.history.length) return json(res, 422, { error: '没有可供 AI 分析的资产数据' })
-    const { response, model } = await createDeepSeekStream(context, messages, rules)
+    const { response, model, provider } = await createAiStream(body.provider, context, messages, rules)
 
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'private, no-store, no-transform',
       'X-Content-Type-Options': 'nosniff',
       'X-AI-Model': model,
+      'X-AI-Provider': provider,
       'X-Asset-As-Of': context.dataAsOf || '',
     })
     res.flushHeaders?.()
@@ -56,7 +57,7 @@ export default async function handler(req, res) {
         if (!data || data === '[DONE]') continue
         try {
           const event = JSON.parse(data)
-          const content = event.choices?.[0]?.delta?.content
+          const content = extractAiStreamText(provider, event)
           if (content) res.write(content)
         } catch {
           // 忽略不完整或非 JSON 的供应商事件

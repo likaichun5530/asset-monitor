@@ -5,6 +5,17 @@ export const AI_CONSENT_KEY = 'youshu-ai-consent'
 export const AI_MESSAGES_KEY = 'youshu-ai-messages'
 export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
+export const AI_PROVIDER_KEY = 'youshu-ai-provider'
+
+export function getCachedAiProvider() {
+  try { return localStorage.getItem(AI_PROVIDER_KEY) === 'gemini' ? 'gemini' : 'deepseek' } catch { return 'deepseek' }
+}
+
+export function cacheAiProvider(provider) {
+  const normalized = provider === 'gemini' ? 'gemini' : 'deepseek'
+  localStorage.setItem(AI_PROVIDER_KEY, normalized)
+  return normalized
+}
 
 export function isAiEnabled() {
   try { return localStorage.getItem(AI_ENABLED_KEY) === 'true' } catch { return false }
@@ -60,7 +71,7 @@ export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
     response = await apiFetch('ai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: messages.slice(-8), page }),
+      body: JSON.stringify({ messages: messages.slice(-8), page, provider: getCachedAiProvider() }),
       signal,
       timeoutMs: 0,
     })
@@ -84,8 +95,10 @@ export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
     const chunk = decoder.decode(value, { stream: true })
     if (chunk) onChunk(chunk)
   }
+  const responseProvider = response.headers.get('X-AI-Provider')
   return {
     model: response.headers.get('X-AI-Model') || 'DeepSeek',
+    provider: ['deepseek', 'gemini'].includes(responseProvider) ? cacheAiProvider(responseProvider) : getCachedAiProvider(),
     dataAsOf: response.headers.get('X-Asset-As-Of') || null,
   }
 }

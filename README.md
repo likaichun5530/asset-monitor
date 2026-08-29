@@ -48,16 +48,17 @@
 
 ### 🤖 AI 资产助手
 - 设置中可独立开启或关闭；开启后仅在登录状态的首页显示机器人入口，拖动松手后自动吸附到距离最近的屏幕左侧或右侧；长按入口可显示关闭按钮
-- Vercel 后端实时读取 Holdings、History 和 target，将规范化后的资产数据交给 DeepSeek 分析
+- Vercel 后端实时读取 Holdings、History 和 target，将规范化后的资产数据交给设置中选择的 DeepSeek 或 Google Gemini 分析
 - 支持流式多轮对话和当前页面快捷问题，对话仅保存在当前浏览器
-- 设置页使用一个统一编辑框维护全部 AI 回答规则；点击顶部保存按钮后写入 Google Sheets 的 `AIConfig` 表，保存成功会清空旧对话并在下一次提问生效
+- 设置页可在 DeepSeek 与 Google Gemini 间切换；选择仅保存在当前设备，不写入 Google Sheets
+- 设置页使用一个统一编辑框维护全部 AI 回答规则；点击顶部保存按钮后写入 Google Sheets 的 `SystemSettings` 表，保存成功会清空旧对话并在下一次提问生效
 - 规则可统一配置助手身份、收益口径、事实边界、回答风格和分析偏好；登录鉴权和密钥隔离仍由服务端代码强制执行
-- DeepSeek API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
+- DeepSeek/Gemini API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
 - AI 分析仅作资产整理与风险提示，不会修改持仓或执行交易
 
 ### 🔐 账号安全
 - 登录状态下可在“设置 → 账号安全”修改密码，不修改用户名
-- 首次修改前继续使用服务端 `AUTH_PASSWORD`；修改成功后仅在 Google Sheets `AuthConfig` 保存 scrypt hash、随机 salt 和 tokenVersion
+- 首次修改前继续使用服务端 `AUTH_PASSWORD`；修改成功后仅在 Google Sheets `SystemSettings` 保存 scrypt hash、随机 salt 和 tokenVersion
 - 修改前通过 HIBP Pwned Passwords 的 k-anonymity 范围接口拦截公开泄漏密码；只发送 SHA-1 前 5 位，不发送密码或完整哈希
 - 修改密码会使旧 JWT 失效，并自动退出到登录页；密码不会写入浏览器存储或日志
 
@@ -162,6 +163,9 @@ vercel
 | `DEEPSEEK_API_KEY` | DeepSeek 开放平台 API Key，仅供服务端调用 | 从 DeepSeek 控制台创建后仅存入服务端环境变量 |
 | `DEEPSEEK_BASE_URL` | DeepSeek OpenAI 兼容接口地址；官方平台可不填 | `https://api.deepseek.com` |
 | `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
+| `GEMINI_API_KEY` | Google Gemini API Key，仅供服务端调用 | 从 Google AI Studio 创建后仅存入服务端环境变量 |
+| `GEMINI_BASE_URL` | Gemini REST API 地址；官方平台可不填 | `https://generativelanguage.googleapis.com/v1beta` |
+| `GEMINI_MODEL` | Gemini 模型名称 | `gemini-2.5-flash` |
 | `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
 
 配置后重新部署使环境变量生效：
@@ -215,7 +219,8 @@ Asset-Monitor/
 ├── api/                       # Vercel Serverless Functions（生产环境 API）
 │   ├── _google.js             # Google Service Account JWT 认证（零外部依赖）
 │   ├── _auth.js               # JWT 签发与私人 API 统一鉴权（无默认密钥）
-│   ├── _auth-config.js        # AuthConfig 读写、校验与 20 秒短缓存
+│   ├── _auth-config.js        # 认证配置读写、校验与 20 秒短缓存
+│   ├── _system-settings.js    # SystemSettings 统一配置存储
 │   ├── _password.js           # scrypt 密码哈希、校验与恒定时间比较
 │   ├── _pwned-password.js     # 公开泄漏密码 k-anonymity 检查
 │   ├── _login-rate-limit.js   # 登录失败延迟与暖实例轻量限流
@@ -235,8 +240,6 @@ Asset-Monitor/
 │   ├── market.js              # GET  /api/market
 │   ├── snapshot-auto.js       # GET  /api/snapshot-auto（Vercel Cron）
 │   └── target.js              # GET  /api/target
-├── apps-script/market/
-│   └── Market.gs              # 可整段复制的单文件 Market 行情刷新脚本
 ├── public/
 │   ├── icon.png
 │   └── 品牌图片
@@ -294,7 +297,7 @@ Asset-Monitor/
 
 ### Market 行情刷新脚本
 
-Google Sheets 的 Market 行情刷新脚本以单文件形式保存在 [`apps-script/market/Market.gs`](./apps-script/market/Market.gs)，可完整复制到绑定的 Apps Script 项目。默认按来源和市场当地时区调度；数字货币与汇率全天运行，美股使用纽约时区并自动适配夏令时和冬令时。安装触发器、脚本属性和 clasp 的具体步骤见 [`apps-script/market/README.md`](./apps-script/market/README.md)。
+Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheets 的 `SystemSettings` 表，key 为 `appsScript.marketCode`。表格中的代码仅用于集中管理和复制，不会自动执行；实际运行版本仍需粘贴到绑定的 Google Apps Script 编辑器中。
 
 ### 持仓数据（`Holdings` 表）
 
@@ -317,9 +320,15 @@ Google Sheets 的 Market 行情刷新脚本以单文件形式保存在 [`apps-sc
 
 每日一条 `{ date, total, categories?, note? }` 快照。手动和定时快照都会从 `Holdings` 实时汇总总资产与九类资产数据；美股历史按账户口径包含 US 现金，A股和港股历史只包含股票（现金列仍保留全部现金，总资产只累计一次），同日已有记录时覆盖并保留原备注，否则追加。
 
-### 认证配置（`AuthConfig` 表）
+### 系统设置（`SystemSettings` 表）
 
-首次成功修改密码时自动创建，使用固定 key/value 结构：`username`、`passwordHash`、`passwordSalt`、`tokenVersion`、`updatedAt`。其中密码使用 Node.js 原生 scrypt 和随机 salt 生成，表中不保存明文密码；`JWT_SECRET` 仍只存在服务端环境变量。AuthConfig 未初始化时登录继续验证 `AUTH_PASSWORD`，实现无感迁移。
+系统设置统一使用 `key | value | updatedAt | description` 四列，当前 key 包括：
+
+- `auth.username`、`auth.passwordHash`、`auth.passwordSalt`、`auth.tokenVersion`、`auth.updatedAt`
+- `ai.rules`
+- `appsScript.marketCode`
+
+密码使用 Node.js 原生 scrypt 和随机 salt 生成，表中不保存明文密码；`JWT_SECRET` 仍只存在服务端环境变量。旧 `AuthConfig` 和 `AIConfig` 在迁移期只作为读取回退，后续密码修改和 AI 规则保存只写入 `SystemSettings`，不会自动删除旧表。
 
 ## 离线优先（Offline-First）架构
 
@@ -352,8 +361,9 @@ Google Sheets 的 Market 行情刷新脚本以单文件形式保存在 [`apps-sc
 | `asset-monitor:pendingSync` | 待同步到 Google Sheets 的快照队列 |
 | `asset-monitor:lastSyncAt` | 最后成功同步时间 |
 | `youshu-ai-enabled` | 是否在页面显示 AI 助手 |
-| `youshu-ai-consent` | 是否已确认资产数据会发送给 DeepSeek |
+| `youshu-ai-consent` | 是否已确认资产数据会发送给所选模型服务商 |
 | `youshu-ai-messages` | 当前浏览器最近的 AI 对话 |
+| `youshu-ai-provider` | 当前设备选择的模型服务商（DeepSeek 或 Gemini） |
 
 JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。前端不执行动态 HTML、AI 回复只按纯文本渲染，并且 localStorage 不保存密码、API Key 或 Google 凭据。
 
@@ -366,9 +376,9 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | 接口 | 方法 | 说明 |
 | --- | --- | --- |
 | `/api/auth/login` | POST | 登录，返回 JWT token |
-| `/api/auth/change-password` | POST | 私人；验证当前密码后写入 AuthConfig，并使旧 JWT 失效 |
-| `/api/ai-chat` | POST | 登录后读取资产数据并流式调用 DeepSeek |
-| `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `AIConfig` 表 |
+| `/api/auth/change-password` | POST | 私人；验证当前密码后写入 SystemSettings，并使旧 JWT 失效 |
+| `/api/ai-chat` | POST | 登录后读取资产数据并流式调用当前选择的 DeepSeek 或 Gemini |
+| `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `SystemSettings` 表 |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET / POST / PUT / DELETE | 私人；读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓，写操作另有行版本校验 |
 | `/api/history` | GET / PUT | 私人；读取 History 或按日期更新当天最后一列备注 |
@@ -378,7 +388,7 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | `/api/market` | GET | 读取 Market 表行情（公开） |
 | `/api/futures` | GET | 中证500股指期货贴水（公开） |
 
-登录接口会对连续失败进行延迟和暖实例内的轻量限流。AuthConfig 在每个服务端实例内缓存 20 秒并合并并发读取；修改密码会立即清除当前实例缓存。Vercel Serverless 不保证同一请求落到同一实例，因此登录限流不是跨实例严格限流，其他暖实例也可能在最多 20 秒内继续接受旧 tokenVersion；如需强一致失效，需要外部共享存储或边缘层支持。
+登录接口会对连续失败进行延迟和暖实例内的轻量限流。认证配置在每个服务端实例内缓存 20 秒并合并并发读取；修改密码会立即清除当前实例缓存。Vercel Serverless 不保证同一请求落到同一实例，因此登录限流不是跨实例严格限流，其他暖实例也可能在最多 20 秒内继续接受旧 tokenVersion；如需强一致失效，需要外部共享存储或边缘层支持。
 
 ### Google Sheets 凭据获取
 

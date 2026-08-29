@@ -43,7 +43,7 @@ export async function handleLogin(req, res, { loadAuthConfig = getAuthConfig } =
     return json(res, error.statusCode || 503, { error: error.statusCode ? error.message : '认证配置读取失败' })
   }
   if (authConfig.initialized && !secureTextEqual(authConfig.username, authUsername)) {
-    return json(res, 503, { error: 'AuthConfig 用户名与服务端配置不一致' })
+    return json(res, 503, { error: '系统设置中的用户名与服务端配置不一致' })
   }
   if (!authConfig.initialized && !authPassword) {
     return json(res, 503, { error: '服务端登录密码未配置' })

@@ -5,6 +5,7 @@ import {
   AI_MESSAGES_KEY,
   AI_MESSAGES_CLEARED_EVENT,
   AI_SETTING_EVENT,
+  getCachedAiProvider,
   isAiEnabled,
   setAiEnabled,
   loadAiMessages,
@@ -81,6 +82,7 @@ export default function AiAssistant({ auth } = {}) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dataAsOf, setDataAsOf] = useState(null)
+  const [aiProvider, setAiProvider] = useState(getCachedAiProvider)
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
@@ -221,6 +223,7 @@ export default function AiAssistant({ auth } = {}) {
         setMessages([...requestMessages, { role: 'assistant', content: answer }])
       }, { signal: controller.signal })
       setDataAsOf(meta.dataAsOf)
+      setAiProvider(meta.provider)
       if (!answer.trim()) throw new Error('AI没有返回有效内容，请重试')
     } catch (requestError) {
       if (requestError?.name !== 'AbortError') setError(requestError?.message || 'AI分析失败')
@@ -363,7 +366,7 @@ export default function AiAssistant({ auth } = {}) {
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
-                    我会读取 Holdings、History 和目标配置来回答。资产金额、账户、代码和备注会发送给 DeepSeek，请勿在问题中填写密码或API密钥。
+                    我会读取 Holdings、History 和目标配置来回答。资产金额、账户、代码和备注会发送给{aiProvider === 'gemini' ? ' Google Gemini' : ' DeepSeek'}，请勿在问题中填写密码或API密钥。
                   </div>
                   <div className="mt-4 text-xs font-medium text-gray-500">你可以这样问</div>
                   <div className="mt-2 flex flex-wrap gap-2">

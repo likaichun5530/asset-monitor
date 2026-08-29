@@ -1,6 +1,8 @@
-import { appendRows, ensureSheet, readSheet, updateRows } from './_google.js'
+import { readSheet } from './_google.js'
+import { SYSTEM_SETTING_KEYS, SYSTEM_SETTINGS_SHEET, systemSettingsStore } from './_system-settings.js'
 
-export const AI_CONFIG_SHEET = 'AIConfig'
+export const AI_CONFIG_SHEET = SYSTEM_SETTINGS_SHEET
+export const LEGACY_AI_CONFIG_SHEET = 'AIConfig'
 export const AI_RULES_KEY = 'AI_RULES'
 export const AI_SYSTEM_RULES_KEY = 'AI_SYSTEM_RULES'
 export const AI_USER_RULES_KEY = 'AI_USER_RULES'
@@ -32,8 +34,8 @@ export function normalizeAiRules(value, label = '规则', { allowEmpty = false }
   return rules
 }
 
-export async function readAiRules() {
-  const result = await readSheet(AI_CONFIG_SHEET).catch(() => null)
+async function readLegacyAiRules() {
+  const result = await readSheet(LEGACY_AI_CONFIG_SHEET).catch(() => null)
   if (!result) return DEFAULT_AI_RULES
   const keyHeader = result.headers?.[0]
   const valueHeader = result.headers?.[1]
@@ -46,24 +48,26 @@ export async function readAiRules() {
   return [legacySystem, legacyUser].filter(Boolean).join('\n\n') || DEFAULT_AI_RULES
 }
 
+export async function resolveAiRules(settings) {
+  const unified = normalizeAiRules(settings.get(SYSTEM_SETTING_KEYS.aiRules)?.value, 'AI 规则', { allowEmpty: true })
+  return unified || readLegacyAiRules()
+}
+
+export async function readAiRules({ settingsStore = systemSettingsStore } = {}) {
+  const { settings } = await settingsStore.read()
+  return resolveAiRules(settings)
+}
+
 export async function readAiUserRules() {
   return readAiRules()
 }
 
-export async function writeAiRules(value) {
+export async function writeAiRules(value, { settingsStore = systemSettingsStore } = {}) {
   const rules = normalizeAiRules(value, 'AI 规则')
-  await ensureSheet(AI_CONFIG_SHEET)
-  const result = await readSheet(AI_CONFIG_SHEET)
-  if (!result.headers?.length) {
-    await updateRows(AI_CONFIG_SHEET, 'A1:B2', [
-      ['Key', 'Value'],
-      [AI_RULES_KEY, rules],
-    ], { valueInputOption: 'RAW' })
-    return rules
-  }
-  const keyHeader = result.headers[0]
-  const rowIndex = result.data?.findIndex((item) => String(item?.[keyHeader] || '').trim() === AI_RULES_KEY) ?? -1
-  if (rowIndex >= 0) await updateRows(AI_CONFIG_SHEET, `A${rowIndex + 2}:B${rowIndex + 2}`, [[AI_RULES_KEY, rules]], { valueInputOption: 'RAW' })
-  else await appendRows(AI_CONFIG_SHEET, [[AI_RULES_KEY, rules]], { valueInputOption: 'RAW' })
+  await settingsStore.upsert([{
+    key: SYSTEM_SETTING_KEYS.aiRules,
+    value: rules,
+    description: 'Editable rules for the AI asset assistant',
+  }])
   return rules
 }
