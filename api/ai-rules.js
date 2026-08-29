@@ -2,6 +2,7 @@ import { requireAuth } from './_auth.js'
 import { isConfigured } from './_google.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { DEFAULT_AI_RULES, MAX_AI_RULES_LENGTH, readAiRules, writeAiRules } from './_ai-rules.js'
+import { MAX_AI_MODELS, readAiModels, writeAiModels } from './_ai-models.js'
 
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' })
@@ -19,6 +20,12 @@ export default async function handler(req, res) {
   try {
     await requireAuth(req)
     if (!isConfigured()) return json(res, 503, { error: 'Google Sheets 未配置' })
+    const resource = String(req.query?.resource || '')
+    if (resource === 'models') {
+      if (req.method === 'GET') return json(res, 200, { models: await readAiModels({ initialize: true }), maxModels: MAX_AI_MODELS })
+      const body = await readJsonBody(req)
+      return json(res, 200, { models: await writeAiModels(body.models), savedAt: new Date().toISOString() })
+    }
     if (req.method === 'GET') {
       const rules = await readAiRules()
       return json(res, 200, { rules, defaultRules: DEFAULT_AI_RULES, maxLength: MAX_AI_RULES_LENGTH })

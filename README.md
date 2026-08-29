@@ -378,7 +378,7 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | `/api/auth/login` | POST | 登录，返回 JWT token |
 | `/api/auth/change-password` | POST | 私人；验证当前密码后写入 SystemSettings，并使旧 JWT 失效 |
 | `/api/ai-chat` | POST | 登录后读取资产数据并流式调用当前选择的 DeepSeek 或 Gemini |
-| `/api/ai-models` | GET/PUT | 登录后读取或保存 `SystemSettings` 中的 AI 模型清单 |
+| `/api/ai-rules?resource=models` | GET/PUT | 登录后读取或保存 `SystemSettings` 中的 AI 模型清单 |
 | `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `SystemSettings` 表 |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET / POST / PUT / DELETE | 私人；读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓，写操作另有行版本校验 |

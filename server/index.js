@@ -9,7 +9,6 @@ const routes = [
   ['/api/auth/login', '../api/auth/login.js'],
   ['/api/auth/change-password', '../api/auth/change-password.js'],
   ['/api/ai-chat', '../api/ai-chat.js'],
-  ['/api/ai-models', '../api/ai-models.js'],
   ['/api/ai-rules', '../api/ai-rules.js'],
   ['/api/futures', '../api/futures.js'],
   ['/api/health', '../api/health.js'],

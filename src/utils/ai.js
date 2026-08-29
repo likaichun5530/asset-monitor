@@ -104,12 +104,12 @@ export async function saveAiRules(rules) {
 }
 
 export async function getAiModels() {
-  const data = await requestApiJson('ai-models')
+  const data = await requestApiJson('ai-rules?resource=models')
   return { ...data, models: normalizeClientAiModels(data.models) }
 }
 
 export async function saveAiModels(models) {
-  const data = await requestApiJson('ai-models', {
+  const data = await requestApiJson('ai-rules?resource=models', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ models }),

@@ -192,10 +192,11 @@ test('SystemSettings AI 模型清单可编辑且拒绝危险或重复配置', as
 })
 
 test('AI 模型清单接口要求登录，设置页提供增删编辑入口', async () => {
-  const apiSource = await readFile(new URL('../api/ai-models.js', import.meta.url), 'utf8')
+  const apiSource = await readFile(new URL('../api/ai-rules.js', import.meta.url), 'utf8')
   const settingsSource = await readFile(new URL('../src/components/AiModelSettingsDialog.jsx', import.meta.url), 'utf8')
   const systemSettingsSource = await readFile(new URL('../api/_system-settings.js', import.meta.url), 'utf8')
   assert.match(apiSource, /requireAuth\(req\)/)
+  assert.match(apiSource, /resource === 'models'/)
   assert.match(systemSettingsSource, /aiModels: 'ai\.models'/)
   assert.match(settingsSource, /新增模型/)
   assert.match(settingsSource, /removeModel/)
