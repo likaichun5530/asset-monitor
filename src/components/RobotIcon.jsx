@@ -4,8 +4,10 @@ export default function RobotIcon({ className = 'h-6 w-6' }) {
       <path d="M24 11V7" stroke="#6366F1" strokeWidth="2.4" strokeLinecap="round" />
       <circle cx="24" cy="5.5" r="2.5" fill="#FBBF24" stroke="white" strokeWidth="1.5" />
       <path d="m39 7 .9 2.1L42 10l-2.1.9L39 13l-.9-2.1L36 10l2.1-.9L39 7Z" fill="#FBBF24" />
-      <rect x="2.5" y="21" width="7" height="12" rx="3.5" fill="#22D3EE" stroke="white" strokeWidth="1.5" />
-      <rect x="38.5" y="21" width="7" height="12" rx="3.5" fill="#22D3EE" stroke="white" strokeWidth="1.5" />
+      <rect x="2.5" y="21" width="7" height="12" rx="3.5" fill="#06B6D4" stroke="#3730A3" strokeWidth="1.5" />
+      <rect x="38.5" y="21" width="7" height="12" rx="3.5" fill="#06B6D4" stroke="#3730A3" strokeWidth="1.5" />
+      <path d="M5 24v4" stroke="#A5F3FC" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M41 24v4" stroke="#A5F3FC" strokeWidth="1.3" strokeLinecap="round" />
       <rect x="6" y="10" width="36" height="34" rx="14" fill="#6366F1" stroke="white" strokeWidth="2" />
       <path d="M9 22c0-5 4-9 9-9h12c5 0 9 4 9 9v7c0 7-5 12-12 12h-6C14 41 9 36 9 29v-7Z" fill="#EEF2FF" />
       <ellipse cx="17" cy="25" rx="3.2" ry="4" fill="#312E81" />
