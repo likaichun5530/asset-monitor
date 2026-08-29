@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchTarget } from '../utils/dataStore.js'
 import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
@@ -97,8 +97,11 @@ function futuresMultiplier(symbol) {
 
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
   const [targetData, setTargetData] = useState([])
+  const previousTargetRefreshKeyRef = useRef(targetRefreshKey)
   useEffect(() => {
-    fetchTarget().then((data) => setTargetData(data.target || [])).catch(() => {})
+    const forceRefresh = previousTargetRefreshKeyRef.current !== targetRefreshKey
+    previousTargetRefreshKeyRef.current = targetRefreshKey
+    fetchTarget({ forceRefresh }).then((data) => setTargetData(data.target || [])).catch(() => {})
   }, [targetRefreshKey])
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
 

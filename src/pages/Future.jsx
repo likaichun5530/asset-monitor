@@ -45,8 +45,8 @@ export default function Future({ refreshKey = 0 }) {
     return null
   })
 
-  const loadQuotes = useCallback(async () => {
-    const response = await getApiJson('futures', { auth: false })
+  const loadQuotes = useCallback(async ({ forceRefresh = false } = {}) => {
+    const response = await getApiJson('futures', { auth: false, forceRefresh })
     const data = response.futures || null
     setFuturesData(data)
     if (data) {

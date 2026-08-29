@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
@@ -7,7 +7,7 @@ import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
 const pieColors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#6366f1', '#14b8a6']
 
-export default function Cash({ refreshKey = 0 }) {
+export default function Cash({ refreshKey = 0, targetRefreshKey = 0 }) {
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
   const total = useMemo(() => totalMarketValue(), [refreshKey])
 
@@ -26,16 +26,19 @@ export default function Cash({ refreshKey = 0 }) {
   // 获取目标配置数据
   const [targetData, setTargetData] = useState([])
   const [targetLoading, setTargetLoading] = useState(false)
+  const previousTargetRefreshKeyRef = useRef(targetRefreshKey)
 
   useEffect(() => {
     setTargetLoading(true)
-    fetchTarget()
+    const forceRefresh = previousTargetRefreshKeyRef.current !== targetRefreshKey
+    previousTargetRefreshKeyRef.current = targetRefreshKey
+    fetchTarget({ forceRefresh })
       .then((data) => {
         setTargetData(data.target || [])
         setTargetLoading(false)
       })
       .catch(() => setTargetLoading(false))
-  }, [refreshKey])
+  }, [refreshKey, targetRefreshKey])
 
   // 现金明细饼图数据 - 按账户聚合
   const cashPieData = useMemo(() => {

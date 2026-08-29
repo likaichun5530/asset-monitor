@@ -51,14 +51,14 @@ async function apiPost(endpoint, body) {
 
 // ===== Holdings =====
 
-export async function fetchHoldings() {
+export async function fetchHoldings({ forceRefresh = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) {
     return { holdings: demoHoldings, source: 'demo', syncedAt: null }
   }
 
   if (API_BASE) {
     try {
-      const data = await getApiJson('holdings')
+      const data = await getApiJson('holdings', { forceRefresh })
       const holdings = normalizeHoldings(data.holdings || [])
       if (holdings.length) {
         writeLocal(KEYS.holdings, { holdings, syncedAt: data.syncedAt })
@@ -140,14 +140,14 @@ export async function deleteHolding({ rowNumber, rowVersion }) {
 
 // ===== History =====
 
-export async function fetchHistory() {
+export async function fetchHistory({ forceRefresh = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) {
     return { history: demoHistory, source: 'demo', syncedAt: null }
   }
 
   if (API_BASE) {
     try {
-      const data = await getApiJson('history')
+      const data = await getApiJson('history', { forceRefresh })
       const history = (data.history || [])
         .filter((r) => r.date)
         .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -249,14 +249,14 @@ export async function retryPendingSync() {
 
 // ===== Target（配置目标） =====
 
-export async function fetchTarget() {
+export async function fetchTarget({ forceRefresh = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) {
     return { target: demoTarget, source: 'demo', syncedAt: null }
   }
 
   if (API_BASE) {
     try {
-      const data = await getApiJson('target')
+      const data = await getApiJson('target', { forceRefresh })
       if (data.target?.length) {
         const target = normalizeTarget(data.target)
         writeLocal('asset-monitor:target', { target, syncedAt: data.syncedAt })

@@ -35,3 +35,6 @@ server/.env
 .vercel
 .env*
 release/
+
+# Google Apps Script 本机 clasp 项目绑定
+apps-script/**/.clasp.json

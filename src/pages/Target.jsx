@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
@@ -34,11 +34,12 @@ export default function Target({ refreshKey = 0 }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const previousRefreshKeyRef = useRef(refreshKey)
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (forceRefresh = false) => {
     setError(null)
     try {
-      const result = await fetchTarget()
+      const result = await fetchTarget({ forceRefresh })
       setData(result.target || [])
     } catch (e) {
       setError('无法加载配置目标: ' + (e?.message || String(e)))
@@ -50,7 +51,9 @@ export default function Target({ refreshKey = 0 }) {
   useEffect(() => {
     // 无缓存时显示 loading，否则后台刷新
     if (!data || !data.length) setLoading(true)
-    loadData()
+    const forceRefresh = previousRefreshKeyRef.current !== refreshKey
+    previousRefreshKeyRef.current = refreshKey
+    loadData(forceRefresh)
   }, [loadData, refreshKey])
 
   // 分离数据行和合计行，数据行按金额从大到小排序

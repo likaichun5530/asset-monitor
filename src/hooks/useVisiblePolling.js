@@ -5,6 +5,7 @@ export function useVisiblePolling(task, { enabled = true, intervalMs = 5 * 60 * 
   const taskRef = useRef(task)
   const inFlightRef = useRef(false)
   const lastRunAtRef = useRef(0)
+  const mountedRefreshKeyRef = useRef(null)
   taskRef.current = task
 
   const run = useCallback(async (force = false) => {
@@ -20,14 +21,18 @@ export function useVisiblePolling(task, { enabled = true, intervalMs = 5 * 60 * 
     inFlightRef.current = true
     lastRunAtRef.current = Date.now()
     try {
-      await taskRef.current()
+      await taskRef.current({ forceRefresh: force })
       return true
     } finally {
       inFlightRef.current = false
     }
   }, [enabled, intervalMs])
 
-  useEffect(() => { run(true).catch(() => {}) }, [refreshKey, run])
+  useEffect(() => {
+    const forceRefresh = mountedRefreshKeyRef.current !== null && mountedRefreshKeyRef.current !== refreshKey
+    mountedRefreshKeyRef.current = refreshKey
+    run(forceRefresh).catch(() => {})
+  }, [refreshKey, run])
 
   useEffect(() => {
     if (!enabled) return undefined

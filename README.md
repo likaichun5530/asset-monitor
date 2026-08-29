@@ -225,6 +225,8 @@ Asset-Monitor/
 │   ├── market.js              # GET  /api/market
 │   ├── snapshot-auto.js       # GET  /api/snapshot-auto（Vercel Cron）
 │   └── target.js              # GET  /api/target
+├── apps-script/market/
+│   └── Market.gs              # 可整段复制的单文件 Market 行情刷新脚本
 ├── public/
 │   ├── icon.png
 │   └── 品牌图片
@@ -278,6 +280,10 @@ Asset-Monitor/
 
 实盘数据来源于 Google Sheets；演示数据位于 `src/data/demo.js`。
 
+### Market 行情刷新脚本
+
+Google Sheets 的 Market 行情刷新脚本以单文件形式保存在 [`apps-script/market/Market.gs`](./apps-script/market/Market.gs)，可完整复制到绑定的 Apps Script 项目。默认按来源和市场当地时区调度；数字货币与汇率全天运行，美股使用纽约时区并自动适配夏令时和冬令时。安装触发器、脚本属性和 clasp 的具体步骤见 [`apps-script/market/README.md`](./apps-script/market/README.md)。
+
 ### 持仓数据（`Holdings` 表）
 
 | 字段 | 类型 | 说明 |
@@ -308,6 +314,8 @@ Asset-Monitor/
 2. **离线模式**：使用本地缓存（localStorage）中的最近一次数据
 3. **无可用数据**：实盘模式显示空状态；演示模式使用 `src/data/demo.js`
 
+在线 GET 另有一层仅存在于当前页面进程的短 TTL 缓存，用于避免快速切换页面时重复访问 Google Sheets：Holdings 和 Target 为 15 秒，Market 和 Futures 为 20 秒。它不使用浏览器/CDN HTTP Cache，不缓存写请求；写入数据、手动刷新、登录会话切换时会按数据源立即失效。History 仍不做周期 TTL 缓存。
+
 ### 数据写入策略（生成快照）
 1. **立即写入本地**：快照保存到 localStorage 的待同步队列，趋势图立即更新
 2. **尝试同步云端**：若后端可用，POST 到 Google Sheets；成功则从待同步队列移除
@@ -330,6 +338,8 @@ Asset-Monitor/
 | `youshu-ai-enabled` | 是否在页面显示 AI 助手 |
 | `youshu-ai-consent` | 是否已确认资产数据会发送给 DeepSeek |
 | `youshu-ai-messages` | 当前浏览器最近的 AI 对话 |
+
+JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。前端不执行动态 HTML、AI 回复只按纯文本渲染，并且 localStorage 不保存密码、API Key 或 Google 凭据。
 
 ## 配色说明
 

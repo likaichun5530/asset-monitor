@@ -30,12 +30,12 @@ export function useAssetData({ enabled = true } = {}) {
     setSyncedAt(result.syncedAt)
   }, [])
 
-  const loadEverything = useCallback(async () => {
+  const loadEverything = useCallback(async (forceRefresh = false) => {
     if (!enabled || initialInFlightRef.current) return false
     initialInFlightRef.current = true
     setError(null)
     try {
-      const result = await loadInitialData()
+      const result = await loadInitialData({ forceRefresh })
       applyHoldingsStatus(result)
       lastHoldingsRefreshRef.current = Date.now()
       return true
@@ -60,7 +60,7 @@ export function useAssetData({ enabled = true } = {}) {
 
     holdingsInFlightRef.current = true
     try {
-      const result = await loadHoldingsData()
+      const result = await loadHoldingsData({ forceRefresh: force })
       applyHoldingsStatus(result)
       lastHoldingsRefreshRef.current = Date.now()
       if (mountedRef.current) setRefreshKey((key) => key + 1)
@@ -74,7 +74,7 @@ export function useAssetData({ enabled = true } = {}) {
   }, [applyHoldingsStatus, enabled])
 
   const refresh = useCallback(async () => {
-    const loaded = await loadEverything()
+    const loaded = await loadEverything(true)
     if (loaded && mountedRef.current) {
       setRefreshKey((key) => key + 1)
       setManualRefreshKey((key) => key + 1)

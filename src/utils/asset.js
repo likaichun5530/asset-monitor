@@ -248,24 +248,24 @@ export function lastUpdateDate() {
 
 // ===== 动态加载（从 Google Sheets / 本地缓存） =====
 
-export async function loadHoldingsData() {
-  const holdingsResult = await fetchHoldings()
+export async function loadHoldingsData({ forceRefresh = false } = {}) {
+  const holdingsResult = await fetchHoldings({ forceRefresh })
   setActiveHoldings(holdingsResult.holdings)
   return holdingsResult
 }
 
-export async function loadHistoryData() {
-  const historyResult = await fetchHistory()
+export async function loadHistoryData({ forceRefresh = false } = {}) {
+  const historyResult = await fetchHistory({ forceRefresh })
   setCachedHistory(historyResult.history)
   return historyResult
 }
 
 // 首次加载和手动刷新读取全部数据；定时刷新只调用 loadHoldingsData。
-export async function loadInitialData() {
+export async function loadInitialData({ forceRefresh = false } = {}) {
   if (hasBackend()) await retryPendingSync()
   const [holdingsResult, historyResult] = await Promise.all([
-    fetchHoldings(),
-    fetchHistory(),
+    fetchHoldings({ forceRefresh }),
+    fetchHistory({ forceRefresh }),
   ])
   setActiveHoldings(holdingsResult.holdings)
   setCachedHistory(historyResult.history)

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { AUTH_EXPIRED_EVENT, AUTH_STORAGE_KEY, requestApiJson } from '../utils/api.js'
+import { AUTH_EXPIRED_EVENT, AUTH_STORAGE_KEY, clearPrivateApiCache, requestApiJson } from '../utils/api.js'
 
 // 解析 JWT payload（缓存避免重复解码）
 let cachedPayload = null
@@ -44,6 +44,7 @@ export function useAuth() {
   }, [token])
 
   const logout = useCallback(() => {
+    clearPrivateApiCache()
     localStorage.removeItem(AUTH_STORAGE_KEY)
     localStorage.removeItem('youshu-demo-mode')
     cachedToken = null
@@ -73,6 +74,7 @@ export function useAuth() {
       })
       cachedToken = data.token
       cachedPayload = null
+      clearPrivateApiCache()
       localStorage.setItem(AUTH_STORAGE_KEY, data.token)
       localStorage.setItem('youshu-demo-mode', 'false')
       setToken(data.token)

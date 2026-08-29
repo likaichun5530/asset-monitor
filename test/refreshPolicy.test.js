@@ -18,7 +18,7 @@ test('资产自动刷新只加载 holdings，History 只在首次或手动刷新
   const hookSource = await readFile(new URL('../src/hooks/useAssetData.js', import.meta.url), 'utf8')
   const assetSource = await readFile(new URL('../src/utils/asset.js', import.meta.url), 'utf8')
   assert.match(hookSource, /refreshHoldings/)
-  assert.match(hookSource, /loadHoldingsData\(\)/)
+  assert.match(hookSource, /loadHoldingsData\(\{ forceRefresh: force \}\)/)
   assert.doesNotMatch(hookSource, /loadAll/)
   assert.match(assetSource, /export async function loadInitialData/)
   assert.match(assetSource, /export async function loadHistoryData/)
@@ -26,6 +26,6 @@ test('资产自动刷新只加载 holdings，History 只在首次或手动刷新
 
 test('期货页复用 futures 响应中的 Market 数据，不重复请求 market 接口', async () => {
   const futureSource = await readFile(new URL('../src/pages/Future.jsx', import.meta.url), 'utf8')
-  assert.match(futureSource, /getApiJson\('futures', \{ auth: false \}\)/)
+  assert.match(futureSource, /getApiJson\('futures', \{ auth: false, forceRefresh \}\)/)
   assert.doesNotMatch(futureSource, /getApiJson\('market'/)
 })

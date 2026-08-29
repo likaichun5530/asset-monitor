@@ -58,9 +58,9 @@ export default function Market({ refreshKey = 0 }) {
   })
   const [loading, setLoading] = useState(!data.length)
 
-  const loadMarket = useCallback(async () => {
+  const loadMarket = useCallback(async ({ forceRefresh = false } = {}) => {
     try {
-      const res = await getApiJson('market', { auth: false })
+      const res = await getApiJson('market', { auth: false, forceRefresh })
       const marketData = res.market || []
       setData(marketData)
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
