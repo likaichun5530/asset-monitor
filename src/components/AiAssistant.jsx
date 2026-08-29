@@ -9,6 +9,7 @@ import {
   AI_MODEL_OPTIONS,
   AI_SETTING_EVENT,
   cacheAiModel,
+  getAiModels,
   getAiModelOption,
   getCachedAiModel,
   isAiEnabled,
@@ -88,6 +89,7 @@ export default function AiAssistant({ auth } = {}) {
   const [error, setError] = useState('')
   const [dataAsOf, setDataAsOf] = useState(null)
   const [selectedModel, setSelectedModel] = useState(getCachedAiModel)
+  const [aiModels, setAiModels] = useState(AI_MODEL_OPTIONS)
   const [actualModel, setActualModel] = useState(null)
   const [modelMenuOpen, setModelMenuOpen] = useState(false)
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
@@ -128,7 +130,7 @@ export default function AiAssistant({ auth } = {}) {
         if (!nextEnabled) close()
       }
       if (event.key === AI_MODEL_KEY) {
-        setSelectedModel(getAiModelOption(event.newValue).id)
+        setSelectedModel(getAiModelOption(event.newValue, aiModels).id)
       }
     }
     const onMessagesCleared = () => {
@@ -140,7 +142,7 @@ export default function AiAssistant({ auth } = {}) {
       setLoading(false)
     }
     const onModelChanged = (event) => {
-      setSelectedModel(getAiModelOption(event.detail?.model).id)
+      setSelectedModel(getAiModelOption(event.detail?.model, aiModels).id)
     }
     window.addEventListener(AI_SETTING_EVENT, onSetting)
     window.addEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
@@ -152,13 +154,27 @@ export default function AiAssistant({ auth } = {}) {
       window.removeEventListener(AI_MODEL_CHANGED_EVENT, onModelChanged)
       window.removeEventListener('storage', onStorage)
     }
-  }, [close])
+  }, [aiModels, close])
 
   useEffect(() => {
     if (!visible && open) close()
   }, [close, open, visible])
 
   useEffect(() => { saveAiMessages(messages) }, [messages])
+
+  useEffect(() => {
+    if (!visible) return undefined
+    let active = true
+    getAiModels().then(({ models }) => {
+      if (!active) return
+      setAiModels(models)
+      setSelectedModel((current) => {
+        const next = models.some((model) => model.id === current) ? current : cacheAiModel(models[0].id)
+        return next
+      })
+    }).catch(() => {})
+    return () => { active = false }
+  }, [visible])
 
   useEffect(() => {
     if (!open || !visible) return undefined
@@ -247,7 +263,7 @@ export default function AiAssistant({ auth } = {}) {
       const meta = await streamAiChat(requestMessages, location.pathname, (chunk) => {
         answer += chunk
         setMessages([...requestMessages, { role: 'assistant', content: answer }])
-      }, { signal: controller.signal })
+      }, { signal: controller.signal, model: selectedModelOption })
       setDataAsOf(meta.dataAsOf)
       setSelectedModel(meta.selectionId)
       setActualModel(meta.model)
@@ -348,7 +364,7 @@ export default function AiAssistant({ auth } = {}) {
     clearMessages()
   }
 
-  const selectedModelOption = getAiModelOption(selectedModel)
+  const selectedModelOption = getAiModelOption(selectedModel, aiModels)
 
   return (
     <>
@@ -456,7 +472,7 @@ export default function AiAssistant({ auth } = {}) {
                 </button>
                 {modelMenuOpen && (
                   <div role="listbox" aria-label="选择 AI 模型" className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-xl dark:border-gray-600 dark:bg-gray-700">
-                    {AI_MODEL_OPTIONS.map((model) => (
+                    {aiModels.map((model) => (
                       <button
                         key={model.id}
                         type="button"

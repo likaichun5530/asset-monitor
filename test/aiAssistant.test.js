@@ -7,6 +7,7 @@ import { buildDeepSeekMessages, createDeepSeekStream, normalizeAiMessages } from
 import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, extractGeminiText, getGeminiFinishReason, getGeminiMaxOutputTokens } from '../api/_gemini.js'
 import { AI_MODELS, createAiStream, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
 import { createSseDataParser } from '../api/_ai-stream.js'
+import { DEFAULT_AI_MODELS, normalizeAiModels, readAiModels } from '../api/_ai-models.js'
 
 test('AI上下文包含完整持仓、历史分类和目标计算，但不包含表格控制字段', () => {
   const context = buildAiContextFromSheets({
@@ -151,7 +152,7 @@ test('Gemini 使用官方流式接口格式，并保持资产数据为只读系�
     assert.doesNotMatch(capturedUrl, /test-gemini-key/)
     assert.equal(capturedOptions.headers['x-goog-api-key'], 'test-gemini-key')
     assert.doesNotMatch(capturedOptions.body, /test-gemini-key/)
-    const selected = await createAiStream({ provider: 'gemini', model: 'gemini-3.5-flash-lite' }, { holdings: [] }, [{ role: 'user', content: '测试' }])
+    const selected = await createAiStream({ provider: 'gemini', model: 'gemini-3.5-flash-lite' }, { holdings: [] }, [{ role: 'user', content: '测试' }], undefined, { models: DEFAULT_AI_MODELS })
     assert.equal(selected.provider, 'gemini')
   } finally {
     global.fetch = originalFetch
@@ -163,6 +164,42 @@ test('Gemini 使用官方流式接口格式，并保持资产数据为只读系�
   const geminiSource = await readFile(new URL('../api/_gemini.js', import.meta.url), 'utf8')
   assert.match(geminiSource, /https:\/\/generativelanguage\.googleapis\.com\/v1beta/)
   assert.doesNotMatch(geminiSource, /process\.env\.GEMINI_BASE_URL/)
+})
+
+test('SystemSettings AI 模型清单可编辑且拒绝危险或重复配置', async () => {
+  const models = normalizeAiModels([
+    { provider: 'gemini', id: 'gemini-custom', label: '自定义 Gemini', description: '测试' },
+    { provider: 'deepseek', id: 'deepseek-custom', label: '自定义 DeepSeek' },
+  ])
+  assert.equal(models.length, 2)
+  assert.equal(models[0].label, '自定义 Gemini')
+  assert.throws(() => normalizeAiModels([{ provider: 'other', id: 'model-1', label: '错误' }]), /服务商无效/)
+  assert.throws(() => normalizeAiModels([{ provider: 'gemini', id: '../model', label: '错误' }]), /ID 无效/)
+  assert.throws(() => normalizeAiModels([
+    { provider: 'gemini', id: 'same-model', label: '一' },
+    { provider: 'gemini', id: 'same-model', label: '二' },
+  ]), /重复/)
+  const writes = []
+  const initialized = await readAiModels({
+    initialize: true,
+    settingsStore: {
+      read: async () => ({ settings: new Map() }),
+      upsert: async (entries) => writes.push(entries),
+    },
+  })
+  assert.equal(initialized.length, 3)
+  assert.equal(writes[0][0].key, 'ai.models')
+})
+
+test('AI 模型清单接口要求登录，设置页提供增删编辑入口', async () => {
+  const apiSource = await readFile(new URL('../api/ai-models.js', import.meta.url), 'utf8')
+  const settingsSource = await readFile(new URL('../src/components/AiModelSettingsDialog.jsx', import.meta.url), 'utf8')
+  const systemSettingsSource = await readFile(new URL('../api/_system-settings.js', import.meta.url), 'utf8')
+  assert.match(apiSource, /requireAuth\(req\)/)
+  assert.match(systemSettingsSource, /aiModels: 'ai\.models'/)
+  assert.match(settingsSource, /新增模型/)
+  assert.match(settingsSource, /removeModel/)
+  assert.match(settingsSource, /saveAiModels\(models\)/)
 })
 
 test('AI使用设置页保存的统一回答规则', () => {

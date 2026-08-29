@@ -1,17 +1,8 @@
 import { createDeepSeekStream } from './_deepseek.js'
 import { createGeminiStream, extractGeminiText, getGeminiFinishReason } from './_gemini.js'
+import { DEFAULT_AI_MODELS, modelsToMap, readAiModels } from './_ai-models.js'
 
-export const AI_MODELS = Object.freeze({
-  'gemini-3.5-flash-lite': Object.freeze({
-    id: 'gemini-3.5-flash-lite', provider: 'gemini', apiModel: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Lite',
-  }),
-  'gemini-3.5-flash': Object.freeze({
-    id: 'gemini-3.5-flash', provider: 'gemini', apiModel: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash',
-  }),
-  'deepseek-v4-flash': Object.freeze({
-    id: 'deepseek-v4-flash', provider: 'deepseek', apiModel: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash',
-  }),
-})
+export const AI_MODELS = Object.freeze(modelsToMap(DEFAULT_AI_MODELS))
 
 export const DEFAULT_AI_MODEL_ID = 'gemini-3.5-flash-lite'
 export const DEFAULT_AI_PROVIDER = 'gemini'
@@ -31,35 +22,36 @@ export function getAiProviderAvailability() {
   }
 }
 
-function requestedModelId(selection) {
+function requestedModelId(selection, availableModels) {
+  const firstModel = Object.values(availableModels)[0]
   if (typeof selection === 'string') {
-    if (selection === 'gemini') return DEFAULT_AI_MODEL_ID
-    if (selection === 'deepseek') return 'deepseek-v4-flash'
+    if (['gemini', 'deepseek'].includes(selection)) {
+      return Object.values(availableModels).find((model) => model.provider === selection)?.id || firstModel?.id
+    }
     return String(selection).trim().toLowerCase()
   }
-  if (!selection?.model && selection?.provider) return selection.provider === 'deepseek' ? 'deepseek-v4-flash' : DEFAULT_AI_MODEL_ID
-  return String(selection?.model || DEFAULT_AI_MODEL_ID).trim().toLowerCase()
+  if (!selection?.model && selection?.provider) {
+    return Object.values(availableModels).find((model) => model.provider === selection.provider)?.id || firstModel?.id
+  }
+  return String(selection?.model || firstModel?.id || DEFAULT_AI_MODEL_ID).trim().toLowerCase()
 }
 
-export function resolveAiModel(selection, availability = getAiProviderAvailability()) {
-  const requested = AI_MODELS[requestedModelId(selection)]
+export function resolveAiModel(selection, availability = getAiProviderAvailability(), availableModels = AI_MODELS) {
+  const requested = availableModels[requestedModelId(selection, availableModels)]
   if (!requested) throw Object.assign(new Error('不支持的 AI 模型'), { statusCode: 400 })
   if (selection?.provider && normalizeAiProvider(selection.provider) !== requested.provider) {
     throw Object.assign(new Error('AI 模型与服务商不匹配'), { statusCode: 400 })
   }
   if (availability[requested.provider]) return { ...requested, fallback: false }
 
-  const fallbackId = availability.gemini
-    ? DEFAULT_AI_MODEL_ID
-    : availability.deepseek
-      ? 'deepseek-v4-flash'
-      : null
-  if (!fallbackId) throw Object.assign(new Error('当前模型暂不可用，请切换其他模型'), { statusCode: 503 })
-  return { ...AI_MODELS[fallbackId], fallback: true }
+  const fallback = Object.values(availableModels).find((model) => availability[model.provider])
+  if (!fallback) throw Object.assign(new Error('当前模型暂不可用，请切换其他模型'), { statusCode: 503 })
+  return { ...fallback, fallback: true }
 }
 
-export async function createAiStream(selection, context, messages, rules) {
-  const selected = resolveAiModel(selection)
+export async function createAiStream(selection, context, messages, rules, { models } = {}) {
+  const availableModels = modelsToMap(models || await readAiModels())
+  const selected = resolveAiModel(selection, getAiProviderAvailability(), availableModels)
   const result = selected.provider === 'gemini'
     ? await createGeminiStream(context, messages, rules, selected.apiModel)
     : await createDeepSeekStream(context, messages, rules, selected.apiModel)

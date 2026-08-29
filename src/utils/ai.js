@@ -15,14 +15,27 @@ export const AI_MODEL_OPTIONS = [
   { id: 'deepseek-v4-flash', provider: 'deepseek', label: 'DeepSeek V4 Flash', description: '低成本 · 备用' },
 ]
 
-export function getAiModelOption(modelId) {
-  return AI_MODEL_OPTIONS.find((item) => item.id === modelId) || AI_MODEL_OPTIONS[0]
+export function getAiModelOption(modelId, models = AI_MODEL_OPTIONS) {
+  return models.find((item) => item.id === modelId) || models[0] || AI_MODEL_OPTIONS[0]
+}
+
+export function normalizeClientAiModels(models) {
+  if (!Array.isArray(models) || !models.length) return AI_MODEL_OPTIONS
+  const normalized = models.filter((model) => (
+    model && ['gemini', 'deepseek'].includes(model.provider) && /^[a-zA-Z0-9][a-zA-Z0-9._:-]{1,79}$/.test(model.id) && model.label
+  )).map((model) => ({
+    id: String(model.id),
+    provider: model.provider,
+    label: String(model.label).slice(0, 40),
+    description: String(model.description || '').slice(0, 80),
+  }))
+  return normalized.length ? normalized : AI_MODEL_OPTIONS
 }
 
 export function getCachedAiModel() {
   try {
     const stored = localStorage.getItem(AI_MODEL_KEY)
-    if (AI_MODEL_OPTIONS.some((item) => item.id === stored)) return stored
+    if (/^[a-zA-Z0-9][a-zA-Z0-9._:-]{1,79}$/.test(stored || '')) return stored
     const legacyProvider = localStorage.getItem(LEGACY_AI_PROVIDER_KEY)
     return legacyProvider === 'deepseek' ? 'deepseek-v4-flash' : DEFAULT_AI_MODEL_ID
   } catch {
@@ -31,7 +44,9 @@ export function getCachedAiModel() {
 }
 
 export function cacheAiModel(modelId) {
-  const normalized = getAiModelOption(modelId).id
+  const normalized = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{1,79}$/.test(String(modelId || ''))
+    ? String(modelId)
+    : DEFAULT_AI_MODEL_ID
   localStorage.setItem(AI_MODEL_KEY, normalized)
   localStorage.removeItem(LEGACY_AI_PROVIDER_KEY)
   if (typeof window !== 'undefined') {
@@ -88,8 +103,22 @@ export async function saveAiRules(rules) {
   })
 }
 
-export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
-  const selectedModel = getAiModelOption(getCachedAiModel())
+export async function getAiModels() {
+  const data = await requestApiJson('ai-models')
+  return { ...data, models: normalizeClientAiModels(data.models) }
+}
+
+export async function saveAiModels(models) {
+  const data = await requestApiJson('ai-models', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ models }),
+  })
+  return { ...data, models: normalizeClientAiModels(data.models) }
+}
+
+export async function streamAiChat(messages, page, onChunk, { signal, model } = {}) {
+  const selectedModel = model || getAiModelOption(getCachedAiModel())
   let response
   try {
     response = await apiFetch('ai-chat', {
@@ -126,7 +155,7 @@ export async function streamAiChat(messages, page, onChunk, { signal } = {}) {
   }
   const responseProvider = response.headers.get('X-AI-Provider')
   const responseSelection = response.headers.get('X-AI-Selection')
-  const actualSelection = AI_MODEL_OPTIONS.some((item) => item.id === responseSelection)
+  const actualSelection = responseSelection
     ? cacheAiModel(responseSelection)
     : selectedModel.id
   return {

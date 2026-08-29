@@ -10,6 +10,7 @@ export const SYSTEM_SETTING_KEYS = Object.freeze({
   authTokenVersion: 'auth.tokenVersion',
   authUpdatedAt: 'auth.updatedAt',
   aiRules: 'ai.rules',
+  aiModels: 'ai.models',
   marketScript: 'appsScript.marketCode',
 })
 

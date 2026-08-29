@@ -4,6 +4,7 @@ import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, 
 import packageJson from '../../package.json'
 import RobotIcon from '../components/RobotIcon.jsx'
 import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
+import AiModelSettingsDialog from '../components/AiModelSettingsDialog.jsx'
 
 const THEME_KEY = 'youshu-theme'
 
@@ -31,6 +32,7 @@ export default function Settings({ auth } = {}) {
   const [aiEnabled, setAiEnabledState] = useState(() => isAiEnabled())
   const [showAiConsent, setShowAiConsent] = useState(false)
   const [showAiRules, setShowAiRules] = useState(false)
+  const [showAiModels, setShowAiModels] = useState(false)
   const [aiRules, setAiRules] = useState('')
   const [defaultAiRules, setDefaultAiRules] = useState('')
   const [aiRulesMaxLength, setAiRulesMaxLength] = useState(6000)
@@ -239,6 +241,9 @@ export default function Settings({ auth } = {}) {
         <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">
           查看和修改回答规则
         </button>
+        <button type="button" onClick={() => setShowAiModels(true)} disabled={!isLoggedIn || demoMode} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">
+          管理 AI 模型清单
+        </button>
       </div>
 
       <div className="card sm:min-h-[260px]">
@@ -289,6 +294,8 @@ export default function Settings({ auth } = {}) {
           auth?.logout?.()
         }}
       />
+
+      <AiModelSettingsDialog open={showAiModels} onClose={() => setShowAiModels(false)} />
 
       {/* 密码验证弹窗 */}
       {showPwdDialog && (

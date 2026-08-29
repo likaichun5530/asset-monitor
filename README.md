@@ -50,7 +50,8 @@
 - 设置中可独立开启或关闭；开启后仅在登录状态的首页显示机器人入口，拖动松手后自动吸附到距离最近的屏幕左侧或右侧；长按入口可显示关闭按钮
 - Vercel 后端实时读取 Holdings、History 和 target，将应用预先计算好的资产金额、比例、配置偏差和历史变化交给所选模型解释
 - 支持流式多轮对话和当前页面快捷问题，对话仅保存在当前浏览器
-- AI 对话框输入区可选择 Gemini 3.5 Lite（默认）、Gemini 3.5 Flash 或 DeepSeek V4 Flash；选择仅保存在当前设备，不写入 Google Sheets
+- AI 对话框输入区使用保存在 `SystemSettings` 的模型清单；当前选择仅保存在当前设备
+- 设置页可新增、编辑或删除 Gemini/DeepSeek 模型，清单写入 `ai.models`，API Key 和 Base URL 不会写入表格
 - 设置页使用一个统一编辑框维护全部 AI 回答规则；点击顶部保存按钮后写入 Google Sheets 的 `SystemSettings` 表，保存成功会清空旧对话并在下一次提问生效
 - 规则可统一配置助手身份、收益口径、事实边界、回答风格和分析偏好；登录鉴权和密钥隔离仍由服务端代码强制执行
 - DeepSeek/Gemini API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
@@ -377,6 +378,7 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | `/api/auth/login` | POST | 登录，返回 JWT token |
 | `/api/auth/change-password` | POST | 私人；验证当前密码后写入 SystemSettings，并使旧 JWT 失效 |
 | `/api/ai-chat` | POST | 登录后读取资产数据并流式调用当前选择的 DeepSeek 或 Gemini |
+| `/api/ai-models` | GET/PUT | 登录后读取或保存 `SystemSettings` 中的 AI 模型清单 |
 | `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `SystemSettings` 表 |
 | `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
 | `/api/holdings` | GET / POST / PUT / DELETE | 私人；读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓，写操作另有行版本校验 |
