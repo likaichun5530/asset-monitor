@@ -36,7 +36,6 @@ export default function Future({ refreshKey = 0 }) {
   const aggregateUsageRate = sumMarketValue ? (totalUsageRate / sumMarketValue) * 100 : 0
 
   const FUTURES_CACHE_KEY = 'asset-monitor:futures'
-  const MARKET_CACHE_KEY = 'asset-monitor:market'
 
   const [futuresData, setFuturesData] = useState(() => {
     try {
@@ -46,65 +45,30 @@ export default function Future({ refreshKey = 0 }) {
     return null
   })
 
-  const [marketData, setMarketData] = useState(() => {
-    try {
-      const cached = localStorage.getItem(MARKET_CACHE_KEY)
-      if (cached) return JSON.parse(cached)
-    } catch { /* ignore */ }
-    return []
-  })
-
   const loadQuotes = useCallback(async () => {
-    const [futuresResult, marketResult] = await Promise.allSettled([
-      getApiJson('futures', { auth: false }),
-      getApiJson('market', { auth: false }),
-    ])
-    if (futuresResult.status === 'fulfilled') {
-      const res = futuresResult.value
-      const data = res.futures || null
-      setFuturesData(data)
-      if (data) {
-        try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
-      }
-    }
-    if (marketResult.status === 'fulfilled') {
-      const data = marketResult.value.market || []
-      setMarketData(data)
-      if (data.length) {
-        try { localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
-      }
+    const response = await getApiJson('futures', { auth: false })
+    const data = response.futures || null
+    setFuturesData(data)
+    if (data) {
+      try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
     }
   }, [])
 
   useVisiblePolling(loadQuotes, { refreshKey })
 
-  // 从行情数据中查找合约价格（按 symbol 匹配）
-  const marketPriceMap = useMemo(() => {
-    const map = new Map()
-    for (const item of marketData) {
-      if (item.group === '期货' && item.symbol && item.price != null) {
-        map.set(item.symbol, Number(item.price))
-      }
-    }
-    return map
-  }, [marketData])
-
-  // 现货价格（从行情数据获取，优先用 symbol='CSI500' 或名称含中证500的）
+  // futures 响应已由后端一次性读取 Market 表并包含现货和合约价格。
   const spot = useMemo(() => {
-    const csi = marketData.find((d) => d.symbol === 'CSI500')
-    if (csi?.price != null) return Number(csi.price)
-    const item = marketData.find((d) => d.name.includes('中证500') && !d.name.includes('期货') && !d.name.includes('IC'))
-    return item?.price != null ? Number(item.price) : null
-  }, [marketData])
+    const item = futuresData?.[0]
+    const value = item?.spot ?? item?.price
+    return value == null ? null : Number(value)
+  }, [futuresData])
 
   // 期货合约数据（前端自行计算年化率，保留正负号）
   const contracts = useMemo(() => {
     if (!futuresData || futuresData.length < 2) return []
     return futuresData.slice(1).map((d) => {
       const code = d.code
-      // 优先用行情数据中的实时价格
-      const realPrice = marketPriceMap.get(code)
-      const price = realPrice ?? d.price
+      const price = d.price
       const spread = spot != null ? spot - price : null
       // 按交割日动态计算剩余天数（避免后端/缓存固定值过期）
       const daysToSettle = d.settleDate
@@ -123,7 +87,7 @@ export default function Future({ refreshKey = 0 }) {
         annualRate,
       }
     })
-  }, [futuresData, marketPriceMap, spot])
+  }, [futuresData, spot])
 
   return (
     <div className="space-y-[4px] sm:space-y-3">

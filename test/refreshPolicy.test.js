@@ -23,3 +23,9 @@ test('资产自动刷新只加载 holdings，History 只在首次或手动刷新
   assert.match(assetSource, /export async function loadInitialData/)
   assert.match(assetSource, /export async function loadHistoryData/)
 })
+
+test('期货页复用 futures 响应中的 Market 数据，不重复请求 market 接口', async () => {
+  const futureSource = await readFile(new URL('../src/pages/Future.jsx', import.meta.url), 'utf8')
+  assert.match(futureSource, /getApiJson\('futures', \{ auth: false \}\)/)
+  assert.doesNotMatch(futureSource, /getApiJson\('market'/)
+})
