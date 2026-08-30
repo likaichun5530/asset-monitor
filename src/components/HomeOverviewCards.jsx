@@ -144,11 +144,11 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
-      <div className="mt-3 flex flex-1 flex-col text-sm font-medium">
+      <div className="mt-3 flex flex-1 flex-col text-xs font-medium">
         <div className="mb-1.5 text-gray-500">现金建议：</div>
-        <div className="leading-[17px]"><span className="text-gray-500">减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
-        <div className="leading-[17px]"><span className="text-gray-500">加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
-        <div className="my-1.5 border-t border-gray-100" />
+        <div className="leading-4"><span className="text-gray-500">减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
+        <div className="leading-4"><span className="text-gray-500">加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
+        <div className="my-2.5 border-t border-gray-100" />
         <div className="flex items-center justify-between">
           <span className="text-gray-500">期货保证金</span>
           <span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}% · {usageText}</span>
