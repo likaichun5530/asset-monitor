@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * 只接管数字与金融常用符号，避免改变中文和普通文案字体。
+ * 所有请求字重均映射到 Medium，使未单独标记的数字也统一为 500 字重。
+ */
+@font-face {
+  font-family: "Youshu Numerals";
+  src: local("SF Pro Display Medium"), local("SFProDisplay-Medium"), local("SF Pro Display"), local("Arial Narrow");
+  font-style: normal;
+  font-weight: 100 900;
+  unicode-range: U+0025, U+002B-002E, U+0030-0039, U+00A5, U+2212;
+}
+
 :root { color-scheme: light; background-color: #f9fafb; }
 html.dark { color-scheme: dark; background-color: #111827; }
 .no-transitions, .no-transitions * { transition: none !important; }
@@ -11,7 +23,7 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+  font-family: "Youshu Numerals", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -34,6 +46,11 @@ nav a, nav button, .bottom-nav-link {
 /* 金融数字优先使用 Apple 平台的 SF Pro Display。 */
 .font-num {
   font-family: "SF Pro Display", "Arial Narrow", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 500;
+}
+
+.font-num.font-bold {
+  font-weight: 700;
 }
 
 .font-num,

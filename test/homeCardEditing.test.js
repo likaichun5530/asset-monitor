@@ -33,6 +33,9 @@ test('总资产头部使用纯数字并展示今日盈亏，不再提供手动�
 
 test('盈亏小卡片使用统一金融字体与 500 字重', () => {
   assert.match(styleSource, /font-family: "SF Pro Display", "Arial Narrow", -apple-system/)
+  assert.match(styleSource, /font-family: "Youshu Numerals"/)
+  assert.match(styleSource, /unicode-range: U\+0025/)
+  assert.match(styleSource, /\.font-num\.font-bold[\s\S]*font-weight: 700/)
   assert.match(overviewSource, /font-num.*font-medium.*formatChange\(change\)/)
   assert.match(overviewSource, /font-num.*font-medium.*formatPercent\(Math\.abs\(changePct\)\)/s)
   assert.match(overviewSource, /relative flex w-full items-center justify-center/)
