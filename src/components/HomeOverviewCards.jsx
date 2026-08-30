@@ -50,26 +50,26 @@ export function CurrencyCard({ refreshKey = 0 }) {
     return items.map((item) => ({ ...item, ratio: total ? (item.value / total) * 100 : 0 }))
   }, [holdings])
 
-  const halfRing = useMemo(() => {
-    const halfCircumference = Math.PI * 50
+  const ring = useMemo(() => {
+    const circumference = 2 * Math.PI * 46
     let offset = 0
     const segments = pieData.map((item) => {
-      const segment = { color: item.color, len: (item.ratio / 100) * halfCircumference, offset }
+      const segment = { color: item.color, len: (item.ratio / 100) * circumference, offset }
       offset += segment.len
       return segment
     })
-    return { segments, totalLen: offset || halfCircumference }
+    return { segments, totalLen: offset || circumference }
   }, [pieData])
 
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        <svg viewBox="0 0 128 64" className="w-32 h-16 shrink-0">
-          <path d="M 14 60 A 50 50 0 0 1 114 60" fill="none" stroke="#e5e7eb" strokeWidth="14" />
-          {halfRing.segments.map((segment, index) => (
-            <path key={index} d="M 14 60 A 50 50 0 0 1 114 60" fill="none" stroke={segment.color} strokeWidth="14"
-              strokeDasharray={`${segment.len} ${halfRing.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
+        <svg viewBox="0 0 128 128" className="h-20 w-20 shrink-0 -rotate-90">
+          <circle cx="64" cy="64" r="46" fill="none" strokeWidth="15" className="stroke-gray-200 dark:stroke-gray-700" />
+          {ring.segments.map((segment, index) => (
+            <circle key={index} cx="64" cy="64" r="46" fill="none" stroke={segment.color} strokeWidth="15"
+              strokeDasharray={`${segment.len} ${ring.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
           ))}
         </svg>
         <div className="w-full flex flex-col gap-0.5 shrink-0">

@@ -190,9 +190,10 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
       collisionFrame = requestAnimationFrame(checkCardCollision)
     }
     sortInstance.current = Sortable.create(sortRef.current, {
-      sort: false,
+      sort: !coarsePointer,
       animation: 100,
       easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+      swapThreshold: 0.5,
       draggable: '[data-id]',
       delay: coarsePointer ? 160 : 0,
       delayOnTouchOnly: true,
@@ -214,7 +215,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
         draggedId = evt.item?.dataset.id || null
         lastReorderAt = 0
         document.body.dataset.sortableDragging = 'true'
-        collisionFrame = requestAnimationFrame(checkCardCollision)
+        if (coarsePointer) collisionFrame = requestAnimationFrame(checkCardCollision)
       },
       onEnd: () => {
         stopCollisionLoop()

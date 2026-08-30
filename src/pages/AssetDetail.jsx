@@ -56,8 +56,6 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
   if (!config) return <div className="text-gray-400 dark:text-gray-500 text-center py-10">未知资产类型</div>
 
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
-  const accountCount = new Set(rows.map((row) => row.account).filter(Boolean)).size
-  const largestHolding = rows[0]
   const showToggle = config.showOriginal
   const showOriginalMode = showToggle && displayMode === 'original'
 
@@ -152,31 +150,22 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
         </svg>
         返回
       </button>
-      <div className="card dark:bg-gray-800 dark:border-gray-700 py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
-        <div className="sm:p-6 sm:col-span-1">
+      <div className="card flex items-end justify-between gap-4 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6 sm:py-5">
+        <div className="min-w-0">
           <div className="text-xs text-gray-500 dark:text-gray-400">{config.label}总市值</div>
-          <div className="text-3xl sm:text-2xl xl:text-3xl font-bold text-gray-900 dark:text-gray-200 mt-0.5 sm:mt-3">
+          <div className="mt-0.5 text-3xl font-bold text-gray-900 dark:text-gray-200 sm:mt-2">
             {showOriginalMode
               ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2)
               : formatCurrency(sumMarketValue)
             }
           </div>
         </div>
-        <div className="text-right sm:text-left sm:p-6 sm:border-l sm:border-slate-100 dark:sm:border-gray-700">
+        <div className="shrink-0 text-right">
           <div className="text-xs text-gray-500 dark:text-gray-400">占总资产</div>
-          <div className="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-3" style={{ color: config.color, fontWeight: 700 }}>
+          <div className="mt-0.5 text-lg font-semibold sm:mt-2 sm:text-2xl" style={{ color: config.color, fontWeight: 700 }}>
             {total ? ((sumMarketValue / total) * 100).toFixed(1) : 0}%
           </div>
-        </div>
-        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400">持仓与账户</div>
-          <div className="mt-3 text-2xl font-semibold text-gray-900 dark:text-gray-200">{rows.length} <span className="text-sm font-normal text-gray-400">项</span></div>
-          <div className="mt-1 text-xs text-gray-400">分布于 {accountCount} 个账户</div>
-        </div>
-        <div className="hidden sm:block p-6 border-l border-slate-100 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400">最大持仓</div>
-          <div className="mt-3 truncate text-2xl font-semibold text-gray-900 dark:text-gray-200">{largestHolding?.name || '—'}</div>
-          <div className="mt-1 text-xs text-gray-400">{largestHolding && sumMarketValue ? `${((largestHolding.marketValueCNY / sumMarketValue) * 100).toFixed(1)}% · ${formatCurrency(largestHolding.marketValueCNY)}` : '暂无持仓'}</div>
+          <div className="mt-1 hidden text-xs text-gray-400 sm:block">共 {rows.length} 项</div>
         </div>
       </div>
 

@@ -5,11 +5,36 @@ import { readFile } from 'node:fs/promises'
 const homeSource = await readFile(new URL('../src/pages/Home.jsx', import.meta.url), 'utf8')
 const styleSource = await readFile(new URL('../src/index.css', import.meta.url), 'utf8')
 const layoutSource = await readFile(new URL('../src/components/Layout.jsx', import.meta.url), 'utf8')
+const overviewSource = await readFile(new URL('../src/components/HomeOverviewCards.jsx', import.meta.url), 'utf8')
+const heroSource = await readFile(new URL('../src/components/HomeAssetHero.jsx', import.meta.url), 'utf8')
 
 test('首页编辑模式使用整张卡片拖动并移除手柄', () => {
   assert.match(homeSource, /draggable: '\[data-id\]'/)
   assert.doesNotMatch(homeSource, /className="drag-handle/)
   assert.match(homeSource, /filter: 'button, a, input, select, textarea, \.no-sort'/)
+  assert.match(homeSource, /forceFallback: coarsePointer/)
+})
+
+test('桌面首页使用完整货币圆环和简洁总资产卡片', () => {
+  assert.match(overviewSource, /2 \* Math\.PI \* 46/)
+  assert.match(overviewSource, /<circle cx="64" cy="64" r="46"/)
+  assert.doesNotMatch(overviewSource, /halfRing|M 14 60 A 50 50/)
+  assert.doesNotMatch(styleSource, /border-top: 3px solid #2563eb/)
+  assert.doesNotMatch(heroSource, /bg-brand-500.*总资产/)
+})
+
+test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
+  assert.match(layoutSource, /src="\/icon\.png" alt="有数 App Logo"/)
+  assert.match(layoutSource, /border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/)
+  for (const label of ['总览', '行情', '持仓', '目标']) assert.match(layoutSource, new RegExp(`label: '${label}'`))
+  assert.doesNotMatch(layoutSource, /label: '持仓明细'|label: '配置目标'/)
+  assert.doesNotMatch(layoutSource, /auth\.username\?\.slice\(0, 1\)/)
+})
+
+test('资产详情桌面概览保持简洁，不显示仪表盘式附加指标', async () => {
+  const detailSource = await readFile(new URL('../src/pages/AssetDetail.jsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(detailSource, /持仓与账户|最大持仓|accountCount|largestHolding/)
+  assert.match(detailSource, /共 \{rows\.length\} 项/)
 })
 
 test('首页编辑卡片在拖动过程中仍保持抖动', () => {
@@ -20,7 +45,9 @@ test('首页编辑卡片在拖动过程中仍保持抖动', () => {
 })
 
 test('拖动目标根据卡片实际重叠面积判定', () => {
-  assert.match(homeSource, /sort: false/)
+  assert.match(homeSource, /sort: !coarsePointer/)
+  assert.match(homeSource, /swapThreshold: 0\.5/)
+  assert.match(homeSource, /if \(coarsePointer\) collisionFrame = requestAnimationFrame\(checkCardCollision\)/)
   assert.match(homeSource, /requestAnimationFrame\(checkCardCollision\)/)
   assert.match(homeSource, /best\.ratio < 0\.5/)
   assert.match(homeSource, /best\.ratio < 0\.35/)
