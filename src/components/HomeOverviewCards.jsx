@@ -77,9 +77,9 @@ export function CurrencyCard({ refreshKey = 0 }) {
               strokeDasharray={`${segment.len} ${ring.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
           ))}
         </svg>
-        <div className="grid w-full shrink-0 grid-cols-2 gap-x-1 gap-y-0 leading-[14px]">
+        <div className="-mx-2 grid w-[calc(100%+16px)] shrink-0 grid-cols-[max-content_max-content] justify-between gap-y-0 leading-[14px]">
           {pieData.map((item) => (
-            <div key={item.name} className="flex h-[14px] min-w-0 items-center justify-center gap-1.5 text-xs font-medium">
+            <div key={item.name} className="flex h-[14px] items-center gap-1 text-xs font-medium">
               <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-gray-600 dark:text-gray-400">
                 <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: item.color }} />
                 <span>{item.name}</span>
