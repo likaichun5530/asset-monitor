@@ -41,4 +41,5 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
   assert.match(layout, /\{settingsSectionTitle\}/)
   assert.doesNotMatch(layout, /<span>设置<\/span>/)
   assert.match(layout, /text-gray-900/)
+  assert.match(layout, /h-\[22px\] w-\[22px\]/)
 })

@@ -256,7 +256,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
   }
 
   return (
-    <div className="space-y-[4px] sm:space-y-3" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
+    <div className="space-y-3" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
       onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onMouseDown={startLongPress}
       onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
@@ -278,12 +278,12 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
         onSnapshot={handleSnapshot}
       />
 
-      <div ref={sortRef} className="flex flex-wrap items-stretch -mx-0.5 sm:-mx-1.5">
+      <div ref={sortRef} className="flex flex-wrap items-stretch -mx-1.5">
         {visibleItems.map((key) => {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat w-1/3 sm:w-1/2 lg:w-1/4 px-0.5 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat w-1/3 sm:w-1/2 lg:w-1/4 px-1.5 mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
                 <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -295,7 +295,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
           }
           if (HALF_KEYS.includes(key)) {
             return (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact w-1/2 px-0.5 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact w-1/2 px-1.5 mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
                 <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -306,7 +306,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
             )
           }
           return (
-            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-0.5 sm:px-1.5 mb-[4px] sm:mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis w-full lg:w-1/2 px-1.5 mb-3 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
               <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                 {editMode && (
                   <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>

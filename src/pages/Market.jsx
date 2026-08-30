@@ -97,7 +97,7 @@ export default function Market({ refreshKey = 0 }) {
   const quotedCount = data.filter((item) => item.price !== null && item.price !== undefined).length
 
   return (
-    <div className="space-y-4 sm:space-y-3 pt-3 px-1 sm:px-0 sm:pt-0">
+    <div className="space-y-3">
       <section className="hidden sm:grid grid-cols-3 gap-3">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">行情分组</div>
@@ -123,7 +123,7 @@ export default function Market({ refreshKey = 0 }) {
             </h2>
             <span className="hidden sm:inline text-xs text-slate-400">{group.items.length} 个标的</span>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1 sm:gap-0">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-3 sm:gap-0 lg:grid-cols-4 xl:grid-cols-6">
             {group.items.map((item, idx) => {
               const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null

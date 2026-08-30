@@ -220,7 +220,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
           {settingsSectionTitle ? (
             <div className="relative flex h-12 items-center justify-center px-4">
               <NavLink to="/settings" replace className="absolute left-2 flex items-center rounded-lg p-2 text-gray-900 dark:text-gray-100" aria-label="返回设置一级菜单">
-                <svg className="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
+                <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
               </NavLink>
               <span className="max-w-[58vw] truncate text-[17px] font-semibold text-gray-800 dark:text-gray-200">{settingsSectionTitle}</span>
             </div>
@@ -270,7 +270,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-2 sm:px-4 lg:px-5 pt-1 sm:pt-4 lg:pt-5 pb-24 sm:pb-8">
+            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-3 pt-3 pb-24 sm:pb-8">
               <Outlet />
             </main>
           </div>

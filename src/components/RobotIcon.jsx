@@ -4,8 +4,10 @@ export default function RobotIcon({ className = 'h-6 w-6' }) {
       <path d="M24 11V7" stroke="#6366F1" strokeWidth="2.4" strokeLinecap="round" />
       <circle cx="24" cy="5.5" r="2.5" fill="#FBBF24" stroke="white" strokeWidth="1.5" />
       <path d="m39 7 .9 2.1L42 10l-2.1.9L39 13l-.9-2.1L36 10l2.1-.9L39 7Z" fill="#FBBF24" />
-      <rect x="2.5" y="21" width="7" height="12" rx="3.5" fill="#06B6D4" stroke="#3730A3" strokeWidth="1.5" />
-      <rect x="38.5" y="21" width="7" height="12" rx="3.5" fill="#06B6D4" stroke="#3730A3" strokeWidth="1.5" />
+      <rect x="2.5" y="21" width="7" height="12" rx="3.5" fill="#06B6D4" stroke="#F8FAFC" strokeWidth="3" />
+      <rect x="2.5" y="21" width="7" height="12" rx="3.5" fill="none" stroke="#4338CA" strokeWidth="1.1" />
+      <rect x="38.5" y="21" width="7" height="12" rx="3.5" fill="#06B6D4" stroke="#F8FAFC" strokeWidth="3" />
+      <rect x="38.5" y="21" width="7" height="12" rx="3.5" fill="none" stroke="#4338CA" strokeWidth="1.1" />
       <path d="M5 24v4" stroke="#A5F3FC" strokeWidth="1.3" strokeLinecap="round" />
       <path d="M41 24v4" stroke="#A5F3FC" strokeWidth="1.3" strokeLinecap="round" />
       <rect x="6" y="10" width="36" height="34" rx="14" fill="#6366F1" stroke="white" strokeWidth="2" />

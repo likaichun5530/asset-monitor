@@ -93,7 +93,7 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-2 sm:space-y-3">
+    <div className="space-y-3">
       <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">配置资产总额</div>
@@ -274,7 +274,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         {/* 移动端卡片列表 */}
-        <div className="sm:hidden space-y-2">
+        <div className="sm:hidden space-y-3">
           {rows.map((r, idx) => {
             const color = colorMap[r.category] || '#94a3b8'
             const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined

@@ -41,6 +41,16 @@ test('桌面首页同排卡片使用等高伸缩槽位', () => {
 })
 
 test('手机首页顶部和卡片横向间距保持统一', () => {
-  assert.match(layoutSource, /px-2 sm:px-4 lg:px-5 pt-1 sm:pt-4/)
-  assert.match(homeSource, /home-card-slot-analysis w-full lg:w-1\/2 px-0\.5 sm:px-1\.5/)
+  assert.match(layoutSource, /mx-auto px-3 pt-3 pb-24/)
+  assert.match(homeSource, /home-card-slot-analysis w-full lg:w-1\/2 px-1\.5 mb-3/)
+  assert.match(homeSource, /home-card-slot-stat w-1\/3 sm:w-1\/2 lg:w-1\/4 px-1\.5 mb-3/)
+  assert.doesNotMatch(homeSource, /space-y-\[4px\]|mb-\[4px\]|px-0\.5/)
+})
+
+test('主要业务页面使用 12px 卡片间距', async () => {
+  for (const file of ['AssetDetail.jsx', 'Cash.jsx', 'Future.jsx', 'Holdings.jsx', 'Market.jsx', 'Target.jsx']) {
+    const source = await readFile(new URL(`../src/pages/${file}`, import.meta.url), 'utf8')
+    assert.doesNotMatch(source, /space-y-\[4px\]|gap-\[4px\]|space-y-2 sm:space-y-3|space-y-4 sm:space-y-3/, file)
+    assert.match(source, /space-y-3/, file)
+  }
 })
