@@ -2,11 +2,13 @@ import { formatCurrency, formatDateLong } from '../utils/format.js'
 
 function SnapshotIcon({ className = '' }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="7" width="15" height="13" rx="3" />
-      <path d="M7 7V5.5A1.5 1.5 0 0 1 8.5 4H17" opacity=".75" />
-      <path d="M11.5 11v5M9 13.5h5" />
-      <path d="m19.5 3 .45 1.05L21 4.5l-1.05.45L19.5 6l-.45-1.05L18 4.5l1.05-.45L19.5 3Z" fill="currentColor" stroke="none" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M7.2 7 8.5 4.8c.3-.5.8-.8 1.4-.8h4.2c.6 0 1.1.3 1.4.8L16.8 7H19a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-7a3 3 0 0 1 3-3h2.2Z" fill="currentColor" />
+      <circle cx="12" cy="13.5" r="4.2" fill="#60a5fa" />
+      <circle cx="12" cy="13.5" r="2.45" fill="#dbeafe" />
+      <circle cx="11.15" cy="12.65" r=".8" fill="#fff" />
+      <circle cx="18.2" cy="10.1" r="1" fill="#fbbf24" />
+      <path d="m20.2 3 .45 1.1 1.1.45-1.1.45-.45 1.1-.45-1.1-1.1-.45 1.1-.45.45-1.1Z" fill="#fde68a" />
     </svg>
   )
 }
@@ -30,7 +32,7 @@ export default function HomeAssetHero({ total, updateDate, pendingCount, snapsho
               {snapshotLoading ? (
                 <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
               ) : (
-                <SnapshotIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                <SnapshotIcon className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
               )}
               <span className="hidden sm:inline">生成快照</span>
             </button>

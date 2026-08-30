@@ -73,11 +73,9 @@ export default function AboutApp({ version }) {
 
       <section className="border-t border-gray-100 px-4 py-4 dark:border-gray-700 sm:px-6">
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-400">
-          <span>Google Sheets 数据源</span>
+          <span>Google Sheets</span>
           <span aria-hidden="true" className="h-1 w-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span>Web · PWA · Android</span>
-          <span aria-hidden="true" className="h-1 w-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span>本地缓存与离线浏览</span>
+          <span>Web · PWA</span>
         </div>
       </section>
     </div>
