@@ -14,10 +14,7 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
       <div className="flex min-h-[68px] items-stretch justify-between gap-3 sm:min-h-[110px] sm:gap-8">
         <div className="flex min-w-0 flex-1 flex-col justify-center">
           <div className="text-xs font-medium text-gray-500 sm:text-sm">总资产（人民币）</div>
-          <div
-            className="mt-1 whitespace-nowrap text-[27px] font-semibold leading-none tracking-[-0.04em] text-gray-900 tabular-nums dark:text-gray-100 sm:mt-3 sm:text-[36px]"
-            style={{ fontFamily: "'Arial Narrow', 'Roboto Condensed', 'SF Pro Display', Inter, system-ui, sans-serif", fontStretch: 'condensed' }}
-          >
+          <div className="font-num mt-1 whitespace-nowrap text-[27px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-[36px]">
             {formatNumber(total)}
           </div>
           <div className="mt-1.5 text-[11px] text-gray-400 sm:mt-3 sm:text-xs">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>

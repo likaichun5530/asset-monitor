@@ -25,16 +25,14 @@ test('桌面首页使用完整货币圆环和简洁总资产卡片', () => {
 
 test('总资产头部使用纯数字并展示今日盈亏，不再提供手动快照按钮', () => {
   assert.match(heroSource, /formatNumber\(total\)/)
-  assert.match(heroSource, /font-semibold.*tracking-\[-0\.04em\].*tabular-nums/)
-  assert.match(heroSource, /Arial Narrow.*Roboto Condensed.*SF Pro Display/)
+  assert.match(heroSource, /font-num.*font-bold.*tracking-\[-0\.04em\]/)
   assert.match(heroSource, /今日盈亏/)
   assert.match(heroSource, /formatChange\(todayChange\)/)
   assert.doesNotMatch(heroSource, /SnapshotIcon|生成快照|onSnapshot/)
 })
 
-test('盈亏小卡片恢复 2.3.0 数字字体并保留盈亏文案', () => {
-  assert.match(overviewSource, /text-base font-bold.*formatChange\(change\)/)
-  assert.doesNotMatch(overviewSource, /font-num[^\n]*formatChange\(change\)/)
+test('盈亏小卡片与总资产使用相同的粗体金融数字字体', () => {
+  assert.match(overviewSource, /font-num.*font-bold.*formatChange\(change\)/)
   assert.match(overviewSource, /relative flex w-full items-center justify-center/)
   assert.match(homeSource, /近7日盈亏.*近1月盈亏.*今年盈亏/)
   assert.doesNotMatch(homeSource, /近7天涨跌|近1月涨跌|今年涨跌/)
