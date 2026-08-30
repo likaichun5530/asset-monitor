@@ -53,7 +53,7 @@ export default function AllocationChart({ refreshKey = 0 }) {
             <div
               key={item.category}
               onClick={() => { if (route) navigate(route) }}
-              className={`flex items-center gap-1 ${route ? 'cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1 py-0.5 transition-colors' : ''}`}
+              className={`flex items-center gap-0.5 ${route ? 'cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1 py-0.5 transition-colors' : ''}`}
             >
               <div className="flex min-w-[72px] shrink-0 items-center gap-1.5">
                 <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
@@ -66,12 +66,14 @@ export default function AllocationChart({ refreshKey = 0 }) {
                   style={{ width: `${widthPct}%`, backgroundColor: color, minWidth: '2px' }}
                 />
               </div>
-              {/* 比例（柱子右边外面） */}
-              <span className="w-12 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-500">{ratioPct.toFixed(1)}%</span>
-              {/* 金额 */}
-              <span className="w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-800">
-                {formatWan(item.marketValue)}
-              </span>
+              <div className="flex shrink-0 items-center gap-1">
+                {/* 比例（柱子右边外面） */}
+                <span className="w-10 whitespace-nowrap text-right text-[13px] font-medium text-gray-500">{ratioPct.toFixed(1)}%</span>
+                {/* 金额 */}
+                <span className="w-12 whitespace-nowrap text-right text-[13px] font-medium text-gray-800">
+                  {formatWan(item.marketValue)}
+                </span>
+              </div>
             </div>
           )
         })}
