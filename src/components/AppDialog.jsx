@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 
 let dialogSequence = 0
 
-export default function AppDialog({ open, onClose, title, description, actions, children, ariaLabel = title, maxWidth = 'sm:max-w-2xl', closeDisabled = false }) {
+export default function AppDialog({ open, onClose, title, description, actions, children, ariaLabel = title, maxWidth = 'sm:max-w-2xl', closeDisabled = false, titleClassName = '', descriptionClassName = '' }) {
   const dialogIdRef = useRef('')
   const closeRef = useRef(onClose)
   const closeDisabledRef = useRef(closeDisabled)
@@ -88,8 +88,8 @@ export default function AppDialog({ open, onClose, title, description, actions, 
       <section role="dialog" aria-modal="true" aria-label={ariaLabel} className={`relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:h-auto sm:max-h-[92dvh] sm:rounded-2xl ${maxWidth}`}>
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-5">
           <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-            {description && <p className="mt-0.5 truncate text-xs text-gray-400">{description}</p>}
+            <h3 className={`truncate text-base font-semibold text-gray-900 dark:text-gray-100 ${titleClassName}`}>{title}</h3>
+            {description && <p className={`mt-0.5 truncate text-xs text-gray-400 ${descriptionClassName}`}>{description}</p>}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {actions && <div className="hidden sm:block">{actions}</div>}

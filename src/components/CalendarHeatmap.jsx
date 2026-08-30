@@ -201,10 +201,10 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
           </div>
         </div>
       </div>}
-      <div className="mt-3 flex items-end justify-between rounded-lg bg-gray-50 dark:bg-gray-900/50 px-3 py-2">
-        <div><div className="text-[10px] text-gray-400">总资产</div><div className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(selectedDetail.total, { decimals: 0 })}</div></div>
+      <div className="mt-3 flex items-end justify-between rounded-lg bg-gray-50 px-3 py-3 dark:bg-gray-900/50">
+        <div><div className="text-xs text-gray-400">总资产</div><div className="mt-1 text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(selectedDetail.total, { decimals: 0 })}</div></div>
         {selectedDetail.totalChange !== null && (
-          <div className={`text-sm font-semibold ${selectedDetail.totalChange > 0 ? 'text-red-500' : selectedDetail.totalChange < 0 ? 'text-green-600' : 'text-gray-400'}`}>
+          <div className={`text-lg font-semibold ${selectedDetail.totalChange > 0 ? 'text-red-500' : selectedDetail.totalChange < 0 ? 'text-green-600' : 'text-gray-400'}`}>
             {formatSignedCurrency(selectedDetail.totalChange)}
           </div>
         )}
@@ -214,7 +214,7 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
           {selectedDetail.categories.map((item) => {
             const displayValue = selectedDetail.canCompareCategories ? item.change : item.currentValue
             return (
-              <div key={item.key} className="flex h-7 items-center justify-between text-xs">
+              <div key={item.key} className="flex h-10 items-center justify-between text-sm">
                 <span className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
                   {item.label}
@@ -231,30 +231,30 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
           })}
         </div>
       ) : (
-        <div className="py-6 text-center text-xs text-gray-400">该日暂无分类资产快照</div>
+        <div className="py-6 text-center text-sm text-gray-400">该日暂无分类资产快照</div>
       )}
       <div className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-700">
         {selectedDetail.note && !noteEditing && (
-          <div className="mb-2 rounded-lg bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-600 dark:bg-gray-900/50 dark:text-gray-300">
+          <div className="mb-2 rounded-lg bg-gray-50 px-3 py-2 text-sm leading-6 text-gray-600 dark:bg-gray-900/50 dark:text-gray-300">
             {selectedDetail.note}
           </div>
         )}
         {noteSuccess && !noteEditing && (
-          <div role="status" className="mb-2 text-xs font-medium text-green-600 dark:text-green-400">{noteSuccess}</div>
+          <div role="status" className="mb-2 text-sm font-medium text-green-600 dark:text-green-400">{noteSuccess}</div>
         )}
         {!noteEditing ? (
           <button
             type="button"
             onClick={() => { setNoteEditing(true); setNoteError(''); setNoteSuccess('') }}
-            className="w-full rounded-lg border border-brand-200 px-3 py-2 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-500/30 dark:text-brand-400 dark:hover:bg-brand-500/10"
+            className="w-full rounded-lg border border-brand-200 px-3 py-2.5 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-500/30 dark:text-brand-400 dark:hover:bg-brand-500/10"
           >
             {selectedDetail.note ? '编辑备注' : '添加备注'}
           </button>
         ) : (
           <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3 dark:border-brand-500/20 dark:bg-brand-500/5">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-200">备注</span>
-              <span className="text-[10px] text-gray-400">{noteDraft.length}/500</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">备注</span>
+              <span className="text-xs text-gray-400">{noteDraft.length}/500</span>
             </div>
             <textarea
               value={noteDraft}
@@ -265,10 +265,10 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
               placeholder="记录当天的重要事项"
               className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-brand-500/20"
             />
-            {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
+            {noteError && <div className="mt-1 text-sm text-red-500">{noteError}</div>}
             <div className="mt-2 flex justify-end gap-2">
-              <button type="button" disabled={noteSaving} onClick={() => { setNoteDraft(selectedDetail.note || ''); setNoteEditing(false); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700">取消</button>
-              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">
+              <button type="button" disabled={noteSaving} onClick={() => { setNoteDraft(selectedDetail.note || ''); setNoteEditing(false); setNoteError('') }} className="rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700">取消</button>
+              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">
                 {noteSaving ? '保存中…' : '保存备注'}
               </button>
             </div>
@@ -411,6 +411,8 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
         description={selectedDetail?.canCompareCategories && selectedDetail?.previousDate ? `较上一条快照 ${selectedDetail.previousDate}` : '分类资产金额'}
         ariaLabel="每日资产变化"
         maxWidth="sm:max-w-sm"
+        titleClassName="text-lg"
+        descriptionClassName="text-sm"
       >
         {renderDayDetail(false)}
       </AppDialog>
