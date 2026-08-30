@@ -33,7 +33,7 @@ nav a, nav button, .bottom-nav-link {
 
 /* 金融数字优先使用 Apple 平台的 SF Pro Display。 */
 .font-num {
-  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-family: "SF Pro Display", "Arial Narrow", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
 }
 
 .font-num,

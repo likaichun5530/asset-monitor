@@ -31,9 +31,10 @@ test('总资产头部使用纯数字并展示今日盈亏，不再提供手动�
   assert.doesNotMatch(heroSource, /SnapshotIcon|生成快照|onSnapshot/)
 })
 
-test('盈亏小卡片与总资产使用相同字体，但保持常规字重', () => {
-  assert.match(styleSource, /font-family: "SF Pro Display", -apple-system/)
-  assert.match(overviewSource, /font-num.*font-normal.*formatChange\(change\)/)
+test('盈亏小卡片使用统一金融字体与 500 字重', () => {
+  assert.match(styleSource, /font-family: "SF Pro Display", "Arial Narrow", -apple-system/)
+  assert.match(overviewSource, /font-num.*font-medium.*formatChange\(change\)/)
+  assert.match(overviewSource, /font-num.*font-medium.*formatPercent\(Math\.abs\(changePct\)\)/s)
   assert.match(overviewSource, /relative flex w-full items-center justify-center/)
   assert.match(homeSource, /近7日盈亏.*近1月盈亏.*今年盈亏/)
   assert.doesNotMatch(homeSource, /近7天涨跌|近1月涨跌|今年涨跌/)
