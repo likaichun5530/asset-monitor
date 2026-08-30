@@ -32,7 +32,7 @@ test('总资产头部使用纯数字并展示今日盈亏，不再提供手动�
 })
 
 test('盈亏小卡片与总资产使用相同字体，但保持常规字重', () => {
-  assert.match(styleSource, /font-family: "Arial Narrow", sans-serif/)
+  assert.match(styleSource, /font-family: "Roboto Condensed", sans-serif/)
   assert.match(overviewSource, /font-num.*font-normal.*formatChange\(change\)/)
   assert.match(overviewSource, /relative flex w-full items-center justify-center/)
   assert.match(homeSource, /近7日盈亏.*近1月盈亏.*今年盈亏/)
