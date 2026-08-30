@@ -135,11 +135,11 @@ export default function Market({ refreshKey = 0 }) {
                 <div key={idx}
                   className="card flex h-[100px] min-w-0 flex-col items-center justify-center p-2 text-center sm:h-auto sm:min-h-[118px] sm:items-start sm:rounded-none sm:border-0 sm:border-b sm:border-r sm:border-slate-100 sm:p-5 sm:text-left sm:shadow-none dark:sm:border-gray-700"
                 >
-                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-base font-medium text-gray-500 dark:text-gray-400 sm:justify-start sm:text-lg">
+                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-[15px] font-medium text-gray-500 dark:text-gray-400 sm:justify-start sm:text-[17px]">
                     {icon}
                     <span className="truncate">{item.name}</span>
                   </div>
-                  <div className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-xl">
+                  <div className="mt-1 text-[17px] font-semibold tabular-nums text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-[19px]">
                     {item.price ? Number(item.price).toFixed(2) : '—'}
                   </div>
                   {spread !== null && (
