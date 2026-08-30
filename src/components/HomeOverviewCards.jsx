@@ -77,10 +77,10 @@ export function CurrencyCard({ refreshKey = 0 }) {
               strokeDasharray={`${segment.len} ${ring.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
           ))}
         </svg>
-        <div className="flex w-full shrink-0 flex-col gap-0 leading-[14px]">
+        <div className="grid w-full shrink-0 grid-cols-2 gap-x-4 gap-y-0 px-4 leading-[14px]">
           {pieData.map((item) => (
-            <div key={item.name} className="flex h-[14px] items-center justify-between px-8 text-xs font-medium">
-              <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
+            <div key={item.name} className="flex h-[14px] items-center justify-center gap-1.5 text-xs font-medium">
+              <span className="flex min-w-0 items-center gap-1 text-gray-600 dark:text-gray-400">
                 <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: item.color }} />
                 <span className="truncate">{item.name}</span>
               </span>
@@ -148,7 +148,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
         <div className="mb-1.5 text-gray-500">现金建议：</div>
         <div className="leading-4"><span className="text-gray-500">减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="leading-4"><span className="text-gray-500">加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
-        <div className="my-2.5 border-t border-gray-100" />
+        <div className="my-4 border-t border-gray-100" />
         <div className="flex items-center justify-between">
           <span className="text-gray-500">期货保证金</span>
           <span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}% · {usageText}</span>

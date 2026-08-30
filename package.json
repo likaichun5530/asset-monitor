@@ -1,7 +1,7 @@
 {
   "name": "asset-monitor",
   "private": true,
-  "version": "2.3.14",
+  "version": "2.3.15",
   "type": "module",
   "scripts": {
     "dev": "cd server && node index.js & vite --host",
