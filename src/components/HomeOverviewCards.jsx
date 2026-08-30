@@ -17,12 +17,12 @@ export function StatMini({ label, change, changePct }) {
   return (
     <div className={`card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
       <div className="relative flex w-full items-center justify-center">
-        <div className="text-center text-xs font-medium text-gray-500 sm:text-sm">{label}</div>
+        <div className="text-center text-xs font-medium text-gray-500">{label}</div>
         <span className={`absolute right-0 hidden h-2 w-2 rounded-full sm:block ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
       </div>
-      <div className={`font-num mt-2 text-base font-medium sm:mt-3 sm:text-2xl ${color}`}>{formatChange(change)}</div>
+      <div className={`font-num mt-2 text-base font-medium sm:mt-3 ${color}`}>{formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
-        <span className={`font-num inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs font-medium sm:text-sm ${bg} ${color}`}>
+        <span className={`font-num inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs font-medium ${bg} ${color}`}>
           {isUp && <span>▲</span>} {isDown && <span>▼</span>} {formatPercent(Math.abs(changePct))}
         </span>
       </div>
@@ -68,7 +68,7 @@ export function CurrencyCard({ refreshKey = 0 }) {
 
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
-      <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
+      <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
         <svg viewBox="0 0 128 128" className="h-20 w-20 shrink-0 -rotate-90">
           <circle cx="64" cy="64" r="46" fill="none" strokeWidth="22" className="stroke-gray-200 dark:stroke-gray-700" />
@@ -79,7 +79,7 @@ export function CurrencyCard({ refreshKey = 0 }) {
         </svg>
         <div className="w-full flex flex-col gap-0.5 shrink-0">
           {pieData.map((item) => (
-            <div key={item.name} className="flex items-center justify-between px-8 text-[10px]">
+            <div key={item.name} className="flex items-center justify-between px-8 text-[10px] font-medium">
               <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400 min-w-0">
                 <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: item.color }} />
                 <span className="truncate">{item.name}</span>
@@ -143,8 +143,8 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
   const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
-      <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
-      <div className="flex-1 flex flex-col justify-center gap-1.5 text-xs">
+      <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
+      <div className="flex-1 flex flex-col justify-center gap-1.5 text-sm font-medium">
         <div className="text-gray-500">现金建议：</div>
         <div><span className="text-gray-500">减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div><span className="text-gray-500">加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
@@ -160,7 +160,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
             <span className="flex-1 bg-amber-400" />
             <span className="flex-1 bg-red-500" />
           </div>
-          <div className="mt-1 flex text-[9px] leading-none text-gray-400">
+          <div className="font-num-regular mt-1 flex text-[10px] leading-none text-gray-400">
             <span className="flex-1 text-left">安全 ≤70%</span>
             <span className="flex-1 text-center">警戒 70–75%</span>
             <span className="flex-1 text-right">危险 &gt;75%</span>

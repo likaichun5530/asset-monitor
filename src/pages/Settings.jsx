@@ -22,7 +22,7 @@ function SettingsSubpage({ title, description, onBack, className = '', children 
         </button>
         <div className="min-w-0">
           <h2 className="text-[19px] font-semibold text-gray-800 dark:text-gray-200">{title}</h2>
-          <p className="mt-0.5 truncate text-[13px] text-gray-400">{description}</p>
+          <p className="mt-0.5 truncate text-xs font-normal text-gray-400">{description}</p>
         </div>
       </header>
       <div className="card !p-0 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">{children}</div>
@@ -34,8 +34,8 @@ function SettingsGroup({ title, description, children }) {
   return (
     <section className="p-4 sm:p-5">
       <div className="mb-3">
-        <h3 className="text-[15px] font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
-        {description && <p className="mt-1 text-[13px] leading-[18px] text-gray-400">{description}</p>}
+        <h3 className="text-base font-medium text-gray-800 dark:text-gray-200">{title}</h3>
+        {description && <p className="mt-1 text-sm font-normal leading-5 text-gray-400">{description}</p>}
       </div>
       <div className="space-y-2">{children}</div>
     </section>
@@ -246,9 +246,9 @@ export default function Settings({ auth } = {}) {
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><SettingsLineIcon type={item.icon} /></span>
               <span className="min-w-0 flex-1">
                 <span className="block text-base font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
-                <span className="mt-0.5 block truncate text-[13px] text-gray-400">{item.description}</span>
+                <span className="mt-0.5 block truncate text-xs font-normal text-gray-400">{item.description}</span>
               </span>
-              {item.value && <span className="shrink-0 text-[13px] text-gray-400">{item.value}</span>}
+              {item.value && <span className="font-num-regular shrink-0 text-sm text-gray-400">{item.value}</span>}
               <svg className="h-4 w-4 shrink-0 text-gray-300 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
             </button>
           ))}
@@ -262,7 +262,7 @@ export default function Settings({ auth } = {}) {
               {[{ demo: false, icon: 'live', label: '实盘模式' }, { demo: true, icon: 'demo', label: '演示模式' }].map((option) => {
                 const selected = demoMode === option.demo
                 return <button key={option.label} onClick={() => { if (!selected && (option.demo || isLoggedIn)) handleDemoToggle() }} disabled={!option.demo && !isLoggedIn} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${selected ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'} ${!option.demo && !isLoggedIn ? 'cursor-not-allowed opacity-50' : ''}`}>
-                  <span className="flex items-center gap-3"><span className="text-gray-500 dark:text-gray-400"><SettingsLineIcon type={option.icon} /></span><span className="text-[15px] font-medium text-gray-800 dark:text-gray-200">{option.label}</span></span>
+                  <span className="flex items-center gap-3"><span className="text-gray-500 dark:text-gray-400"><SettingsLineIcon type={option.icon} /></span><span className="text-sm font-normal text-gray-800 dark:text-gray-200">{option.label}</span></span>
                   {selected && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}
                 </button>
               })}
@@ -270,7 +270,7 @@ export default function Settings({ auth } = {}) {
           </SettingsGroup>
           <SettingsGroup title="皮肤选择" description="设置界面明暗外观">
             <div className="space-y-2">
-              {themes.map((item) => <button key={item.key} onClick={() => handleThemeChange(item.key)} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${theme === item.key ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'}`}><span className="flex items-center gap-3"><span className="text-gray-500 dark:text-gray-400"><SettingsLineIcon type={item.icon} /></span><span className="text-[15px] font-medium text-gray-800 dark:text-gray-200">{item.label}</span></span>{theme === item.key && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}</button>)}
+              {themes.map((item) => <button key={item.key} onClick={() => handleThemeChange(item.key)} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${theme === item.key ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'}`}><span className="flex items-center gap-3"><span className="text-gray-500 dark:text-gray-400"><SettingsLineIcon type={item.icon} /></span><span className="text-sm font-normal text-gray-800 dark:text-gray-200">{item.label}</span></span>{theme === item.key && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}</button>)}
             </div>
           </SettingsGroup>
         </SettingsSubpage>
@@ -280,14 +280,14 @@ export default function Settings({ auth } = {}) {
         <SettingsSubpage title="AI 与智能分析" description="管理助手显示、回答规则和模型清单" onBack={returnToSettingsMenu}>
           <SettingsGroup title="AI 资产助手" description="使用所选大模型分析 Holdings、History 和目标配置">
           <button type="button" onClick={handleAiToggle} disabled={!isLoggedIn || demoMode} role="switch" aria-checked={aiControlEnabled} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${aiControlEnabled ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 dark:border-gray-700'} ${!isLoggedIn || demoMode ? 'cursor-not-allowed opacity-50' : ''}`}>
-            <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"><RobotIcon className="h-6 w-6" /></span><span><span className="block text-[15px] font-medium text-gray-800 dark:text-gray-200">在业务页面显示 AI 机器人</span><span className="mt-0.5 block text-[13px] text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在业务页面显示' : '当前已关闭'}</span></span></span>
+            <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"><RobotIcon className="h-6 w-6" /></span><span><span className="block text-sm font-normal text-gray-800 dark:text-gray-200">在业务页面显示 AI 机器人</span><span className="mt-0.5 block text-xs font-normal text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在业务页面显示' : '当前已关闭'}</span></span></span>
             <span aria-hidden="true" className={`relative ml-3 h-6 w-11 shrink-0 rounded-full transition-colors ${aiControlEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}><span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} /></span>
           </button>
-          <p className="mt-3 text-[13px] leading-[18px] text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
+          <p className="mt-3 text-xs font-normal leading-[18px] text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
           </SettingsGroup>
           <SettingsGroup title="助手配置" description="规则和模型配置会应用于后续对话">
-            <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-[15px] font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>回答规则</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
-            <button type="button" onClick={() => setShowAiModels(true)} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-[15px] font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>AI 模型清单</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-normal text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>回答规则</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" onClick={() => setShowAiModels(true)} disabled={!isLoggedIn || demoMode} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-normal text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>AI 模型清单</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
           </SettingsGroup>
         </SettingsSubpage>
       )}
@@ -295,8 +295,8 @@ export default function Settings({ auth } = {}) {
       {activeSection === 'security' && isLoggedIn && (
         <SettingsSubpage title="账户与安全" description="管理登录密码和当前会话" onBack={returnToSettingsMenu}>
           <SettingsGroup title="当前账户" description={`已登录：${auth?.username || ''}`}>
-            <button type="button" onClick={() => setShowChangePassword(true)} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-[15px] font-medium text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300"><span>修改密码</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
-            <button type="button" onClick={auth?.logout} className="flex w-full items-center justify-center rounded-lg border border-red-200 px-4 py-3 text-[15px] font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10">退出登录</button>
+            <button type="button" onClick={() => setShowChangePassword(true)} className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-4 py-3 text-left text-sm font-normal text-gray-700 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300"><span>修改密码</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
+            <button type="button" onClick={auth?.logout} className="flex w-full items-center justify-center rounded-lg border border-red-200 px-4 py-3 text-sm font-normal text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10">退出登录</button>
           </SettingsGroup>
         </SettingsSubpage>
       )}

@@ -248,7 +248,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             </div>
           ) : (
             <div className="px-4 h-12 flex items-center justify-between">
-              <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
+              <span className={`${pagePath === '/' ? 'text-2xl font-bold' : 'text-xl font-semibold'} text-gray-800 dark:text-gray-200`}>{pageTitle}</span>
               <div className="flex items-center gap-3">
               {auth?.isLoggedIn ? (
                 <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
@@ -269,7 +269,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
         <header className="hidden sm:flex sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-gray-700 desktop-topbar">
           <div className="flex-1 flex items-center justify-between px-4 lg:px-5 h-[72px]">
             <div>
-              <h1 className="text-xl font-semibold text-slate-900 dark:text-gray-100 tracking-tight">{pageTitle}</h1>
+              <h1 className={`${pagePath === '/' ? 'text-2xl font-bold' : 'text-xl font-semibold'} tracking-tight text-slate-900 dark:text-gray-100`}>{pageTitle}</h1>
               <p className="mt-0.5 text-xs text-slate-400 dark:text-gray-500">{pageDescription}</p>
             </div>
             <div className="flex items-center gap-3">
@@ -303,7 +303,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       {/* 移动端底部导航 */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-gray-100 bg-white pb-[env(safe-area-inset-bottom)] dark:border-gray-700 dark:bg-gray-800 sm:hidden">
         {[["/", "总览", HomeIcon], ["/market", "行情", MarketIcon], ["/holdings", "持仓", ListIcon], ["/target", "目标", TargetIcon]].map(([to, label, Icon]) => (
-          <NavLink key={to} to={to} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
+          <NavLink key={to} to={to} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
             {({ isActive }) => <span className={`flex min-w-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><Icon className="h-5 w-5" /><span>{label}</span></span>}
           </NavLink>
         ))}

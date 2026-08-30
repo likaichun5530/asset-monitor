@@ -53,7 +53,13 @@ nav a, nav button, .bottom-nav-link {
   font-weight: 700;
 }
 
+.font-num-regular {
+  font-family: "SF Pro Display", "Arial Narrow", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+}
+
 .font-num,
+.font-num-regular,
 [class*="font-bold"],
 [class*="font-semibold"] {
   font-feature-settings: "tnum";

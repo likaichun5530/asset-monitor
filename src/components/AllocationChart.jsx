@@ -55,9 +55,9 @@ export default function AllocationChart({ refreshKey = 0 }) {
               onClick={() => { if (route) navigate(route) }}
               className={`flex items-center gap-1 ${route ? 'cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1 py-0.5 transition-colors' : ''}`}
             >
-              <div className="flex items-center gap-1.5 min-w-14 shrink-0">
+              <div className="flex min-w-[72px] shrink-0 items-center gap-1.5">
                 <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
-                <span className="text-xs text-gray-600">{item.category}</span>
+                <span className="text-sm font-medium text-gray-600">{item.category}</span>
               </div>
               {/* 柱子区域 */}
               <div className="flex-1 h-4 bg-gray-50 rounded overflow-hidden">
@@ -67,9 +67,9 @@ export default function AllocationChart({ refreshKey = 0 }) {
                 />
               </div>
               {/* 比例（柱子右边外面） */}
-              <span className="w-12 text-right text-xs text-gray-500 shrink-0 whitespace-nowrap">{ratioPct.toFixed(1)}%</span>
+              <span className="w-12 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-500">{ratioPct.toFixed(1)}%</span>
               {/* 金额 */}
-              <span className="w-24 text-right text-xs text-gray-800 font-medium shrink-0 whitespace-nowrap">
+              <span className="w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-800">
                 {formatWan(item.marketValue)}
               </span>
             </div>

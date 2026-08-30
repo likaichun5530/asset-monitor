@@ -13,20 +13,20 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
     <div className="card home-hero-card flex min-h-[92px] flex-col justify-center overflow-hidden px-4 py-3 sm:min-h-[150px] sm:p-5">
       <div className="flex min-h-[68px] items-stretch justify-between gap-3 sm:min-h-[110px] sm:gap-8">
         <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <div className="text-xs font-medium text-gray-500 sm:text-sm">总资产（人民币）</div>
-          <div className="font-num mt-1 whitespace-nowrap text-[27px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-[36px]">
+          <div className="text-xs font-medium text-gray-500">总资产（人民币）</div>
+          <div className="font-num mt-1 whitespace-nowrap text-[28px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3">
             {formatNumber(total)}
           </div>
-          <div className="mt-1.5 text-[11px] text-gray-400 sm:mt-3 sm:text-xs">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
+          <div className="font-num-regular mt-1.5 text-xs text-gray-400 sm:mt-3">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
         </div>
 
         <div className="flex shrink-0 flex-col items-end justify-center text-right">
           <button type="button" onClick={onOpenTodayDetail} aria-label="查看今日盈亏明细" className="font-num flex flex-col items-end rounded-lg bg-transparent text-right transition-opacity hover:opacity-75">
-            <span className="text-xs font-normal text-gray-400 sm:text-[13px]">今日盈亏</span>
-            <span className={`mt-1 text-base font-normal leading-none sm:text-[19px] ${changeColor}`}>
+            <span className="text-xs font-medium text-gray-400">今日盈亏</span>
+            <span className={`mt-1 text-base font-medium leading-none ${changeColor}`}>
               {todayChange === null || todayChange === undefined ? '--' : formatChange(todayChange)}
             </span>
-            <span className={`mt-1 text-[13px] font-normal sm:text-[15px] ${changeColor}`}>
+            <span className={`mt-1 text-xs font-medium ${changeColor}`}>
               {todayChangePct === null || todayChangePct === undefined ? '--' : formatPercent(todayChangePct, { withSign: true })}
             </span>
           </button>

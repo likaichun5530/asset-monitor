@@ -46,7 +46,7 @@ test('盈亏小卡片使用统一金融字体与 500 字重', () => {
 test('今日盈亏入口驱动收益日历打开今日明细', () => {
   assert.match(heroSource, /onClick=\{onOpenTodayDetail\}/)
   assert.match(heroSource, /font-num flex flex-col items-end/)
-  assert.match(heroSource, /今日盈亏[\s\S]*font-normal/)
+  assert.match(heroSource, /今日盈亏[\s\S]*font-medium/)
   assert.match(heroSource, /aria-label="查看今日盈亏明细"/)
   assert.match(homeSource, /openTodayRequest=\{todayDetailRequest\}/)
   assert.match(homeSource, /setTodayDetailRequest\(\(value\) => value \+ 1\)/)

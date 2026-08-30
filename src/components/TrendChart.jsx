@@ -132,14 +132,14 @@ export default function TrendChart({ refreshKey = 0 }) {
       <div className="flex items-center justify-between mb-[1px] flex-wrap gap-2 px-3 sm:px-0">
         <div>
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
-          <p className="text-xs text-gray-400 mt-0.5">单位：万元</p>
+          <p className="font-num-regular mt-0.5 text-xs text-gray-400">单位：万元</p>
         </div>
         <div className="flex items-center gap-[1px] bg-gray-100 rounded-lg">
           {RANGES.map((r) => (
             <button
               key={r.key}
               onClick={() => setRange(r.key)}
-              className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+              className={`font-num-regular rounded-md px-2 py-1 text-xs transition-colors ${
                 range === r.key
                   ? 'bg-white text-brand-600 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -166,7 +166,7 @@ export default function TrendChart({ refreshKey = 0 }) {
               domain={['dataMin', 'dataMax']}
               ticks={xTicks.length ? xTicks : undefined}
               tickFormatter={(ts) => formatDateShort(new Date(ts).toISOString().slice(0, 10))}
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif', fontSize: 12, fontWeight: 400, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={{ stroke: '#e2e8f0' }}
             />
@@ -174,7 +174,7 @@ export default function TrendChart({ refreshKey = 0 }) {
               ticks={yTicks}
               domain={yDomain}
               tickFormatter={toWanNum}
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif', fontSize: 12, fontWeight: 400, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={false}
               width={44}
@@ -184,7 +184,9 @@ export default function TrendChart({ refreshKey = 0 }) {
                 borderRadius: 12,
                 border: '1px solid #e2e8f0',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif',
                 fontSize: 12,
+                fontWeight: 400,
               }}
               labelFormatter={(label) => `日期 ${formatDateMid(new Date(label).toISOString().slice(0, 10))}`}
               formatter={(value, name, props) => {
@@ -214,8 +216,9 @@ export default function TrendChart({ refreshKey = 0 }) {
                   value: toWanNum(peak.value),
                   position: 'top',
                   fill: '#1f2937',
-                  fontSize: 11,
-                  fontWeight: 600,
+                  fontSize: 12,
+                  fontWeight: 400,
+                  fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif',
                   offset: 10,
                 }}
               />
