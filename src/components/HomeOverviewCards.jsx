@@ -70,19 +70,19 @@ export function CurrencyCard({ refreshKey = 0 }) {
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        <svg viewBox="0 0 128 128" className="h-20 w-20 shrink-0 -rotate-90">
+        <svg viewBox="0 0 128 128" className="h-24 w-24 shrink-0 -rotate-90">
           <circle cx="64" cy="64" r="46" fill="none" strokeWidth="22" className="stroke-gray-200 dark:stroke-gray-700" />
           {ring.segments.map((segment, index) => (
             <circle key={index} cx="64" cy="64" r="46" fill="none" stroke={segment.color} strokeWidth="22"
               strokeDasharray={`${segment.len} ${ring.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
           ))}
         </svg>
-        <div className="grid w-full shrink-0 grid-cols-2 gap-x-4 gap-y-0 px-4 leading-[14px]">
+        <div className="grid w-full shrink-0 grid-cols-2 gap-x-1 gap-y-0 leading-[14px]">
           {pieData.map((item) => (
-            <div key={item.name} className="flex h-[14px] items-center justify-center gap-1.5 text-xs font-medium">
-              <span className="flex min-w-0 items-center gap-1 text-gray-600 dark:text-gray-400">
+            <div key={item.name} className="flex h-[14px] min-w-0 items-center justify-center gap-1.5 text-xs font-medium">
+              <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-gray-600 dark:text-gray-400">
                 <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: item.color }} />
-                <span className="truncate">{item.name}</span>
+                <span>{item.name}</span>
               </span>
               <span className="text-gray-800 dark:text-gray-200 font-medium shrink-0">{Math.round(item.ratio)}%</span>
             </div>
@@ -149,7 +149,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
         <div className="leading-4"><span className="text-gray-500">减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="leading-4"><span className="text-gray-500">加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="my-4 border-t border-gray-100" />
-        <div className="flex items-center justify-between">
+        <div className="flex -translate-y-1 items-center justify-between">
           <span className="text-gray-500">期货保证金</span>
           <span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}% · {usageText}</span>
         </div>
