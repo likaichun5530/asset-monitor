@@ -30,5 +30,8 @@ test('手机收益详情使用可视窗口滚动并在底部按需展开备注�
   assert.match(source, /<AppDialog/)
   assert.match(source, /ariaLabel="每日资产变化"/)
   assert.match(source, /onClose=\{\(\) => setSelectedDay\(null\)\}/)
+  assert.match(source, /openTodayRequest/)
+  assert.match(source, /handledOpenTodayRequest/)
+  assert.match(source, /setSelectedDay\(\{ date: todayStr \}\)/)
   assert.ok(source.indexOf('placeholder="记录当天的重要事项"') > source.indexOf('selectedDetail.categories.length'))
 })

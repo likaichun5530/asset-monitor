@@ -16,11 +16,11 @@ export function StatMini({ label, change, changePct }) {
       : ''
   return (
     <div className={`card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
-      <div className="flex w-full items-center justify-between">
-        <div className="text-xs sm:text-sm font-medium text-gray-500">{label}</div>
-        <span className={`hidden sm:block h-2 w-2 rounded-full ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
+      <div className="relative flex w-full items-center justify-center">
+        <div className="text-center text-xs font-medium text-gray-500 sm:text-sm">{label}</div>
+        <span className={`absolute right-0 hidden h-2 w-2 rounded-full sm:block ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
       </div>
-      <div className={`font-num mt-2 text-base font-bold leading-none sm:mt-3 sm:text-2xl ${color}`}>{formatChange(change)}</div>
+      <div className={`font-num mt-2 text-base font-semibold leading-none sm:mt-3 sm:text-2xl ${color}`}>{formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
         <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs sm:text-sm ${bg} ${color}`}>
           {isUp && <span>▲</span>} {isDown && <span>▼</span>} {formatPercent(Math.abs(changePct))}

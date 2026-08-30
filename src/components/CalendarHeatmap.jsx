@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { getHistory } from '../utils/asset.js'
 import { saveHistoryNote } from '../utils/dataStore.js'
 import { formatCurrency } from '../utils/format.js'
@@ -44,7 +44,8 @@ function prevDayStr(dateStr) {
   return toDateStr(d)
 }
 
-export default function CalendarHeatmap({ refreshKey = 0 }) {
+export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }) {
+  const handledOpenTodayRequest = useRef(0)
   const [historyRevision, setHistoryRevision] = useState(0)
   const history = useMemo(() => getHistory(), [refreshKey, historyRevision])
   const [selectedDay, setSelectedDay] = useState(null)
@@ -90,6 +91,15 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     setNoteError('')
     setNoteSuccess('')
   }, [selectedDetail?.date])
+
+  useEffect(() => {
+    if (!openTodayRequest || handledOpenTodayRequest.current === openTodayRequest) return
+    handledOpenTodayRequest.current = openTodayRequest
+    if (!history.some((item) => item.date === todayStr)) return
+    setViewYear(now.getFullYear())
+    setViewMonth(now.getMonth())
+    setSelectedDay({ date: todayStr })
+  }, [openTodayRequest, history, todayStr])
 
   // 分析历史数据中存在的年月范围
   const availableMonths = useMemo(() => {

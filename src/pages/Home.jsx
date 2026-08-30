@@ -61,6 +61,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   const [cardConfig, setCardConfig] = useState(readCardConfig)
   const [cardOrder, setCardOrder] = useState(readCardOrder)
   const [editMode, setEditMode] = useState(false)
+  const [todayDetailRequest, setTodayDetailRequest] = useState(0)
   const longPressTimer = useRef(null)
   const sortRef = useRef(null)
   const sortInstance = useRef(null)
@@ -236,7 +237,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
       case 'trend': return <TrendChart refreshKey={refreshKey} />
       case 'allocation': return <AllocationChart refreshKey={refreshKey} />
       case 'holdings': return <HoldingsOverview refreshKey={refreshKey} />
-      case 'calendar': return <CalendarHeatmap refreshKey={refreshKey} />
+      case 'calendar': return <CalendarHeatmap refreshKey={refreshKey} openTodayRequest={todayDetailRequest} />
       default: return null
     }
   }
@@ -261,6 +262,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
         pendingCount={pendingCount}
         editMode={editMode}
         onToggleEdit={() => setEditMode((value) => !value)}
+        onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
       />
 
       <div ref={sortRef} className="-mx-1 flex flex-wrap items-stretch">
