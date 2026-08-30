@@ -226,6 +226,25 @@ export function currentTotal() {
   return totalMarketValue()
 }
 
+// 今日盈亏：当前持仓总额相对最近一次每日快照的变化。
+// 自动快照在每日收盘后写入，因此日内展示的是最新快照至当前的资产变化。
+export function changeToday() {
+  const currentValue = totalMarketValue()
+  const snapshot = latestSnapshot()
+  const startValue = Number(snapshot?.total)
+  if (!Number.isFinite(startValue)) {
+    return { change: null, changePct: null, startValue: null, currentValue, startDate: null }
+  }
+  const change = Math.round((currentValue - startValue) * 100) / 100
+  return {
+    change,
+    changePct: startValue ? (change / startValue) * 100 : 0,
+    startValue,
+    currentValue,
+    startDate: snapshot.date || null,
+  }
+}
+
 export function lastUpdateDate() {
   const last = latestSnapshot()
   return last ? last.date : null

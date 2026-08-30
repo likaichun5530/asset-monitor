@@ -8,7 +8,7 @@ import HomeAssetHero from '../components/HomeAssetHero.jsx'
 import { CurrencyCard, HealthCard, StatMini } from '../components/HomeOverviewCards.jsx'
 import {
   currentTotal, change7d, change30d, changeYtd, drawdownFromPeak,
-  lastUpdateDate, generateSnapshot, hasBackend,
+  changeToday, lastUpdateDate,
 } from '../utils/asset.js'
 import { getPendingCount } from '../utils/dataStore.js'
 import { findBestCardOverlap, getCardInsertDirection, reorderCardIds } from '../utils/cardSort.js'
@@ -57,9 +57,7 @@ const CARD_LABELS = {
   trend: '资产趋势图', allocation: '资产配置', holdings: '持仓概况', calendar: '收益日历',
 }
 
-export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
-  const [snapshotLoading, setSnapshotLoading] = useState(false)
-  const [snapshotMsg, setSnapshotMsg] = useState(null)
+export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   const [cardConfig, setCardConfig] = useState(readCardConfig)
   const [cardOrder, setCardOrder] = useState(readCardOrder)
   const [editMode, setEditMode] = useState(false)
@@ -70,26 +68,13 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
   const cardConfigRef = useRef(cardConfig)
 
   const total = useMemo(() => currentTotal(), [refreshKey])
+  const today = useMemo(() => changeToday(), [refreshKey])
   const c7 = useMemo(() => change7d(), [refreshKey])
   const c30 = useMemo(() => change30d(), [refreshKey])
   const ytd = useMemo(() => changeYtd(), [refreshKey])
   const dd = useMemo(() => drawdownFromPeak(), [refreshKey])
   const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
   const pendingCount = useMemo(() => getPendingCount(), [refreshKey])
-  const demoMode = typeof window !== 'undefined' ? (localStorage.getItem('youshu-demo-mode') === 'true') : false
-
-  const handleSnapshot = useCallback(async () => {
-    if (demoMode) { setSnapshotMsg({ type: 'warn', text: '演示模式不支持生成快照' }); setTimeout(() => setSnapshotMsg(null), 2000); return }
-    setSnapshotLoading(true); setSnapshotMsg(null)
-    try {
-      const result = await generateSnapshot(total); onSnapshot()
-      if (result.synced) setSnapshotMsg({ type: 'success', text: `快照已生成（${result.date}）并同步至 Google Sheets` })
-      else if (hasBackend()) setSnapshotMsg({ type: 'warn', text: `快照已生成（${result.date}），离线暂存` })
-      else setSnapshotMsg({ type: 'success', text: `快照已生成（${result.date}）` })
-    } catch (e) { setSnapshotMsg({ type: 'error', text: '生成快照失败：' + (e?.message || String(e)) })
-    } finally { setSnapshotLoading(false); setTimeout(() => setSnapshotMsg(null), 4000) }
-  }, [total, onSnapshot])
-
   const startLongPress = useCallback((e) => {
     if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input')) return
     const point = e.touches?.[0] || e
@@ -270,13 +255,12 @@ export default function Home({ refreshKey, targetRefreshKey = 0, onSnapshot }) {
 
       <HomeAssetHero
         total={total}
+        todayChange={today.change}
+        todayChangePct={today.changePct}
         updateDate={updateDate}
         pendingCount={pendingCount}
-        snapshotMsg={snapshotMsg}
-        snapshotLoading={snapshotLoading}
         editMode={editMode}
         onToggleEdit={() => setEditMode((value) => !value)}
-        onSnapshot={handleSnapshot}
       />
 
       <div ref={sortRef} className="-mx-1 flex flex-wrap items-stretch">

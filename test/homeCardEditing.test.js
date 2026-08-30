@@ -23,6 +23,14 @@ test('桌面首页使用完整货币圆环和简洁总资产卡片', () => {
   assert.doesNotMatch(heroSource, /bg-brand-500.*总资产/)
 })
 
+test('总资产头部使用纯数字并展示今日盈亏，不再提供手动快照按钮', () => {
+  assert.match(heroSource, /formatNumber\(total\)/)
+  assert.match(heroSource, /tracking-\[-0\.04em\]/)
+  assert.match(heroSource, /今日盈亏/)
+  assert.match(heroSource, /formatChange\(todayChange\)/)
+  assert.doesNotMatch(heroSource, /SnapshotIcon|生成快照|onSnapshot/)
+})
+
 test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
   assert.match(layoutSource, /src="\/icon\.png" alt="有数 App Logo"/)
   assert.match(layoutSource, /border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/)
