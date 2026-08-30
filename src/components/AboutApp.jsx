@@ -48,15 +48,15 @@ export default function AboutApp({ version }) {
             <img src="/icon.png" alt="有数 App Logo" className="h-full w-full scale-[1.22] object-cover" />
           </div>
           <h3 className="mt-4 text-2xl font-bold tracking-[0.18em]">有数</h3>
-          <p className="mt-1.5 text-sm font-medium tracking-[0.12em] text-gray-500 dark:text-gray-300">资产配置，心中有数</p>
-          <span className="mt-4 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-xs font-medium text-gray-500 shadow-sm backdrop-blur dark:border-gray-600 dark:bg-gray-700/80 dark:text-gray-300">Version {version}</span>
+          <p className="mt-1.5 text-[15px] font-medium tracking-[0.12em] text-gray-500 dark:text-gray-300">资产配置，心中有数</p>
+          <span className="mt-4 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-[13px] font-medium text-gray-500 shadow-sm backdrop-blur dark:border-gray-600 dark:bg-gray-700/80 dark:text-gray-300">Version {version}</span>
         </div>
       </section>
 
       <section className="p-4 sm:p-6">
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">功能介绍</h3>
-          <p className="mt-1 text-xs leading-5 text-gray-400">为个人资产管理打造的一站式数据看板</p>
+          <h3 className="text-[17px] font-semibold text-gray-900 dark:text-gray-100">功能介绍</h3>
+          <p className="mt-1 text-[13px] leading-5 text-gray-400">为个人资产管理打造的一站式数据看板</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {FEATURES.map((feature) => (
@@ -64,15 +64,15 @@ export default function AboutApp({ version }) {
               <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${feature.tone}`}>
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{feature.icon}</svg>
               </div>
-              <h4 className="mt-3 text-sm font-semibold text-gray-800 dark:text-gray-200">{feature.title}</h4>
-              <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">{feature.description}</p>
+              <h4 className="mt-3 text-[15px] font-semibold text-gray-800 dark:text-gray-200">{feature.title}</h4>
+              <p className="mt-1 text-[13px] leading-5 text-gray-500 dark:text-gray-400">{feature.description}</p>
             </article>
           ))}
         </div>
       </section>
 
       <section className="border-t border-gray-100 px-4 py-4 dark:border-gray-700 sm:px-6">
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-400">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-gray-400">
           <span>Google Sheets</span>
           <span aria-hidden="true" className="h-1 w-1 rounded-full bg-gray-300 dark:bg-gray-600" />
           <span>Web · PWA</span>
