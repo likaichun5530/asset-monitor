@@ -32,6 +32,20 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
   assert.match(source, /activeSection === 'about'/)
   assert.match(source, /value: `v\$\{packageJson\.version\}`/)
 
+  const securityIndex = source.indexOf("key: 'security'")
+  const appearanceIndex = source.indexOf("key: 'appearance'")
+  const aiIndex = source.indexOf("key: 'ai'")
+  const aboutIndex = source.indexOf("key: 'about'")
+  assert.ok(securityIndex < appearanceIndex)
+  assert.ok(appearanceIndex < aiIndex)
+  assert.ok(aiIndex < aboutIndex)
+
+  const about = await readFile(new URL('../src/components/AboutApp.jsx', import.meta.url), 'utf8')
+  assert.match(about, /有数 App Logo/)
+  assert.match(about, /资产配置，心中有数/)
+  assert.match(about, /Version \{version\}/)
+  assert.match(about, /功能介绍/)
+
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(app, /path="settings\/:section"/)
 
