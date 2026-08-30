@@ -11,19 +11,16 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
 
   return (
     <div className="card home-hero-card flex min-h-[92px] flex-col justify-center overflow-hidden px-4 py-3 sm:min-h-[150px] sm:p-5">
-      <div className="flex items-center justify-between gap-3 sm:gap-8">
-        <div className="min-w-0 flex-1">
+      <div className="flex min-h-[68px] items-stretch justify-between gap-3 sm:min-h-[110px] sm:gap-8">
+        <div className="flex min-w-0 flex-1 flex-col justify-center">
           <div className="text-xs font-medium text-gray-500 sm:text-sm">总资产（人民币）</div>
-          <div
-            className="mt-1 whitespace-nowrap text-[27px] font-semibold leading-none tracking-[-0.04em] text-gray-900 tabular-nums dark:text-gray-100 sm:mt-3 sm:text-[36px]"
-            style={{ fontFamily: "'Arial Narrow', 'Roboto Condensed', 'SF Pro Display', Inter, system-ui, sans-serif", fontStretch: 'condensed' }}
-          >
+          <div className="font-num mt-1 whitespace-nowrap text-[27px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-[36px]">
             {formatNumber(total)}
           </div>
           <div className="mt-1.5 text-[11px] text-gray-400 sm:mt-3 sm:text-xs">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end text-right">
+        <div className="flex shrink-0 flex-col items-end justify-center text-right">
           <div className="text-[11px] font-medium text-gray-400 sm:text-xs">今日盈亏</div>
           <div className={`mt-1 text-[15px] font-semibold leading-none tabular-nums sm:text-lg ${changeColor}`}>
             {todayChange === null || todayChange === undefined ? '--' : formatChange(todayChange)}
@@ -37,9 +34,7 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
           </button>
         </div>
       </div>
-      <div className="mt-1 flex flex-wrap items-center gap-2">
-        {pendingCount > 0 && <span className="text-xs text-yellow-600">{pendingCount} 条待同步</span>}
-      </div>
+      {pendingCount > 0 && <div className="mt-1 flex flex-wrap items-center gap-2"><span className="text-xs text-yellow-600">{pendingCount} 条待同步</span></div>}
     </div>
   )
 }

@@ -10,9 +10,9 @@ export function StatMini({ label, change, changePct }) {
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
   const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
   const cardGradient = isUp
-    ? 'bg-gradient-to-b from-red-100/80 via-white to-white dark:from-red-500/[0.18] dark:via-gray-800 dark:to-gray-800'
+    ? 'bg-gradient-to-b from-red-100/90 via-red-50/60 to-red-50/25 dark:from-red-500/[0.20] dark:via-red-500/[0.10] dark:to-red-500/[0.04]'
     : isDown
-      ? 'bg-gradient-to-b from-green-100/80 via-white to-white dark:from-green-500/[0.18] dark:via-gray-800 dark:to-gray-800'
+      ? 'bg-gradient-to-b from-green-100/90 via-green-50/60 to-green-50/25 dark:from-green-500/[0.20] dark:via-green-500/[0.10] dark:to-green-500/[0.04]'
       : ''
   return (
     <div className={`card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
@@ -20,7 +20,7 @@ export function StatMini({ label, change, changePct }) {
         <div className="text-xs sm:text-sm font-medium text-gray-500">{label}</div>
         <span className={`hidden sm:block h-2 w-2 rounded-full ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
       </div>
-      <div className={`text-base sm:text-2xl font-bold mt-2 sm:mt-3 ${color}`}>{formatChange(change)}</div>
+      <div className={`font-num mt-2 text-base font-bold leading-none sm:mt-3 sm:text-2xl ${color}`}>{formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
         <span className={`inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs sm:text-sm ${bg} ${color}`}>
           {isUp && <span>▲</span>} {isDown && <span>▼</span>} {formatPercent(Math.abs(changePct))}

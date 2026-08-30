@@ -52,7 +52,7 @@ function readCardOrder() {
 function writeCardOrder(o) { try { localStorage.setItem(ORDER_KEY, JSON.stringify(o)) } catch {} }
 
 const CARD_LABELS = {
-  change7d: '近7天涨跌', change30d: '近1月涨跌', changeYtd: '今年涨跌',
+  change7d: '近7日盈亏', change30d: '近1月盈亏', changeYtd: '今年盈亏',
   drawdown: '较高点回撤', currency: '货币比例', health: '账户健康度',
   trend: '资产趋势图', allocation: '资产配置', holdings: '持仓概况', calendar: '收益日历',
 }

@@ -226,14 +226,29 @@ export function currentTotal() {
   return totalMarketValue()
 }
 
-// 今日盈亏：当前持仓总额相对最近一次每日快照的变化。
-// 自动快照在每日收盘后写入，因此日内展示的是最新快照至当前的资产变化。
+function previousDate(dateString) {
+  const date = new Date(`${dateString}T00:00:00Z`)
+  if (Number.isNaN(date.getTime())) return null
+  date.setUTCDate(date.getUTCDate() - 1)
+  return date.toISOString().slice(0, 10)
+}
+
+// 今日盈亏与收益日历口径一致：最新一天总资产减去前一自然日总资产。
 export function changeToday() {
-  const currentValue = totalMarketValue()
-  const snapshot = latestSnapshot()
-  const startValue = Number(snapshot?.total)
-  if (!Number.isFinite(startValue)) {
-    return { change: null, changePct: null, startValue: null, currentValue, startDate: null }
+  const history = getHistory()
+  const currentSnapshot = history.at(-1)
+  const currentValue = Number(currentSnapshot?.total)
+  const yesterday = previousDate(currentSnapshot?.date)
+  let previousSnapshot = null
+  for (let index = history.length - 2; index >= 0; index -= 1) {
+    if (history[index]?.date === yesterday) {
+      previousSnapshot = history[index]
+      break
+    }
+  }
+  const startValue = Number(previousSnapshot?.total)
+  if (!Number.isFinite(currentValue) || !Number.isFinite(startValue)) {
+    return { change: null, changePct: null, startValue: null, currentValue: Number.isFinite(currentValue) ? currentValue : null, startDate: null }
   }
   const change = Math.round((currentValue - startValue) * 100) / 100
   return {
@@ -241,7 +256,7 @@ export function changeToday() {
     changePct: startValue ? (change / startValue) * 100 : 0,
     startValue,
     currentValue,
-    startDate: snapshot.date || null,
+    startDate: previousSnapshot.date,
   }
 }
 

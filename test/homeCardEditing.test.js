@@ -25,10 +25,16 @@ test('桌面首页使用完整货币圆环和简洁总资产卡片', () => {
 
 test('总资产头部使用纯数字并展示今日盈亏，不再提供手动快照按钮', () => {
   assert.match(heroSource, /formatNumber\(total\)/)
-  assert.match(heroSource, /tracking-\[-0\.04em\]/)
+  assert.match(heroSource, /font-num.*font-bold.*tracking-\[-0\.04em\]/)
   assert.match(heroSource, /今日盈亏/)
   assert.match(heroSource, /formatChange\(todayChange\)/)
   assert.doesNotMatch(heroSource, /SnapshotIcon|生成快照|onSnapshot/)
+})
+
+test('盈亏小卡片统一使用金融数字字体和盈亏文案', () => {
+  assert.match(overviewSource, /font-num.*formatChange\(change\)/)
+  assert.match(homeSource, /近7日盈亏.*近1月盈亏.*今年盈亏/)
+  assert.doesNotMatch(homeSource, /近7天涨跌|近1月涨跌|今年涨跌/)
 })
 
 test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
