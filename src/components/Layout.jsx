@@ -229,14 +229,14 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
               <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
               <div className="flex items-center gap-3">
               {auth?.isLoggedIn ? (
-                <span className="text-sm text-gray-800 dark:text-gray-200 font-medium shrink-0">{auth.username}</span>
+                <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
               ) : (
-                <NavLink to="/login" className="text-sm text-brand-600 dark:text-brand-400 font-medium shrink-0">登录</NavLink>
+                <NavLink to="/login" className="shrink-0 text-[15px] font-medium text-brand-600 dark:text-brand-400">登录</NavLink>
               )}
-              <span className={`text-sm ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+              <span className={`shrink-0 text-[15px] font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
               </span>
-              <NavLink to="/settings" className="p-1 text-gray-400 dark:text-gray-500"><SettingsIcon className="w-5 h-5" /></NavLink>
+              <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
               </div>
             </div>
           )}
@@ -255,12 +255,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
                 {displayLabel}
               </span>
               <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-icon-button" title="刷新数据" aria-label="刷新数据">
-                <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
+                <svg className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
               </button>
               {auth?.isLoggedIn && (
-                <span className="hidden lg:flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-[10px] font-semibold text-brand-700">{auth.username?.slice(0, 1)?.toUpperCase()}</span>{auth.username}</span>
+                <span className="hidden h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-[15px] text-slate-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 lg:flex"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">{auth.username?.slice(0, 1)?.toUpperCase()}</span>{auth.username}</span>
               )}
-              <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-4 w-4" /></NavLink>
+              <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-5 w-5" /></NavLink>
             </div>
           </div>
         </header>
@@ -270,7 +270,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-3 pt-3 pb-24 sm:pb-8">
+            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-3 pt-2 pb-24 sm:pb-8">
               <Outlet />
             </main>
           </div>

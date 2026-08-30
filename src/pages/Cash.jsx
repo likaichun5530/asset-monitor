@@ -83,7 +83,7 @@ export default function Cash({ refreshKey = 0, targetRefreshKey = 0 }) {
   }, [targetData, total])
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* 概要 */}
       <div className="card py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
         <div className="sm:p-6">
@@ -108,7 +108,7 @@ export default function Cash({ refreshKey = 0, targetRefreshKey = 0 }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 items-stretch">
         {/* 现金明细饼图 */}
         {cashHoldings.length > 0 && (
           <div className="card">

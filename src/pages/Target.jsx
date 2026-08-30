@@ -93,8 +93,8 @@ export default function Target({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-3">
-      <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-3">
+    <div className="flex flex-col gap-2">
+      <section className="hidden grid-cols-2 gap-2 sm:grid xl:grid-cols-4">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">配置资产总额</div>
           <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(totalRow?.marketValue || 0)}</div>
@@ -136,7 +136,7 @@ export default function Target({ refreshKey = 0 }) {
 
       {/* 提醒卡片 */}
       {(overWeight.length > 0 || underWeight.length > 0) && (
-        <section className="hidden sm:grid sm:grid-cols-2 gap-3">
+        <section className="hidden gap-2 sm:grid sm:grid-cols-2">
           {overWeight.length > 0 && (
             <div className="card py-3 px-4 border-l-4 border-red-400">
               <div className="text-sm font-medium text-red-500 flex items-center gap-1.5">
@@ -274,7 +274,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
 
         {/* 移动端卡片列表 */}
-        <div className="sm:hidden space-y-3">
+        <div className="space-y-2 sm:hidden">
           {rows.map((r, idx) => {
             const color = colorMap[r.category] || '#94a3b8'
             const hasTarget = r.targetRatio !== null && r.targetRatio !== undefined

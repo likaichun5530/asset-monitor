@@ -90,7 +90,7 @@ export default function Future({ refreshKey = 0 }) {
   }, [futuresData, spot])
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* 概要 */}
       <div className="card py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
         <div className="sm:p-6">
@@ -113,7 +113,7 @@ export default function Future({ refreshKey = 0 }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-3 items-stretch">
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-5 items-stretch">
       {/* 持仓列表 */}
       <div className="card h-full sm:p-0 sm:overflow-hidden xl:col-span-2">
         <div className="sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">

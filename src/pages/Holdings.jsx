@@ -117,8 +117,8 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
   }
 
   return (
-    <div className="space-y-3">
-      <section className="hidden sm:grid grid-cols-2 xl:grid-cols-4 gap-3">
+    <div className="flex flex-col gap-2">
+      <section className="hidden grid-cols-2 gap-2 sm:grid xl:grid-cols-4">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">资产总额</div>
           <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(total)}</div>
