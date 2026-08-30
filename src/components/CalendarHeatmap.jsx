@@ -345,7 +345,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
             {noteError && <div className="mt-1 text-xs text-red-500">{noteError}</div>}
             <div className="mt-2 flex justify-end gap-2">
               <button type="button" disabled={noteSaving} onClick={() => { setNoteDraft(selectedDetail.note || ''); setNoteEditing(false); setNoteError('') }} className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700">取消</button>
-              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+              <button type="button" onClick={handleSaveNote} disabled={noteSaving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">
                 {noteSaving ? '保存中…' : '保存备注'}
               </button>
             </div>

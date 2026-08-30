@@ -20,9 +20,8 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
 
   assert.match(source, /const \{ section \} = useParams\(\)/)
   assert.match(source, /!activeSection/)
-  assert.match(source, /state: \{ fromSettingsMenu: true \}/)
-  assert.match(source, /location\.state\?\.fromSettingsMenu/)
-  assert.match(source, /navigate\(-1\)/)
+  assert.match(source, /navigate\(`\/settings\/\$\{nextSection\}`\)/)
+  assert.doesNotMatch(source, /navigate\(-1\)/)
   assert.match(source, /navigate\('\/settings', \{ replace: true \}\)/)
   assert.match(source, /aria-label="返回设置一级菜单"/)
   assert.match(source, /<SettingsSubpage/)
@@ -35,4 +34,9 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
 
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(app, /path="settings\/:section"/)
+
+  const layout = await readFile(new URL('../src/components/Layout.jsx', import.meta.url), 'utf8')
+  assert.match(layout, /settingsSectionTitles/)
+  assert.match(layout, /<NavLink to="\/settings" replace/)
+  assert.match(layout, /\{settingsSectionTitle\}/)
 })

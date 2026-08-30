@@ -126,7 +126,7 @@ export default function ChangePasswordDialog({ open, onClose, onChanged }) {
 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={requestClose} disabled={saving || Boolean(success)} className="flex-1 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-600 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300">取消</button>
-            <button type="submit" disabled={saving || Boolean(success) || (compromisedWarning && !allowCompromisedPassword)} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-50">{saving ? '修改中…' : success ? '修改成功' : compromisedWarning ? '仍然使用并修改' : '确认修改'}</button>
+            <button type="submit" disabled={saving || Boolean(success) || (compromisedWarning && !allowCompromisedPassword)} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">{saving ? '修改中…' : success ? '✓ 修改成功' : compromisedWarning ? '仍然使用并修改' : '确认修改'}</button>
           </div>
         </form>
       </section>

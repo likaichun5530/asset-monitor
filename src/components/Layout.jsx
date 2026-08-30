@@ -87,12 +87,21 @@ const pageDescriptions = {
   '/cash': '现金资产与币种分布',
 }
 
+const settingsSectionTitles = {
+  appearance: '数据与外观',
+  ai: 'AI 与智能分析',
+  security: '账户与安全',
+  about: '关于应用',
+}
+
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
   const location = useLocation()
   const pagePath = location.pathname.startsWith('/settings/') ? '/settings' : location.pathname
   const pageTitle = pageTitles[pagePath] || '有数'
   const pageDescription = pageDescriptions[pagePath] || '资产配置，心中有数'
   const displayLabel = sourceLabels[source] || source
+  const settingsSection = location.pathname.match(/^\/settings\/([^/]+)$/)?.[1]
+  const settingsSectionTitle = settingsSectionTitles[settingsSection]
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const contentRef = useRef(null)
@@ -208,9 +217,17 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       <div className="flex-1 min-w-0 flex flex-col bg-gray-50 sm:bg-[#f4f6f9] dark:bg-gray-900">
         {/* 移动端顶部栏 */}
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
-          <div className="px-4 h-12 flex items-center justify-between">
-            <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
-            <div className="flex items-center gap-3">
+          {settingsSectionTitle ? (
+            <div className="relative flex h-12 items-center justify-center px-4">
+              <NavLink to="/settings" replace className="absolute left-2 flex items-center gap-0.5 rounded-lg px-1 py-2 text-sm text-brand-600 dark:text-brand-400" aria-label="返回设置一级菜单">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg><span>设置</span>
+              </NavLink>
+              <span className="max-w-[58vw] truncate text-[17px] font-semibold text-gray-800 dark:text-gray-200">{settingsSectionTitle}</span>
+            </div>
+          ) : (
+            <div className="px-4 h-12 flex items-center justify-between">
+              <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
+              <div className="flex items-center gap-3">
               {auth?.isLoggedIn ? (
                 <span className="text-sm text-gray-800 dark:text-gray-200 font-medium shrink-0">{auth.username}</span>
               ) : (
@@ -220,8 +237,9 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
                 {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
               </span>
               <NavLink to="/settings" className="p-1 text-gray-400 dark:text-gray-500"><SettingsIcon className="w-5 h-5" /></NavLink>
+              </div>
             </div>
-          </div>
+          )}
         </header>
 
         {/* PC 顶部栏 */}

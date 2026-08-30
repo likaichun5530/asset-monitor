@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { clearAiMessages, getAiModels, saveAiModels } from '../utils/ai.js'
+import AppDialog from './AppDialog.jsx'
+import SaveButton from './SaveButton.jsx'
 
 const EMPTY_MODEL = { provider: 'gemini', id: '', label: '', description: '' }
 
@@ -11,20 +12,6 @@ export default function AiModelSettingsDialog({ open, onClose }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
-    if (!open) return undefined
-    const previousOverflow = document.body.style.overflow
-    const previousOverscroll = document.body.style.overscrollBehavior
-    document.body.dataset.modalOpen = 'true'
-    document.body.style.overflow = 'hidden'
-    document.body.style.overscrollBehavior = 'none'
-    return () => {
-      delete document.body.dataset.modalOpen
-      document.body.style.overflow = previousOverflow
-      document.body.style.overscrollBehavior = previousOverscroll
-    }
-  }, [open])
 
   useEffect(() => {
     if (!open) return undefined
@@ -98,21 +85,12 @@ export default function AiModelSettingsDialog({ open, onClose }) {
     }
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[86] flex items-end justify-center overflow-hidden overscroll-none sm:items-center sm:px-4" data-pull-refresh-ignore="true">
-      <button type="button" className="fixed inset-0 touch-none bg-black/40" onClick={onClose} aria-label="关闭AI模型设置" />
-      <section role="dialog" aria-modal="true" aria-label="AI模型清单" className="relative flex max-h-[calc(100dvh-8px)] min-h-0 w-full flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:max-h-[92dvh] sm:max-w-2xl sm:rounded-2xl">
-        <header className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
-          <div>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 模型清单</h3>
-            <p className="mt-0.5 text-xs text-gray-400">保存到 SystemSettings；第一项为默认模型</p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button type="button" onClick={handleSave} disabled={loading || saving || !models.length} className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">{saving ? '保存中…' : '保存'}</button>
-            <button type="button" onClick={onClose} className="p-2 text-gray-400" aria-label="关闭"><svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
-          </div>
-        </header>
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]" style={{ WebkitOverflowScrolling: 'touch' }}>
+  return (
+    <AppDialog open={open} onClose={onClose} title="AI 模型清单" description="账户配置 · SystemSettings / ai.models" ariaLabel="AI模型清单" actions={(
+      <SaveButton saving={saving} saved={saved} disabled={loading || !models.length} onClick={handleSave} savedText="模型清单已保存" />
+    )}>
+        <div className="space-y-3">
+          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-500 dark:bg-gray-700/50 dark:text-gray-400">模型清单跟随账户，整份清单保存在 Google Sheet 的 <span className="font-medium text-gray-700 dark:text-gray-300">SystemSettings / ai.models</span>；当前选中的模型仅保存在本设备。</p>
           {!loading && (
             <button type="button" onClick={addModel} disabled={models.length >= maxModels} className="w-full rounded-xl border border-dashed border-brand-200 bg-brand-50/60 px-3 py-2.5 text-xs font-medium text-brand-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-brand-500/30 dark:bg-brand-500/10">
               ＋ 新增模型（当前 {models.length}/{maxModels}）
@@ -145,10 +123,7 @@ export default function AiModelSettingsDialog({ open, onClose }) {
             </div>
           ))}
           {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{error}</div>}
-          {saved && <div className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-600 dark:bg-green-500/10 dark:text-green-400">模型清单已保存到 Google Sheet。</div>}
         </div>
-      </section>
-    </div>,
-    document.body,
+    </AppDialog>
   )
 }
