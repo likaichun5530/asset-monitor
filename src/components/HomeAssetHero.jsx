@@ -32,7 +32,7 @@ export default function HomeAssetHero({ total, updateDate, pendingCount, snapsho
               {snapshotLoading ? (
                 <svg className="h-8 w-8 animate-spin sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
               ) : (
-                <SnapshotIcon className="h-[60px] w-[60px] sm:h-5 sm:w-5" />
+                <SnapshotIcon className="h-[35px] w-[35px] sm:h-5 sm:w-5" />
               )}
               <span className="hidden sm:inline">生成快照</span>
             </button>
