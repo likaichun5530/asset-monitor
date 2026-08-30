@@ -91,6 +91,8 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /setShowDismissButton\(true\)/)
   assert.match(source, /setAiEnabled\(false\)/)
   assert.match(source, /有数资产管理助手/)
+  assert.match(source, /useLayoutEffect/)
+  assert.match(source, /scrollRef\.current\.scrollTop = scrollRef\.current\.scrollHeight/)
 })
 
 test('AI服务端数据缓存复用并发请求，失效后重新读取', async () => {

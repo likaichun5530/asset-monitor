@@ -40,16 +40,16 @@ const FEATURES = [
 export default function AboutApp({ version }) {
   return (
     <div>
-      <section className="relative isolate overflow-hidden bg-gradient-to-br from-slate-950 via-[#10284d] to-brand-700 px-6 py-8 text-center text-white sm:px-10 sm:py-10">
-        <div aria-hidden="true" className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-blue-400/20 blur-3xl" />
-        <div aria-hidden="true" className="absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-cyan-300/15 blur-3xl" />
+      <section className="relative isolate overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100 px-6 py-8 text-center text-gray-900 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700 dark:text-gray-100 sm:px-10 sm:py-10">
+        <div aria-hidden="true" className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-amber-200/25 blur-3xl dark:bg-amber-300/5" />
+        <div aria-hidden="true" className="absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-emerald-200/20 blur-3xl dark:bg-emerald-300/5" />
         <div className="relative mx-auto flex max-w-md flex-col items-center">
           <div className="rounded-[22px] bg-white/95 p-2.5 shadow-[0_18px_42px_rgba(0,0,0,0.28)] ring-1 ring-white/70">
             <img src="/icon.png" alt="有数 App Logo" className="h-16 w-16 rounded-2xl object-cover sm:h-[72px] sm:w-[72px]" />
           </div>
           <h3 className="mt-4 text-2xl font-bold tracking-[0.18em]">有数</h3>
-          <p className="mt-1.5 text-sm font-medium tracking-[0.12em] text-blue-100">资产配置，心中有数</p>
-          <span className="mt-4 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur">Version {version}</span>
+          <p className="mt-1.5 text-sm font-medium tracking-[0.12em] text-gray-500 dark:text-gray-300">资产配置，心中有数</p>
+          <span className="mt-4 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-xs font-medium text-gray-500 shadow-sm backdrop-blur dark:border-gray-600 dark:bg-gray-700/80 dark:text-gray-300">Version {version}</span>
         </div>
       </section>
 

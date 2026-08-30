@@ -25,6 +25,8 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
   assert.match(source, /navigate\('\/settings', \{ replace: true \}\)/)
   assert.match(source, /aria-label="返回设置一级菜单"/)
   assert.match(source, /<SettingsSubpage/)
+  assert.match(source, /settings-panel-forward/)
+  assert.match(source, /settings-panel-back/)
   assert.match(source, /<SettingsGroup/)
   assert.match(source, /activeSection === 'appearance'/)
   assert.match(source, /activeSection === 'ai'/)

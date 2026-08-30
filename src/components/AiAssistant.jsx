@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import RobotIcon from './RobotIcon.jsx'
 import {
@@ -238,6 +238,11 @@ export default function AiAssistant({ auth } = {}) {
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
+  }, [open])
+
+  useLayoutEffect(() => {
+    if (!open || !scrollRef.current) return
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [open])
 
   useEffect(() => {

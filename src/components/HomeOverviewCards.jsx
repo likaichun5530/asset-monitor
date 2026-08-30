@@ -95,6 +95,13 @@ function futuresMultiplier(symbol) {
   return 1
 }
 
+function marginRiskMarkerPosition(rate) {
+  const value = Math.max(0, Number(rate) || 0)
+  if (value <= 70) return (value / 70) * (100 / 3)
+  if (value <= 75) return (100 / 3) + ((value - 70) / 5) * (100 / 3)
+  return (200 / 3) + (Math.min(value, 100) - 75) / 25 * (100 / 3)
+}
+
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
   const [targetData, setTargetData] = useState([])
   const previousTargetRefreshKeyRef = useRef(targetRefreshKey)
@@ -126,6 +133,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
 
   const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
+  const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
@@ -134,9 +142,23 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
         <div><span className="text-gray-500">减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div><span className="text-gray-500">加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="border-t border-gray-100 my-1" />
-        <div className="flex justify-between items-center"><span className="text-gray-500">期货保证金</span><span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}%</span></div>
-        <div className="flex justify-between items-center"><span className="text-gray-500">状态</span><span className="font-medium" style={{ color: usageColor }}>{usageText}</span></div>
-        <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: Math.min(futureUsageRate, 100) + '%', backgroundColor: usageColor }} /></div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500">期货保证金</span>
+          <span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}% · {usageText}</span>
+        </div>
+        <div className="relative pt-2" aria-label={`保证金风险：${usageText}，使用率 ${futureUsageRate.toFixed(1)}%`}>
+          <span className="absolute top-0 h-2 w-2 -translate-x-1/2 rotate-45 rounded-[1px]" style={{ left: `${markerPosition}%`, backgroundColor: usageColor }} aria-hidden="true" />
+          <div className="flex h-2.5 gap-1 overflow-hidden rounded-full">
+            <span className="flex-1 bg-emerald-500" />
+            <span className="flex-1 bg-amber-400" />
+            <span className="flex-1 bg-red-500" />
+          </div>
+          <div className="mt-1 flex text-[9px] leading-none text-gray-400">
+            <span className="flex-1 text-left">安全 ≤70%</span>
+            <span className="flex-1 text-center">警戒 70–75%</span>
+            <span className="flex-1 text-right">危险 &gt;75%</span>
+          </div>
+        </div>
       </div>
     </div>
   )
