@@ -1,4 +1,4 @@
-import { createDeepSeekStream } from './_deepseek.js'
+import { createDeepSeekSearchStream, createDeepSeekStream } from './_deepseek.js'
 import { createGeminiStream, extractGeminiText, getGeminiFinishReason } from './_gemini.js'
 import { DEFAULT_AI_MODELS, modelsToMap, readAiModels } from './_ai-models.js'
 
@@ -49,12 +49,14 @@ export function resolveAiModel(selection, availability = getAiProviderAvailabili
   return { ...fallback, fallback: true }
 }
 
-export async function createAiStream(selection, context, messages, rules, { models } = {}) {
+export async function createAiStream(selection, context, messages, rules, { models, webSearch = false } = {}) {
   const availableModels = modelsToMap(models || await readAiModels())
   const selected = resolveAiModel(selection, getAiProviderAvailability(), availableModels)
   const result = selected.provider === 'gemini'
-    ? await createGeminiStream(context, messages, rules, selected.apiModel)
-    : await createDeepSeekStream(context, messages, rules, selected.apiModel)
+    ? await createGeminiStream(context, messages, rules, selected.apiModel, { webSearch })
+    : webSearch
+      ? await createDeepSeekSearchStream(context, messages, rules, selected.apiModel)
+      : await createDeepSeekStream(context, messages, rules, selected.apiModel)
   return {
     ...result,
     provider: selected.provider,
@@ -63,7 +65,13 @@ export async function createAiStream(selection, context, messages, rules, { mode
   }
 }
 
-export function extractAiStreamEvent(provider, event) {
+export function extractAiStreamEvent(provider, event, streamFormat = 'chat') {
+  if (streamFormat === 'responses') {
+    return {
+      content: event?.type === 'response.output_text.delta' ? String(event.delta || '') : '',
+      finishReason: event?.type === 'response.incomplete' ? 'MAX_TOKENS' : event?.type === 'response.completed' ? 'STOP' : null,
+    }
+  }
   if (provider === 'gemini') {
     return { content: extractGeminiText(event), finishReason: getGeminiFinishReason(event) }
   }
@@ -73,6 +81,6 @@ export function extractAiStreamEvent(provider, event) {
   }
 }
 
-export function extractAiStreamText(provider, event) {
-  return extractAiStreamEvent(provider, event).content
+export function extractAiStreamText(provider, event, streamFormat) {
+  return extractAiStreamEvent(provider, event, streamFormat).content
 }

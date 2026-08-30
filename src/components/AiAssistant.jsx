@@ -7,6 +7,7 @@ import {
   AI_MODEL_CHANGED_EVENT,
   AI_MODEL_KEY,
   AI_MODEL_OPTIONS,
+  AI_WEB_SEARCH_KEY,
   AI_SETTING_EVENT,
   cacheAiModel,
   getAiModels,
@@ -93,6 +94,9 @@ export default function AiAssistant({ auth } = {}) {
   const [aiModels, setAiModels] = useState(AI_MODEL_OPTIONS)
   const [actualModel, setActualModel] = useState(null)
   const [modelMenuOpen, setModelMenuOpen] = useState(false)
+  const [webSearch, setWebSearch] = useState(() => {
+    try { return localStorage.getItem(AI_WEB_SEARCH_KEY) === 'true' } catch { return false }
+  })
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
@@ -276,7 +280,7 @@ export default function AiAssistant({ auth } = {}) {
         if (currentPageRef.current !== requestPage) return
         answer += chunk
         setMessages([...requestMessages, { role: 'assistant', content: answer }])
-      }, { signal: controller.signal, model: selectedModelOption })
+      }, { signal: controller.signal, model: selectedModelOption, webSearch })
       if (currentPageRef.current !== requestPage) return
       setDataAsOf(meta.dataAsOf)
       setSelectedModel(meta.selectionId)
@@ -380,6 +384,15 @@ export default function AiAssistant({ auth } = {}) {
     if (next === selectedModel) return
     setSelectedModel(next)
     clearMessages()
+  }
+
+  const handleWebSearchToggle = () => {
+    if (loading) return
+    setWebSearch((current) => {
+      const next = !current
+      localStorage.setItem(AI_WEB_SEARCH_KEY, next ? 'true' : 'false')
+      return next
+    })
   }
 
   const selectedModelOption = getAiModelOption(selectedModel, aiModels)
@@ -487,6 +500,10 @@ export default function AiAssistant({ auth } = {}) {
                 >
                   <span className="truncate">{selectedModelOption.label}</span>
                   <span className={`shrink-0 text-[9px] text-gray-400 transition-transform ${modelMenuOpen ? 'rotate-180' : ''}`}>⌄</span>
+                </button>
+                <button type="button" onClick={handleWebSearchToggle} disabled={loading} role="switch" aria-checked={webSearch} className={`flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-medium transition-colors disabled:opacity-50 ${webSearch ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400' : 'text-gray-400'}`} title="允许当前模型搜索互联网实时信息">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.4 3 14.6 0 18M12 3c-3 3.4-3 14.6 0 18" /></svg>
+                  联网{webSearch ? '开' : '关'}
                 </button>
                 {modelMenuOpen && (
                   <div role="listbox" aria-label="选择 AI 模型" className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-xl dark:border-gray-600 dark:bg-gray-700">

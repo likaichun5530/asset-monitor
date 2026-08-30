@@ -63,5 +63,10 @@ export async function writeAiModels(models, { settingsStore = systemSettingsStor
     value: JSON.stringify(normalized),
     description: 'Editable AI model list; first item is the default model',
   }])
-  return normalized
+  const { settings } = await settingsStore.read()
+  const persisted = normalizeAiModels(settings.get(SYSTEM_SETTING_KEYS.aiModels)?.value, { useDefaults: false })
+  if (JSON.stringify(persisted) !== JSON.stringify(normalized)) {
+    throw Object.assign(new Error('AI 模型清单未能完整写入 Google Sheet，请重试'), { statusCode: 503 })
+  }
+  return persisted
 }

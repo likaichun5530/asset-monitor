@@ -17,7 +17,7 @@ export function getGeminiThinkingLevel(value = process.env.GEMINI_THINKING_LEVEL
   return ['low', 'medium', 'high'].includes(normalized) ? normalized : 'low'
 }
 
-export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, maxOutputTokens = getGeminiMaxOutputTokens(), model = '') {
+export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, maxOutputTokens = getGeminiMaxOutputTokens(), model = '', { webSearch = false } = {}) {
   const generationConfig = { maxOutputTokens }
   if (/^gemini-3(?:\.|-)/.test(String(model))) {
     generationConfig.thinkingConfig = { thinkingLevel: getGeminiThinkingLevel() }
@@ -35,6 +35,7 @@ export function buildGeminiRequest(context, messages, rules = DEFAULT_AI_RULES, 
       parts: [{ text: message.content }],
     })),
     generationConfig,
+    ...(webSearch ? { tools: [{ googleSearch: {} }] } : {}),
   }
 }
 
@@ -81,7 +82,7 @@ async function requestGemini(url, options) {
   throw error
 }
 
-export async function createGeminiStream(context, messages, rules = DEFAULT_AI_RULES, model = 'gemini-3.5-flash-lite') {
+export async function createGeminiStream(context, messages, rules = DEFAULT_AI_RULES, model = 'gemini-3.5-flash-lite', { webSearch = false } = {}) {
   const apiKey = process.env.GEMINI_API_KEY || ''
   if (!apiKey) throw Object.assign(new Error('Gemini API 尚未配置'), { statusCode: 503 })
   const response = await requestGemini(
@@ -92,7 +93,7 @@ export async function createGeminiStream(context, messages, rules = DEFAULT_AI_R
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey,
       },
-      body: JSON.stringify(buildGeminiRequest(context, messages, rules, getGeminiMaxOutputTokens(), model)),
+      body: JSON.stringify(buildGeminiRequest(context, messages, rules, getGeminiMaxOutputTokens(), model, { webSearch })),
     },
   )
   return { response, model, streamTimeoutMs: GEMINI_STREAM_TIMEOUT_MS }

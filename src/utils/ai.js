@@ -7,6 +7,7 @@ export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
 export const AI_MODEL_KEY = 'youshu-ai-model'
 export const AI_MODEL_CHANGED_EVENT = 'youshu-ai-model-changed'
+export const AI_WEB_SEARCH_KEY = 'youshu-ai-web-search'
 const LEGACY_AI_PROVIDER_KEY = 'youshu-ai-provider'
 export const DEFAULT_AI_MODEL_ID = 'gemini-3.5-flash-lite'
 export const AI_MODEL_OPTIONS = [
@@ -117,7 +118,7 @@ export async function saveAiModels(models) {
   return { ...data, models: normalizeClientAiModels(data.models) }
 }
 
-export async function streamAiChat(messages, page, onChunk, { signal, model } = {}) {
+export async function streamAiChat(messages, page, onChunk, { signal, model, webSearch = false } = {}) {
   const selectedModel = model || getAiModelOption(getCachedAiModel())
   let response
   try {
@@ -129,6 +130,7 @@ export async function streamAiChat(messages, page, onChunk, { signal, model } = 
         page,
         provider: selectedModel.provider,
         model: selectedModel.id,
+        webSearch: webSearch === true,
       }),
       signal,
       timeoutMs: 0,
@@ -163,6 +165,7 @@ export async function streamAiChat(messages, page, onChunk, { signal, model } = 
     selectionId: actualSelection,
     provider: ['deepseek', 'gemini'].includes(responseProvider) ? responseProvider : getAiModelOption(actualSelection).provider,
     fallback: response.headers.get('X-AI-Fallback') === 'true',
+    webSearch: response.headers.get('X-AI-Web-Search') === 'true',
     dataAsOf: response.headers.get('X-Asset-As-Of') || null,
   }
 }

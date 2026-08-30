@@ -31,7 +31,8 @@ export default async function handler(req, res) {
     const [context, rules] = await Promise.all([buildAssetAiContext(page), readAiRules()])
     if (!context.holdings.length && !context.history.length) return json(res, 422, { error: '没有可供 AI 分析的资产数据' })
     const selection = { provider: body.provider, model: body.model }
-    const { response, model, provider, selectionId, fallback, streamTimeoutMs = 110_000 } = await createAiStream(selection, context, messages, rules)
+    const webSearch = body.webSearch === true
+    const { response, model, provider, selectionId, fallback, streamFormat = 'chat', streamTimeoutMs = 110_000 } = await createAiStream(selection, context, messages, rules, { webSearch })
 
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
       'X-AI-Provider': provider,
       'X-AI-Selection': selectionId,
       'X-AI-Fallback': fallback ? 'true' : 'false',
+      'X-AI-Web-Search': webSearch ? 'true' : 'false',
       'X-Asset-As-Of': context.dataAsOf || '',
     })
     res.flushHeaders?.()
@@ -49,7 +51,7 @@ export default async function handler(req, res) {
     const decoder = new TextDecoder()
     let finishReason = null
     const parser = createSseDataParser((event) => {
-      const parsed = extractAiStreamEvent(provider, event)
+      const parsed = extractAiStreamEvent(provider, event, streamFormat)
       if (parsed.content) res.write(parsed.content)
       if (parsed.finishReason) finishReason = parsed.finishReason
     })

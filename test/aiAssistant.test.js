@@ -3,11 +3,11 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { buildAiContextFromSheets, compactAiHistory } from '../api/_ai-context.js'
 import { DEFAULT_AI_RULES, MAX_AI_RULES_LENGTH, normalizeAiRules } from '../api/_ai-rules.js'
-import { buildDeepSeekMessages, createDeepSeekStream, normalizeAiMessages } from '../api/_deepseek.js'
+import { buildDeepSeekMessages, buildDeepSeekSearchRequest, createDeepSeekStream, normalizeAiMessages } from '../api/_deepseek.js'
 import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, extractGeminiText, getGeminiFinishReason, getGeminiMaxOutputTokens, getGeminiThinkingLevel } from '../api/_gemini.js'
 import { AI_MODELS, createAiStream, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
 import { createSseDataParser } from '../api/_ai-stream.js'
-import { DEFAULT_AI_MODELS, normalizeAiModels, readAiModels } from '../api/_ai-models.js'
+import { DEFAULT_AI_MODELS, normalizeAiModels, readAiModels, writeAiModels } from '../api/_ai-models.js'
 import { clearAiDataCache, invalidateAiDataCache, readCachedAiData } from '../api/_ai-data-cache.js'
 
 test('AI上下文包含完整持仓、历史分类和目标计算，但不包含表格控制字段', () => {
@@ -214,6 +214,21 @@ test('SystemSettings AI 模型清单可编辑且拒绝危险或重复配置', as
   })
   assert.equal(initialized.length, 3)
   assert.equal(writes[0][0].key, 'ai.models')
+
+  let persistedValue = JSON.stringify(DEFAULT_AI_MODELS)
+  const savedModels = await writeAiModels(models, {
+    settingsStore: {
+      upsert: async (entries) => { persistedValue = entries[0].value },
+      read: async () => ({ settings: new Map([['ai.models', { value: persistedValue }]]) }),
+    },
+  })
+  assert.equal(savedModels.length, 2)
+  await assert.rejects(writeAiModels(models, {
+    settingsStore: {
+      upsert: async () => {},
+      read: async () => ({ settings: new Map([['ai.models', { value: JSON.stringify(DEFAULT_AI_MODELS) }]]) }),
+    },
+  }), /未能完整写入/)
 })
 
 test('AI 模型清单接口要求登录，设置页提供增删编辑入口', async () => {
@@ -311,4 +326,23 @@ test('模型切换入口位于 AI 对话框并在请求中锁定', async () => {
   assert.match(assistantSource, /setActualModel\(meta\.model\)/)
   assert.match(assistantSource, /actualModel \?/)
   assert.doesNotMatch(settingsSource, /role="radiogroup" aria-label="AI模型服务商"/)
+})
+
+test('AI 联网搜索可由当前设备开关，并传给对应模型的官方搜索工具', async () => {
+  const assistantSource = await readFile(new URL('../src/components/AiAssistant.jsx', import.meta.url), 'utf8')
+  const clientSource = await readFile(new URL('../src/utils/ai.js', import.meta.url), 'utf8')
+  const chatSource = await readFile(new URL('../api/ai-chat.js', import.meta.url), 'utf8')
+  assert.match(assistantSource, /role="switch" aria-checked=\{webSearch\}/)
+  assert.match(assistantSource, /联网\{webSearch \? '开' : '关'\}/)
+  assert.match(clientSource, /youshu-ai-web-search/)
+  assert.match(clientSource, /webSearch: webSearch === true/)
+  assert.match(chatSource, /body\.webSearch === true/)
+
+  const geminiRequest = buildGeminiRequest({}, [{ role: 'user', content: '今天的市场消息' }], undefined, 8192, 'gemini-3.7-flash', { webSearch: true })
+  assert.deepEqual(geminiRequest.tools, [{ googleSearch: {} }])
+  const deepSeekRequest = buildDeepSeekSearchRequest({}, [{ role: 'user', content: '今天的市场消息' }], undefined, 'deepseek-v4-flash')
+  assert.deepEqual(deepSeekRequest.tools, [{ type: 'web_search' }])
+  assert.equal(deepSeekRequest.tool_choice, 'auto')
+  assert.equal(deepSeekRequest.stream, true)
+  assert.deepEqual(extractAiStreamText('deepseek', { type: 'response.output_text.delta', delta: '实时结果' }, 'responses'), '实时结果')
 })

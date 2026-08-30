@@ -91,7 +91,7 @@ const settingsSectionTitles = {
   appearance: '数据与外观',
   ai: 'AI 与智能分析',
   security: '账户与安全',
-  about: '关于应用',
+  about: '关于',
 }
 
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
@@ -219,8 +219,8 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           {settingsSectionTitle ? (
             <div className="relative flex h-12 items-center justify-center px-4">
-              <NavLink to="/settings" replace className="absolute left-2 flex items-center gap-0.5 rounded-lg px-1 py-2 text-sm text-brand-600 dark:text-brand-400" aria-label="返回设置一级菜单">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg><span>设置</span>
+              <NavLink to="/settings" replace className="absolute left-2 flex items-center rounded-lg p-2 text-gray-900 dark:text-gray-100" aria-label="返回设置一级菜单">
+                <svg className="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
               </NavLink>
               <span className="max-w-[58vw] truncate text-[17px] font-semibold text-gray-800 dark:text-gray-200">{settingsSectionTitle}</span>
             </div>
