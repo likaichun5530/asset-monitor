@@ -18,8 +18,9 @@ test('手机目标页同时表达实际配置、计划目标和调整方向', as
   assert.match(source, /当前配置/)
   assert.match(source, /计划目标/)
   assert.match(source, /aria-label="目标位置"/)
-  assert.match(source, /应增加 .* 个百分点/)
-  assert.match(source, /应降低 .* 个百分点/)
+  assert.match(source, /建议增加 \{formatCurrency/)
+  assert.match(source, /建议减少 \{formatCurrency/)
+  assert.match(source, /STATUS_PRIORITY/)
 })
 
 test('只需按当前总额与目标比例计算建议调整金额', () => {

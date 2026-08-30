@@ -6,6 +6,23 @@ const CACHE_KEY = 'asset-monitor:market'
 
 const GROUP_ORDER = ['汇率', '虚拟币', 'A股', '境外', '期货']
 
+function readMarketCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null')
+    if (Array.isArray(cached)) return { items: cached, syncedAt: null }
+    return { items: cached?.items || [], syncedAt: cached?.syncedAt || null }
+  } catch {
+    return { items: [], syncedAt: null }
+  }
+}
+
+function formatSyncTime(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
 // 标的名 -> 图标映射
 function getNameIcon(name) {
   if (name === '美元' || name === 'USD' || name === '纳斯达克指数') return <span>🇺🇸</span>
@@ -49,21 +66,19 @@ function getNameIcon(name) {
 }
 
 export default function Market({ refreshKey = 0 }) {
-  const [data, setData] = useState(() => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) return JSON.parse(cached)
-    } catch { /* ignore */ }
-    return []
-  })
+  const [initialCache] = useState(readMarketCache)
+  const [data, setData] = useState(initialCache.items)
+  const [syncedAt, setSyncedAt] = useState(initialCache.syncedAt)
   const [loading, setLoading] = useState(!data.length)
 
   const loadMarket = useCallback(async ({ forceRefresh = false } = {}) => {
     try {
       const res = await getApiJson('market', { auth: false, forceRefresh })
       const marketData = res.market || []
+      const nextSyncedAt = res.syncedAt || new Date().toISOString()
       setData(marketData)
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
+      setSyncedAt(nextSyncedAt)
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ items: marketData, syncedAt: nextSyncedAt })) } catch { /* ignore */ }
     } finally {
       setLoading(false)
     }
@@ -115,10 +130,13 @@ export default function Market({ refreshKey = 0 }) {
           <div className="mt-2 text-xs text-green-600">{loading ? '正在更新行情' : '行情数据已载入'}</div>
         </div>
       </section>
+      <div className="flex items-center justify-end px-1 text-[11px] text-gray-400 sm:hidden">
+        {loading ? '正在更新行情…' : syncedAt ? `更新于 ${formatSyncTime(syncedAt)}` : ''}
+      </div>
       {groups.map((group, gi) => (
         <section key={gi} className="sm:card sm:p-0 sm:overflow-hidden">
           <div className="sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
-            <h2 className="text-base font-semibold text-gray-900 tracking-wide px-4 sm:px-0 mb-1 sm:mb-0">
+            <h2 className="mb-1 px-1 text-base font-semibold tracking-wide text-gray-900 dark:text-gray-100 sm:mb-0 sm:px-0">
               {group.name}
             </h2>
             <span className="hidden sm:inline text-xs text-slate-400">{group.items.length} 个标的</span>
@@ -130,17 +148,17 @@ export default function Market({ refreshKey = 0 }) {
               const icon = group.name === '虚拟币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
-                  className="card sm:rounded-none sm:border-0 sm:border-r sm:border-b sm:border-slate-100 dark:sm:border-gray-700 sm:shadow-none flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[100px] sm:min-h-[118px]"
+                  className="card flex h-[100px] min-w-0 flex-col items-center justify-center p-2 text-center sm:h-auto sm:min-h-[118px] sm:items-start sm:rounded-none sm:border-0 sm:border-b sm:border-r sm:border-slate-100 sm:p-5 sm:text-left sm:shadow-none dark:sm:border-gray-700"
                 >
-                  <div className="text-sm sm:text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-[11px] font-medium text-gray-400 dark:text-gray-500 sm:justify-start sm:text-xs">
                     {icon}
-                    <span>{item.name}</span>
+                    <span className="truncate">{item.name}</span>
                   </div>
-                  <div className="text-base sm:text-xl font-semibold text-gray-900 mt-1 sm:mt-3">
+                  <div className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-xl">
                     {item.price ? Number(item.price).toFixed(2) : '—'}
                   </div>
                   {spread !== null && (
-                    <div className="text-sm sm:text-xs text-gray-500 font-normal mt-0.5 sm:mt-2">
+                    <div className="mt-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-300 sm:mt-2 sm:text-xs">
                       {spread >= 0 ? '贴水 ' : '升水 '}
                       {Math.abs(spread).toFixed(2)}
                     </div>

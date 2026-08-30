@@ -42,6 +42,19 @@ function SettingsGroup({ title, description, children }) {
   )
 }
 
+function SettingsLineIcon({ type, className = 'h-5 w-5' }) {
+  const common = { className, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  if (type === 'security') return <svg {...common}><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></svg>
+  if (type === 'appearance') return <svg {...common}><circle cx="12" cy="12" r="8" /><path d="M12 4a8 8 0 0 0 0 16V4Z" /></svg>
+  if (type === 'ai') return <svg {...common}><path d="m12 3 1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z" /><path d="m18 14 .8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z" /></svg>
+  if (type === 'about') return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7h.01" /></svg>
+  if (type === 'live') return <svg {...common}><path d="M4 19V9M9.3 19V5M14.7 19v-7M20 19V3" /></svg>
+  if (type === 'demo') return <svg {...common}><rect x="3" y="7" width="18" height="11" rx="4" /><path d="M8 11v4M6 13h4M16 12h.01M18 14h.01" /></svg>
+  if (type === 'light') return <svg {...common}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+  if (type === 'dark') return <svg {...common}><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z" /></svg>
+  return <svg {...common}><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 22h8M12 18v4" /></svg>
+}
+
 function applyTheme(t) {
   const root = document.documentElement
   const metaTheme = document.querySelector('meta[name="theme-color"]')
@@ -214,9 +227,9 @@ export default function Settings({ auth } = {}) {
   }
 
   const themes = [
-    { key: 'light', label: '白天模式', icon: '☀️' },
-    { key: 'dark', label: '暗夜模式', icon: '🌙' },
-    { key: 'system', label: '跟随系统', icon: '💻' },
+    { key: 'light', label: '白天模式', icon: 'light' },
+    { key: 'dark', label: '暗夜模式', icon: 'dark' },
+    { key: 'system', label: '跟随系统', icon: 'system' },
   ]
 
   return (
@@ -224,13 +237,13 @@ export default function Settings({ auth } = {}) {
       {!activeSection && (
         <section aria-label="设置分类" className="settings-panel-back card !p-0 mx-auto w-full max-w-2xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">
           {[
-            ...(isLoggedIn ? [{ key: 'security', icon: '◇', title: '账户与安全', description: '修改密码、退出登录' }] : []),
-            { key: 'appearance', icon: '◐', title: '数据与外观', description: '数据模式、界面主题' },
-            { key: 'ai', icon: '✦', title: 'AI 与智能分析', description: '助手显示、回答规则、模型清单' },
-            { key: 'about', icon: 'ⓘ', title: '关于应用', description: '应用信息', value: `v${packageJson.version}` },
+            ...(isLoggedIn ? [{ key: 'security', icon: 'security', title: '账户与安全', description: '修改密码、退出登录' }] : []),
+            { key: 'appearance', icon: 'appearance', title: '数据与外观', description: '数据模式、界面主题' },
+            { key: 'ai', icon: 'ai', title: 'AI 与智能分析', description: '助手显示、回答规则、模型清单' },
+            { key: 'about', icon: 'about', title: '关于应用', description: '应用信息', value: `v${packageJson.version}` },
           ].map((item) => (
             <button key={item.key} type="button" onClick={() => openSection(item.key)} className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">{item.icon}</span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><SettingsLineIcon type={item.icon} /></span>
               <span className="min-w-0 flex-1">
                 <span className="block text-base font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
                 <span className="mt-0.5 block truncate text-[13px] text-gray-400">{item.description}</span>
@@ -246,10 +259,10 @@ export default function Settings({ auth } = {}) {
         <SettingsSubpage title="数据与外观" description="选择数据环境和界面显示方式" onBack={returnToSettingsMenu}>
           <SettingsGroup title="数据模式" description="选择真实账户数据或演示数据">
             <div className="space-y-2">
-              {[{ demo: false, icon: '📊', label: '实盘模式' }, { demo: true, icon: '🎮', label: '演示模式' }].map((option) => {
+              {[{ demo: false, icon: 'live', label: '实盘模式' }, { demo: true, icon: 'demo', label: '演示模式' }].map((option) => {
                 const selected = demoMode === option.demo
                 return <button key={option.label} onClick={() => { if (!selected && (option.demo || isLoggedIn)) handleDemoToggle() }} disabled={!option.demo && !isLoggedIn} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${selected ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'} ${!option.demo && !isLoggedIn ? 'cursor-not-allowed opacity-50' : ''}`}>
-                  <span className="flex items-center gap-3"><span className="text-xl">{option.icon}</span><span className="text-[15px] font-medium text-gray-800 dark:text-gray-200">{option.label}</span></span>
+                  <span className="flex items-center gap-3"><span className="text-gray-500 dark:text-gray-400"><SettingsLineIcon type={option.icon} /></span><span className="text-[15px] font-medium text-gray-800 dark:text-gray-200">{option.label}</span></span>
                   {selected && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}
                 </button>
               })}
@@ -257,7 +270,7 @@ export default function Settings({ auth } = {}) {
           </SettingsGroup>
           <SettingsGroup title="皮肤选择" description="设置界面明暗外观">
             <div className="space-y-2">
-              {themes.map((item) => <button key={item.key} onClick={() => handleThemeChange(item.key)} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${theme === item.key ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'}`}><span className="flex items-center gap-3"><span className="text-xl">{item.icon}</span><span className="text-[15px] font-medium text-gray-800 dark:text-gray-200">{item.label}</span></span>{theme === item.key && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}</button>)}
+              {themes.map((item) => <button key={item.key} onClick={() => handleThemeChange(item.key)} className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors ${theme === item.key ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-600'}`}><span className="flex items-center gap-3"><span className="text-gray-500 dark:text-gray-400"><SettingsLineIcon type={item.icon} /></span><span className="text-[15px] font-medium text-gray-800 dark:text-gray-200">{item.label}</span></span>{theme === item.key && <svg className="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5" /></svg>}</button>)}
             </div>
           </SettingsGroup>
         </SettingsSubpage>
@@ -306,48 +319,19 @@ export default function Settings({ auth } = {}) {
       <AiModelSettingsDialog open={showAiModels} onClose={() => setShowAiModels(false)} />
 
       {/* 密码验证弹窗 */}
-      {showPwdDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/40" onClick={handleCancel} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 w-80 max-w-[90vw]">
-            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">切换回实盘模式</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">请输入账户密码验证身份</p>
-            <input
-              type="password"
-              value={pwd}
-              onChange={(e) => { setPwd(e.target.value); setPwdError('') }}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleVerify() }}
-              placeholder="输入密码"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 mb-3"
-              autoFocus
-            />
-            {pwdError && <p className="text-xs text-red-500 mb-3">{pwdError}</p>}
-            <div className="flex gap-2">
-              <button onClick={handleCancel}
-                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >取消</button>
-              <button onClick={handleVerify} disabled={pwdLoading}
-                className="flex-1 px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
-              >{pwdLoading ? '验证中...' : '确认'}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AppDialog open={showPwdDialog} onClose={handleCancel} title="切换回实盘模式" description="请输入账户密码验证身份" maxWidth="sm:max-w-sm" closeDisabled={pwdLoading} actions={(
+        <button type="button" onClick={handleVerify} disabled={pwdLoading || !pwd} className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">{pwdLoading ? '验证中…' : '确认'}</button>
+      )}>
+        <input type="password" value={pwd} onChange={(e) => { setPwd(e.target.value); setPwdError('') }} onKeyDown={(e) => { if (e.key === 'Enter') handleVerify() }} placeholder="输入密码" className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" autoFocus />
+        {pwdError && <p className="mt-3 text-xs text-red-500">{pwdError}</p>}
+      </AppDialog>
 
-      {showAiConsent && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
-          <div className="fixed inset-0 bg-black/40" onClick={() => setShowAiConsent(false)} />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl dark:bg-gray-800">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">启用 AI 资产助手</h3>
-            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">系统会将 Holdings、History 和目标配置中的资产金额、账户、证券代码及备注发送给当前选择的模型服务商，用于回答你的资产分析问题。</p>
-            <p className="mt-2 text-xs leading-5 text-gray-400">Google 凭据、登录令牌、表格公式和模型 API Key 不会发送给模型。</p>
-            <div className="mt-5 flex gap-2">
-              <button type="button" onClick={() => setShowAiConsent(false)} className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">取消</button>
-              <button type="button" onClick={confirmAiConsent} className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white">同意并启用</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AppDialog open={showAiConsent} onClose={() => setShowAiConsent(false)} title="启用 AI 资产助手" maxWidth="sm:max-w-sm" actions={(
+        <button type="button" onClick={confirmAiConsent} className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-medium text-white transition-all active:scale-95">同意并启用</button>
+      )}>
+        <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">系统会将 Holdings、History 和目标配置中的资产金额、账户、证券代码及备注发送给当前选择的模型服务商，用于回答你的资产分析问题。</p>
+        <p className="mt-2 text-xs leading-5 text-gray-400">Google 凭据、登录令牌、表格公式和模型 API Key 不会发送给模型。</p>
+      </AppDialog>
 
       <AppDialog
         open={showAiRules}

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { deleteHolding, fetchHoldingEditorData, saveHolding } from '../utils/dataStore.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import { readHoldingEditorDraft, writeHoldingEditorDraft } from '../utils/holdingEditorDraft.js'
 import { getMarketCashName } from '../utils/holdingScope.js'
+import AppDialog from './AppDialog.jsx'
 
 const CATEGORIES = [
   { value: '美股', label: '美股' },
@@ -96,15 +96,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
       .then((result) => setOptions({ ...EMPTY_OPTIONS, ...(result.editorOptions || {}) }))
       .catch(() => setError('无法加载在线行情和选项，表单草稿已保留，请检查网络后重试'))
       .finally(() => setLoadingOptions(false))
-    const previousOverflow = document.body.style.overflow
-    const previousModalOpen = document.body.dataset.modalOpen
-    document.body.style.overflow = 'hidden'
-    document.body.dataset.modalOpen = 'true'
-    return () => {
-      document.body.style.overflow = previousOverflow
-      if (previousModalOpen === undefined) delete document.body.dataset.modalOpen
-      else document.body.dataset.modalOpen = previousModalOpen
-    }
+    return undefined
   }, [open, holding])
 
   useEffect(() => {
@@ -193,9 +185,10 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   }
 
   function requestClose() {
-    if (saving || deleting) return
-    if (dirty && !window.confirm('尚有未保存的修改，确定关闭吗？')) return
+    if (saving || deleting) return false
+    if (dirty && !window.confirm('尚有未保存的修改，确定关闭吗？')) return false
     onClose()
+    return true
   }
 
   async function submit(e) {
@@ -247,24 +240,22 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
 
   const priceMissing = isTracked && form.symbol.trim() && !loadingOptions && !marketItem
 
-  const stopTouchPropagation = (event) => event.stopPropagation()
-
-  return createPortal(
-    <div
-      data-pull-refresh-ignore="true"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden bg-black/40 overscroll-none"
-      onTouchStart={stopTouchPropagation}
-      onTouchMove={stopTouchPropagation}
-      onTouchEnd={stopTouchPropagation}
-      onTouchCancel={stopTouchPropagation}
-    >
-      <div role="dialog" aria-modal="true" aria-label={holding ? '编辑持仓' : '新增持仓'} className="w-full sm:max-w-xl max-h-[92dvh] min-h-0 bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
-        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{holding ? '编辑持仓' : '新增持仓'}</h2>
-          <button type="button" onClick={requestClose} className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="关闭">×</button>
+  return (
+    <AppDialog
+      open={open}
+      onClose={requestClose}
+      title={holding ? '编辑持仓' : '新增持仓'}
+      ariaLabel={holding ? '编辑持仓' : '新增持仓'}
+      maxWidth="sm:max-w-xl"
+      closeDisabled={saving || deleting}
+      actions={(
+        <div className="flex items-center gap-2">
+          {holding && <button type="button" onClick={remove} disabled={saving || deleting} className="h-10 rounded-lg border border-red-200 px-3 text-sm text-red-600 disabled:opacity-50 dark:border-red-800 dark:text-red-400">{deleting ? '删除中…' : '删除'}</button>}
+          <button form="holding-editor-form" type="submit" disabled={saving || deleting || loadingOptions || !form.category || (needsHoldingForm && !form.holdingForm) || priceMissing} className="h-10 rounded-lg bg-brand-600 px-4 text-sm font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">{saving ? '保存中…' : holding ? '保存修改' : '新增持仓'}</button>
         </div>
-
-        <form onSubmit={submit} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+      )}
+    >
+        <form id="holding-editor-form" onSubmit={submit} className="space-y-4">
           <Field label="资产归属" required hint="决定这笔资金计入哪类资产">
             <select value={form.category} onChange={(e) => changeCategory(e.target.value)} className="input-style" required>
               <option value="">请选择类别</option>
@@ -363,17 +354,8 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
 
           {error && <div className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
-          <div className="sticky bottom-0 bg-white dark:bg-gray-800 pt-2 pb-1 flex gap-3">
-            {holding && <button type="button" onClick={remove} disabled={saving || deleting} className="flex-1 h-11 rounded-lg border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 disabled:opacity-50">{deleting ? '删除中…' : '删除'}</button>}
-            <button type="button" onClick={requestClose} disabled={saving || deleting} className="flex-1 h-11 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-300 disabled:opacity-50">取消</button>
-            <button type="submit" disabled={saving || deleting || loadingOptions || !form.category || (needsHoldingForm && !form.holdingForm) || priceMissing} className="flex-1 h-11 rounded-lg bg-brand-600 text-white text-sm font-medium transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">
-              {saving ? '保存中…' : holding ? '保存修改' : '新增持仓'}
-            </button>
-          </div>
         </form>
-      </div>
-    </div>,
-    document.body,
+    </AppDialog>
   )
 }
 

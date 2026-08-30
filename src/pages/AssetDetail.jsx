@@ -3,7 +3,6 @@ import { getActiveHoldings, holdingMarketValue, totalMarketValue, getCategoryHis
 import { isUsAccountHolding } from '../utils/holdingScope.js'
 import { formatCurrency, formatNumber, formatDateShort, formatDateMid } from '../utils/format.js'
 import { assetColors } from '../data/holdings.js'
-import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -51,7 +50,6 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
     catch { /* ignore */ }
   }, [displayMode, storageKey])
 
-  const navigate = useNavigate()
 
   if (!config) return <div className="text-gray-400 dark:text-gray-500 text-center py-10">未知资产类型</div>
 
@@ -140,16 +138,6 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
 
   return (
     <div className="space-y-2">
-      {/* 移动端返回按钮 */}
-      <button
-        onClick={() => navigate('/my')}
-        className="sm:hidden flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-      >
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        返回
-      </button>
       <div className="card flex items-end justify-between gap-4 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6 sm:py-5">
         <div className="min-w-0">
           <div className="text-xs text-gray-500 dark:text-gray-400">{config.label}总市值</div>

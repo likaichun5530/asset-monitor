@@ -438,7 +438,7 @@ export default function AiAssistant({ auth } = {}) {
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭AI资产助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-x-0 bottom-0 z-[70] flex max-h-[88dvh] min-h-[68dvh] flex-col overflow-hidden overscroll-none rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:min-h-0 sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
+          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-0 z-[70] flex h-[100dvh] min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>

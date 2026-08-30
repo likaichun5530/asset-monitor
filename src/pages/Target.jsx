@@ -22,6 +22,8 @@ const CATEGORY_ROUTE = {
   '债基': '/bond', '虚拟币': '/crypto', '期货': '/future', '黄金': '/gold', '现金': '/cash',
 }
 
+const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
+
 export default function Target({ refreshKey = 0 }) {
   const navigate = useNavigate()
   const [data, setData] = useState(() => {
@@ -56,8 +58,12 @@ export default function Target({ refreshKey = 0 }) {
     loadData(forceRefresh)
   }, [loadData, refreshKey])
 
-  // 分离数据行和合计行，数据行按金额从大到小排序
-  const rows = (data || []).filter((r) => !r.isTotal).sort((a, b) => (b.marketValue || 0) - (a.marketValue || 0))
+  // 需要处理的配置优先展示，同状态内仍按金额从大到小排序。
+  const rows = (data || []).filter((r) => !r.isTotal).sort((a, b) => {
+    const aStatus = getTargetAllocationStatus(a.currentRatio, a.targetRatio).status
+    const bStatus = getTargetAllocationStatus(b.currentRatio, b.targetRatio).status
+    return STATUS_PRIORITY[aStatus] - STATUS_PRIORITY[bStatus] || (b.marketValue || 0) - (a.marketValue || 0)
+  })
   const totalRow = (data || []).find((r) => r.isTotal)
 
   // 统计超配/低配
@@ -117,7 +123,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </section>
 
-      <section className="card sm:hidden px-3 py-3">
+      <section className="card px-3 py-2.5 sm:hidden">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">配置偏差</div>
@@ -127,10 +133,10 @@ export default function Target({ refreshKey = 0 }) {
             {overWeight.length + underWeight.length > 0 ? `${overWeight.length + underWeight.length} 项需关注` : '配置正常'}
           </div>
         </div>
-        <div className="mt-3 grid grid-cols-3 divide-x divide-gray-100 dark:divide-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/40 py-2.5 text-center">
-          <div><div className="text-base font-semibold text-red-500">{overWeight.length}</div><div className="mt-0.5 text-[10px] text-gray-400">超出目标</div></div>
-          <div><div className="text-base font-semibold text-green-600">{underWeight.length}</div><div className="mt-0.5 text-[10px] text-gray-400">低于目标</div></div>
-          <div><div className="text-base font-semibold text-gray-700 dark:text-gray-200">{normalWeight}</div><div className="mt-0.5 text-[10px] text-gray-400">范围正常</div></div>
+        <div className="mt-2 grid grid-cols-3 divide-x divide-gray-100 rounded-lg bg-gray-50 py-2 text-center dark:divide-gray-700 dark:bg-gray-900/40">
+          <div><div className="text-base font-semibold text-red-500">{overWeight.length}</div><div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">超出目标</div></div>
+          <div><div className="text-base font-semibold text-green-600">{underWeight.length}</div><div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">低于目标</div></div>
+          <div><div className="text-base font-semibold text-gray-700 dark:text-gray-200">{normalWeight}</div><div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">范围正常</div></div>
         </div>
       </section>
 
@@ -301,20 +307,18 @@ export default function Target({ refreshKey = 0 }) {
                   {!hasTarget && <span className="text-xs px-2 py-1 rounded-full bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600">未设置</span>}
                 </div>
                 <div className="mt-3 flex items-end justify-between">
-                  <div><div className="text-[10px] text-gray-400">当前配置</div><div className="mt-0.5 text-lg font-semibold text-gray-900 dark:text-gray-100">{(r.currentRatio * 100).toFixed(1)}%</div></div>
-                  <div className="text-right"><div className="text-[10px] text-gray-400">计划目标</div><div className="mt-0.5 text-lg font-semibold text-gray-600 dark:text-gray-300">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</div></div>
+                  <div><div className="text-xs text-gray-500 dark:text-gray-400">当前配置</div><div className="mt-0.5 text-lg font-semibold text-gray-900 dark:text-gray-100">{(r.currentRatio * 100).toFixed(1)}%</div></div>
+                  <div className="text-right"><div className="text-xs text-gray-500 dark:text-gray-400">计划目标</div><div className="mt-0.5 text-lg font-semibold text-gray-600 dark:text-gray-300">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</div></div>
                 </div>
                 <div className="relative mt-2 h-2 rounded-full bg-gray-100 dark:bg-gray-700">
                   <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${currentWidth}%`, backgroundColor: progressColor }} />
                   {targetPosition !== null && <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-gray-800 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标位置" />}
                 </div>
-                <div className="mt-2 flex items-center justify-between text-[11px]">
-                  <span className={isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-400'}>
-                    {isOver && `应降低 ${driftAmount.toFixed(1)} 个百分点 · 建议减少 ${formatCurrency(adjustmentAmount(r), { decimals: 0 })}`}
-                    {isUnder && `应增加 ${driftAmount.toFixed(1)} 个百分点 · 建议增加 ${formatCurrency(adjustmentAmount(r), { decimals: 0 })}`}
-                    {hasTarget && !isOver && !isUnder && '当前处于目标提醒范围内'}
-                    {!hasTarget && '请先在目标表中设置计划比例'}
-                  </span>
+                <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+                  {isOver && <span className="rounded-md bg-red-50 px-2 py-1 font-semibold text-red-600 dark:bg-red-500/10 dark:text-red-400">建议减少 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}</span>}
+                  {isUnder && <span className="rounded-md bg-green-50 px-2 py-1 font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">建议增加 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}</span>}
+                  {hasTarget && !isOver && !isUnder && <span className="text-gray-500 dark:text-gray-400">当前处于目标提醒范围内</span>}
+                  {!hasTarget && <span className="text-gray-500 dark:text-gray-400">请先在目标表中设置计划比例</span>}
                   <svg className="h-3.5 w-3.5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
                 </div>
               </div>

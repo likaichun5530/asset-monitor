@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import AiAssistant from './AiAssistant.jsx'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
 
@@ -94,14 +93,18 @@ const settingsSectionTitles = {
   about: '关于应用',
 }
 
+const mobileDetailPages = new Set(['/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash'])
+
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
   const location = useLocation()
+  const navigate = useNavigate()
   const pagePath = location.pathname.startsWith('/settings/') ? '/settings' : location.pathname
   const pageTitle = pageTitles[pagePath] || '有数'
   const pageDescription = pageDescriptions[pagePath] || '资产配置，心中有数'
   const displayLabel = sourceLabels[source] || source
   const settingsSection = location.pathname.match(/^\/settings\/([^/]+)$/)?.[1]
   const settingsSectionTitle = settingsSectionTitles[settingsSection]
+  const isMobileDetailPage = mobileDetailPages.has(location.pathname)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const contentRef = useRef(null)
@@ -226,6 +229,23 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
               </NavLink>
               <span className="max-w-[58vw] truncate text-lg font-semibold text-gray-800 dark:text-gray-200">{settingsSectionTitle}</span>
             </div>
+          ) : isMobileDetailPage ? (
+            <div className="flex h-12 items-center justify-between gap-2 px-2">
+              <div className="flex min-w-0 items-center">
+                <button type="button" onClick={() => navigate('/holdings')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回持仓">
+                  <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
+                </button>
+                <span className="truncate text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {auth?.isLoggedIn ? <span className="max-w-16 truncate text-sm font-medium text-gray-700 dark:text-gray-300">{auth.username}</span> : <NavLink to="/login" className="text-sm font-medium text-brand-600 dark:text-brand-400">登录</NavLink>}
+                <span className={`inline-flex items-center gap-1 text-sm font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
+                  {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
+                </span>
+                <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
+              </div>
+            </div>
           ) : (
             <div className="px-4 h-12 flex items-center justify-between">
               <span className="font-semibold text-gray-800 dark:text-gray-200 text-xl">{pageTitle}</span>
@@ -235,7 +255,8 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
               ) : (
                 <NavLink to="/login" className="shrink-0 text-[15px] font-medium text-brand-600 dark:text-brand-400">登录</NavLink>
               )}
-              <span className={`shrink-0 text-[15px] font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+              <span className={`inline-flex shrink-0 items-center gap-1 text-[15px] font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
                 {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
               </span>
               <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
@@ -280,11 +301,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       </div>
 
       {/* 移动端底部导航 */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-20 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex">
-        <NavLink to="/" end className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><HomeIcon className="w-5 h-5" /><span>总览</span></NavLink>
-        <NavLink to="/market" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><MarketIcon className="w-5 h-5" /><span>行情</span></NavLink>
-        <NavLink to="/holdings" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><ListIcon className="w-5 h-5" /><span>持仓</span></NavLink>
-        <NavLink to="/target" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><TargetIcon className="w-5 h-5" /><span>目标</span></NavLink>
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-gray-100 bg-white pb-[env(safe-area-inset-bottom)] dark:border-gray-700 dark:bg-gray-800 sm:hidden">
+        {[["/", "总览", HomeIcon], ["/market", "行情", MarketIcon], ["/holdings", "持仓", ListIcon], ["/target", "目标", TargetIcon]].map(([to, label, Icon]) => (
+          <NavLink key={to} to={to} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
+            {({ isActive }) => <span className={`flex min-w-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><Icon className="h-5 w-5" /><span>{label}</span></span>}
+          </NavLink>
+        ))}
       </nav>
       <AiAssistant auth={auth} />
     </div>

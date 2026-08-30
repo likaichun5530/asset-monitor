@@ -1,10 +1,10 @@
-import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useMemo, useState, useEffect } from 'react'
 import { getHistory } from '../utils/asset.js'
 import { saveHistoryNote } from '../utils/dataStore.js'
 import { formatCurrency } from '../utils/format.js'
 import { getHistoryDayDetail } from '../utils/historyChanges.js'
 import { setCachedHistory } from '../utils/snapshot.js'
+import AppDialog from './AppDialog.jsx'
 
 // 星期标题
 const WEEKDAY_HEADERS = ['日', '一', '二', '三', '四', '五', '六']
@@ -48,7 +48,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   const [historyRevision, setHistoryRevision] = useState(0)
   const history = useMemo(() => getHistory(), [refreshKey, historyRevision])
   const [selectedDay, setSelectedDay] = useState(null)
-  const [popupPos, setPopupPos] = useState(null)
   const [showMonthPicker, setShowMonthPicker] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [noteEditing, setNoteEditing] = useState(false)
@@ -64,14 +63,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     try { localStorage.setItem('youshu-calendar-mode', mode) } catch { /* ignore */ }
   }
 
-  // 存储每个日期格子的 DOM 引用，用于滚动时更新弹窗位置
-  const dayRefs = useRef({})
-  // 组件根容器引用（用于判断点击是否在日历内部）
-  const wrapRef = useRef(null)
-  const mobileDialogRef = useRef(null)
-  const desktopPopupRef = useRef(null)
-  // 防止点击弹窗本体立即关闭的标记
-  const suppressCloseRef = useRef(false)
 
   // 当前选中年月
   const now = new Date()
@@ -99,20 +90,6 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     setNoteError('')
     setNoteSuccess('')
   }, [selectedDetail?.date])
-
-  useEffect(() => {
-    if (!selectedDetail || window.matchMedia('(min-width: 640px)').matches) return undefined
-    const previousOverflow = document.body.style.overflow
-    const previousOverscroll = document.body.style.overscrollBehavior
-    document.body.dataset.modalOpen = 'true'
-    document.body.style.overflow = 'hidden'
-    document.body.style.overscrollBehavior = 'none'
-    return () => {
-      delete document.body.dataset.modalOpen
-      document.body.style.overflow = previousOverflow
-      document.body.style.overscrollBehavior = previousOverscroll
-    }
-  }, [selectedDetail])
 
   // 分析历史数据中存在的年月范围
   const availableMonths = useMemo(() => {
@@ -156,64 +133,12 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     return days
   }, [totalMap, viewYear, viewMonth])
 
-  // 根据被选中日期的格子重新计算弹窗位置（跟随滚动）
-  const updatePopupPos = useCallback(() => {
-    if (!selectedDay) return
-    const el = dayRefs.current[selectedDay.date]
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    setPopupPos({
-      top: Math.max(Math.min(rect.top, window.innerHeight - 390), 16),
-      left: Math.min(Math.max(rect.left + rect.width / 2, 152), window.innerWidth - 152),
-    })
-  }, [selectedDay])
-
-  // 监听滚动和窗口大小变化，让弹窗跟随日期格子
-  useEffect(() => {
-    if (!selectedDay) return
-    const onScroll = () => updatePopupPos()
-    const onResize = () => updatePopupPos()
-    // 用 capture + passive 确保捕获所有滚动（包括内部滚动容器）
-    window.addEventListener('scroll', onScroll, { capture: true, passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', onScroll, { capture: true })
-      window.removeEventListener('resize', onResize)
-    }
-  }, [selectedDay, updatePopupPos])
-
-  const handleDayClick = (dayInfo, event) => {
+  const handleDayClick = (dayInfo) => {
     if (!dayInfo.hasTotal) return
     // 点击同一日期：关闭弹窗
-    if (selectedDay?.date === dayInfo.date) { setSelectedDay(null); setPopupPos(null); return }
-    // 点击其他日期：直接切换为新的日期，并更新弹窗位置
+    if (selectedDay?.date === dayInfo.date) { setSelectedDay(null); return }
     setSelectedDay(dayInfo)
-    suppressCloseRef.current = true
-    const rect = event.currentTarget.getBoundingClientRect()
-    setPopupPos({
-      top: Math.max(Math.min(rect.top, window.innerHeight - 390), 16),
-      left: Math.min(Math.max(rect.left + rect.width / 2, 152), window.innerWidth - 152),
-    })
   }
-
-  // 点击日历外部时关闭弹窗（替代全屏遮罩，避免 z 堆叠问题）
-  useEffect(() => {
-    if (!selectedDay) return
-    const onDocClick = (e) => {
-      // 本次点击由日期格子触发时，跳过（避免刚打开就关闭）
-      if (suppressCloseRef.current) { suppressCloseRef.current = false; return }
-      // 交互按钮可能在 React 更新时被输入区替换，不能只用已脱离 DOM 的 target 判断。
-      const eventPath = typeof e.composedPath === 'function' ? e.composedPath() : []
-      const interactiveRoots = [wrapRef.current, mobileDialogRef.current, desktopPopupRef.current].filter(Boolean)
-      const clickedInside = interactiveRoots.some((root) => eventPath.includes(root) || root.contains(e.target))
-      if (wrapRef.current && !clickedInside) {
-        setSelectedDay(null)
-        setPopupPos(null)
-      }
-    }
-    document.addEventListener('click', onDocClick)
-    return () => document.removeEventListener('click', onDocClick)
-  }, [selectedDay])
 
   const selectMonth = (ym) => {
     const [y, m] = ym.split('-').map(Number)
@@ -254,9 +179,9 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
     }
   }
 
-  const renderDayDetail = (showClose = false) => selectedDetail && (
+  const renderDayDetail = (showHeading = true) => selectedDetail && (
     <>
-      <div className="flex items-start justify-between">
+      {showHeading && <div className="flex items-start justify-between">
         <div>
           <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{selectedDetail.date}</div>
           <div className="mt-0.5 text-[11px] text-gray-400">
@@ -265,19 +190,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
               : '分类资产金额'}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {showClose && (
-            <button
-              type="button"
-              className="-mr-1 p-2 text-gray-400"
-              aria-label="关闭分类资产变化"
-              onClick={() => { setSelectedDay(null); setPopupPos(null) }}
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg>
-            </button>
-          )}
-        </div>
-      </div>
+      </div>}
       <div className="mt-3 flex items-end justify-between rounded-lg bg-gray-50 dark:bg-gray-900/50 px-3 py-2">
         <div><div className="text-[10px] text-gray-400">总资产</div><div className="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(selectedDetail.total, { decimals: 0 })}</div></div>
         {selectedDetail.totalChange !== null && (
@@ -365,7 +278,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
   }
 
   return (
-    <div className="card calendar-card relative" ref={wrapRef}>
+    <div className="card calendar-card relative">
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-gray-800">收益日历</h3>
@@ -463,8 +376,7 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
           return (
             <div
               key={dayInfo.date}
-              ref={(el) => { dayRefs.current[dayInfo.date] = el }}
-              onClick={(e) => handleDayClick(dayInfo, e)}
+              onClick={() => handleDayClick(dayInfo)}
               className={`calendar-day-cell aspect-square flex flex-col items-center justify-center rounded cursor-pointer transition-colors ${cellBg} ${isSelected ? 'ring-2 ring-brand-500' : ''} hover:ring-1 hover:ring-gray-300 relative overflow-hidden ${!dayInfo.isCurrentMonth ? 'opacity-60' : ''}`}
             >
               {/* 右上角日期数字 */}
@@ -482,28 +394,16 @@ export default function CalendarHeatmap({ refreshKey = 0 }) {
         })}
       </div>
 
-      {/* 弹窗挂载到 body，避免首页卡片的层叠环境在滚动后压到弹窗上方。 */}
-      {selectedDetail && typeof document !== 'undefined' && createPortal(
-        <>
-          <button type="button" aria-label="关闭分类资产变化" className="fixed inset-0 z-[75] bg-black/25 sm:hidden" onClick={() => { setSelectedDay(null); setPopupPos(null) }} />
-          <section ref={mobileDialogRef} role="dialog" aria-modal="true" aria-label="每日资产变化" className="fixed inset-x-0 bottom-0 z-[80] flex max-h-[calc(100dvh-8px)] min-h-0 flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl dark:bg-gray-800 sm:hidden" data-pull-refresh-ignore="true">
-            <div className="shrink-0 pt-3"><div className="mx-auto h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-600" /></div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-              {renderDayDetail(true)}
-            </div>
-          </section>
-          {popupPos && (
-            <div
-              ref={desktopPopupRef}
-              className="fixed z-[80] hidden max-h-[calc(100dvh-32px)] w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl dark:border-gray-600 dark:bg-gray-800 sm:block"
-              style={{ top: popupPos.top, left: popupPos.left, transform: 'translateX(-50%)' }}
-            >
-              {renderDayDetail()}
-            </div>
-          )}
-        </>,
-        document.body,
-      )}
+      <AppDialog
+        open={Boolean(selectedDetail)}
+        onClose={() => setSelectedDay(null)}
+        title={selectedDetail?.date || '每日资产变化'}
+        description={selectedDetail?.canCompareCategories && selectedDetail?.previousDate ? `较上一条快照 ${selectedDetail.previousDate}` : '分类资产金额'}
+        ariaLabel="每日资产变化"
+        maxWidth="sm:max-w-sm"
+      >
+        {renderDayDetail(false)}
+      </AppDialog>
     </div>
   )
 }
