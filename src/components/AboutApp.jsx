@@ -44,8 +44,8 @@ export default function AboutApp({ version }) {
         <div aria-hidden="true" className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-amber-200/25 blur-3xl dark:bg-amber-300/5" />
         <div aria-hidden="true" className="absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-emerald-200/20 blur-3xl dark:bg-emerald-300/5" />
         <div className="relative mx-auto flex max-w-md flex-col items-center">
-          <div className="rounded-[22px] bg-white/95 p-2.5 shadow-[0_18px_42px_rgba(0,0,0,0.28)] ring-1 ring-white/70">
-            <img src="/icon.png" alt="有数 App Logo" className="h-16 w-16 rounded-2xl object-cover sm:h-[72px] sm:w-[72px]" />
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[22px] bg-white ring-1 ring-gray-200 dark:ring-gray-600 sm:h-[88px] sm:w-[88px]">
+            <img src="/icon.png" alt="有数 App Logo" className="h-full w-full scale-[1.22] object-cover" />
           </div>
           <h3 className="mt-4 text-2xl font-bold tracking-[0.18em]">有数</h3>
           <p className="mt-1.5 text-sm font-medium tracking-[0.12em] text-gray-500 dark:text-gray-300">资产配置，心中有数</p>

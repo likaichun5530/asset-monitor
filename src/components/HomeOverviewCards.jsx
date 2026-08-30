@@ -97,9 +97,11 @@ function futuresMultiplier(symbol) {
 
 function marginRiskMarkerPosition(rate) {
   const value = Math.max(0, Number(rate) || 0)
-  if (value <= 70) return (value / 70) * (100 / 3)
+  if (value <= 50) return 0
+  if (value <= 70) return ((value - 50) / 20) * (100 / 3)
   if (value <= 75) return (100 / 3) + ((value - 70) / 5) * (100 / 3)
-  return (200 / 3) + (Math.min(value, 100) - 75) / 25 * (100 / 3)
+  if (value <= 90) return (200 / 3) + ((value - 75) / 15) * (100 / 3)
+  return 100
 }
 
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {

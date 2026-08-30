@@ -91,7 +91,7 @@ const settingsSectionTitles = {
   appearance: '数据与外观',
   ai: 'AI 与智能分析',
   security: '账户与安全',
-  about: '关于',
+  about: '关于应用',
 }
 
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {

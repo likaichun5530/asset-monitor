@@ -227,7 +227,7 @@ export default function Settings({ auth } = {}) {
             ...(isLoggedIn ? [{ key: 'security', icon: '◇', title: '账户与安全', description: '修改密码、退出登录' }] : []),
             { key: 'appearance', icon: '◐', title: '数据与外观', description: '数据模式、界面主题' },
             { key: 'ai', icon: '✦', title: 'AI 与智能分析', description: '助手显示、回答规则、模型清单' },
-            { key: 'about', icon: 'ⓘ', title: '关于', description: '应用信息', value: `v${packageJson.version}` },
+            { key: 'about', icon: 'ⓘ', title: '关于应用', description: '应用信息', value: `v${packageJson.version}` },
           ].map((item) => (
             <button key={item.key} type="button" onClick={() => openSection(item.key)} className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">{item.icon}</span>
@@ -289,7 +289,7 @@ export default function Settings({ auth } = {}) {
       )}
 
       {activeSection === 'about' && (
-        <SettingsSubpage title="关于" description="了解有数及主要功能" onBack={returnToSettingsMenu}>
+        <SettingsSubpage title="关于应用" description="了解有数及主要功能" onBack={returnToSettingsMenu}>
           <AboutApp version={packageJson.version} />
         </SettingsSubpage>
       )}

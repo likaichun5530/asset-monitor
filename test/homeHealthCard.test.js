@@ -6,6 +6,9 @@ test('账户健康度使用三段风险尺并标出当前保证金区间', async
   const source = await readFile(new URL('../src/components/HomeOverviewCards.jsx', import.meta.url), 'utf8')
 
   assert.match(source, /marginRiskMarkerPosition/)
+  assert.match(source, /value <= 50\) return 0/)
+  assert.match(source, /value <= 90/)
+  assert.match(source, /return 100/)
   assert.match(source, /bg-emerald-500/)
   assert.match(source, /bg-amber-400/)
   assert.match(source, /bg-red-500/)

@@ -14,7 +14,7 @@ test('AI 机器人开关正确定位滑块并表达实际可用状态', async ()
 test('设置页使用一级分类进入对应的二级设置', async () => {
   const source = await readFile(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
 
-  for (const section of ['数据与外观', 'AI 与智能分析', '账户与安全', '关于']) {
+  for (const section of ['数据与外观', 'AI 与智能分析', '账户与安全', '关于应用']) {
     assert.match(source, new RegExp(section))
   }
 
@@ -47,6 +47,7 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
   assert.match(about, /资产配置，心中有数/)
   assert.match(about, /Version \{version\}/)
   assert.match(about, /功能介绍/)
+  assert.match(about, /scale-\[1\.22\]/)
 
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(app, /path="settings\/:section"/)

@@ -1,5 +1,16 @@
 import { formatCurrency, formatDateLong } from '../utils/format.js'
 
+function SnapshotIcon({ className = '' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="7" width="15" height="13" rx="3" />
+      <path d="M7 7V5.5A1.5 1.5 0 0 1 8.5 4H17" opacity=".75" />
+      <path d="M11.5 11v5M9 13.5h5" />
+      <path d="m19.5 3 .45 1.05L21 4.5l-1.05.45L19.5 6l-.45-1.05L18 4.5l1.05-.45L19.5 3Z" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 export default function HomeAssetHero({ total, updateDate, pendingCount, snapshotMsg, snapshotLoading, editMode, onToggleEdit, onSnapshot }) {
   return (
     <div className="card home-hero-card py-2 px-4 sm:p-5 flex flex-col justify-center min-h-[85px] sm:min-h-[150px] relative overflow-hidden">
@@ -19,7 +30,7 @@ export default function HomeAssetHero({ total, updateDate, pendingCount, snapsho
               {snapshotLoading ? (
                 <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
               ) : (
-                <svg className="w-3 h-3 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <SnapshotIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
               )}
               <span className="hidden sm:inline">生成快照</span>
             </button>
