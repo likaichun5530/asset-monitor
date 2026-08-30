@@ -9,8 +9,13 @@ export function StatMini({ label, change, changePct }) {
   const isDown = Number(change) < 0
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
   const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
+  const cardGradient = isUp
+    ? 'bg-gradient-to-b from-red-50/70 via-white to-white dark:from-red-500/10 dark:via-gray-800 dark:to-gray-800'
+    : isDown
+      ? 'bg-gradient-to-b from-green-50/70 via-white to-white dark:from-green-500/10 dark:via-gray-800 dark:to-gray-800'
+      : ''
   return (
-    <div className="card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px]">
+    <div className={`card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
       <div className="flex w-full items-center justify-between">
         <div className="text-xs sm:text-sm font-medium text-gray-500">{label}</div>
         <span className={`hidden sm:block h-2 w-2 rounded-full ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
@@ -66,9 +71,9 @@ export function CurrencyCard({ refreshKey = 0 }) {
       <div className="text-base sm:text-sm font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
         <svg viewBox="0 0 128 128" className="h-20 w-20 shrink-0 -rotate-90">
-          <circle cx="64" cy="64" r="46" fill="none" strokeWidth="15" className="stroke-gray-200 dark:stroke-gray-700" />
+          <circle cx="64" cy="64" r="46" fill="none" strokeWidth="22" className="stroke-gray-200 dark:stroke-gray-700" />
           {ring.segments.map((segment, index) => (
-            <circle key={index} cx="64" cy="64" r="46" fill="none" stroke={segment.color} strokeWidth="15"
+            <circle key={index} cx="64" cy="64" r="46" fill="none" stroke={segment.color} strokeWidth="22"
               strokeDasharray={`${segment.len} ${ring.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
           ))}
         </svg>

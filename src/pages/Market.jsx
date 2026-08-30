@@ -9,18 +9,10 @@ const GROUP_ORDER = ['汇率', '虚拟币', 'A股', '境外', '期货']
 function readMarketCache() {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null')
-    if (Array.isArray(cached)) return { items: cached, syncedAt: null }
-    return { items: cached?.items || [], syncedAt: cached?.syncedAt || null }
+    return Array.isArray(cached) ? cached : cached?.items || []
   } catch {
-    return { items: [], syncedAt: null }
+    return []
   }
-}
-
-function formatSyncTime(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 // 标的名 -> 图标映射
@@ -66,19 +58,15 @@ function getNameIcon(name) {
 }
 
 export default function Market({ refreshKey = 0 }) {
-  const [initialCache] = useState(readMarketCache)
-  const [data, setData] = useState(initialCache.items)
-  const [syncedAt, setSyncedAt] = useState(initialCache.syncedAt)
+  const [data, setData] = useState(readMarketCache)
   const [loading, setLoading] = useState(!data.length)
 
   const loadMarket = useCallback(async ({ forceRefresh = false } = {}) => {
     try {
       const res = await getApiJson('market', { auth: false, forceRefresh })
       const marketData = res.market || []
-      const nextSyncedAt = res.syncedAt || new Date().toISOString()
       setData(marketData)
-      setSyncedAt(nextSyncedAt)
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ items: marketData, syncedAt: nextSyncedAt })) } catch { /* ignore */ }
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
     } finally {
       setLoading(false)
     }
@@ -130,9 +118,6 @@ export default function Market({ refreshKey = 0 }) {
           <div className="mt-2 text-xs text-green-600">{loading ? '正在更新行情' : '行情数据已载入'}</div>
         </div>
       </section>
-      <div className="flex items-center justify-end px-1 text-[11px] text-gray-400 sm:hidden">
-        {loading ? '正在更新行情…' : syncedAt ? `更新于 ${formatSyncTime(syncedAt)}` : ''}
-      </div>
       {groups.map((group, gi) => (
         <section key={gi} className="sm:card sm:p-0 sm:overflow-hidden">
           <div className="sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
@@ -150,7 +135,7 @@ export default function Market({ refreshKey = 0 }) {
                 <div key={idx}
                   className="card flex h-[100px] min-w-0 flex-col items-center justify-center p-2 text-center sm:h-auto sm:min-h-[118px] sm:items-start sm:rounded-none sm:border-0 sm:border-b sm:border-r sm:border-slate-100 sm:p-5 sm:text-left sm:shadow-none dark:sm:border-gray-700"
                 >
-                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-[11px] font-medium text-gray-400 dark:text-gray-500 sm:justify-start sm:text-xs">
+                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-base font-medium text-gray-500 dark:text-gray-400 sm:justify-start sm:text-lg">
                     {icon}
                     <span className="truncate">{item.name}</span>
                   </div>
