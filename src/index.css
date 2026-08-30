@@ -31,10 +31,9 @@ nav a, nav button, .bottom-nav-link {
   -webkit-touch-callout: none;
 }
 
-/* 金融数字：优先使用较窄字面，并保持金额列对齐。 */
+/* 金融数字统一使用 Arial Narrow，并保持金额列对齐。 */
 .font-num {
-  font-family: "Arial Narrow", "Roboto Condensed", "SF Pro Display", Inter,
-    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Arial Narrow", sans-serif;
   font-stretch: condensed;
 }
 

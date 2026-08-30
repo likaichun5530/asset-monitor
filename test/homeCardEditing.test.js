@@ -32,6 +32,7 @@ test('总资产头部使用纯数字并展示今日盈亏，不再提供手动�
 })
 
 test('盈亏小卡片与总资产使用相同字体，但保持常规字重', () => {
+  assert.match(styleSource, /font-family: "Arial Narrow", sans-serif/)
   assert.match(overviewSource, /font-num.*font-normal.*formatChange\(change\)/)
   assert.match(overviewSource, /relative flex w-full items-center justify-center/)
   assert.match(homeSource, /近7日盈亏.*近1月盈亏.*今年盈亏/)
@@ -40,6 +41,8 @@ test('盈亏小卡片与总资产使用相同字体，但保持常规字重', ()
 
 test('今日盈亏入口驱动收益日历打开今日明细', () => {
   assert.match(heroSource, /onClick=\{onOpenTodayDetail\}/)
+  assert.match(heroSource, /font-num flex flex-col items-end/)
+  assert.match(heroSource, /今日盈亏[\s\S]*font-normal/)
   assert.match(heroSource, /aria-label="查看今日盈亏明细"/)
   assert.match(homeSource, /openTodayRequest=\{todayDetailRequest\}/)
   assert.match(homeSource, /setTodayDetailRequest\(\(value\) => value \+ 1\)/)

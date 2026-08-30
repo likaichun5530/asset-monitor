@@ -21,12 +21,12 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
         </div>
 
         <div className="flex shrink-0 flex-col items-end justify-center text-right">
-          <button type="button" onClick={onOpenTodayDetail} aria-label="查看今日盈亏明细" className="flex flex-col items-end rounded-lg bg-transparent text-right transition-opacity hover:opacity-75">
-            <span className="text-xs font-medium text-gray-400 sm:text-[13px]">今日盈亏</span>
-            <span className={`font-num mt-1 text-base font-semibold leading-none sm:text-[19px] ${changeColor}`}>
+          <button type="button" onClick={onOpenTodayDetail} aria-label="查看今日盈亏明细" className="font-num flex flex-col items-end rounded-lg bg-transparent text-right transition-opacity hover:opacity-75">
+            <span className="text-xs font-normal text-gray-400 sm:text-[13px]">今日盈亏</span>
+            <span className={`mt-1 text-base font-normal leading-none sm:text-[19px] ${changeColor}`}>
               {todayChange === null || todayChange === undefined ? '--' : formatChange(todayChange)}
             </span>
-            <span className={`font-num mt-1 text-[13px] font-medium sm:text-[15px] ${changeColor}`}>
+            <span className={`mt-1 text-[13px] font-normal sm:text-[15px] ${changeColor}`}>
               {todayChangePct === null || todayChangePct === undefined ? '--' : formatPercent(todayChangePct, { withSign: true })}
             </span>
           </button>
