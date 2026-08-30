@@ -10,9 +10,9 @@ export function StatMini({ label, change, changePct }) {
   const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
   const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
   const cardGradient = isUp
-    ? 'bg-gradient-to-b from-red-50/70 via-white to-white dark:from-red-500/10 dark:via-gray-800 dark:to-gray-800'
+    ? 'bg-gradient-to-b from-red-100/60 via-white to-white dark:from-red-500/[0.14] dark:via-gray-800 dark:to-gray-800'
     : isDown
-      ? 'bg-gradient-to-b from-green-50/70 via-white to-white dark:from-green-500/10 dark:via-gray-800 dark:to-gray-800'
+      ? 'bg-gradient-to-b from-green-100/60 via-white to-white dark:from-green-500/[0.14] dark:via-gray-800 dark:to-gray-800'
       : ''
   return (
     <div className={`card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
