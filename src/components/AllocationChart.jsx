@@ -66,7 +66,7 @@ export default function AllocationChart({ refreshKey = 0 }) {
                   style={{ width: `${widthPct}%`, backgroundColor: color, minWidth: '2px' }}
                 />
               </div>
-              <div className="flex shrink-0 items-center gap-3">
+              <div className="ml-1 flex shrink-0 items-center gap-3">
                 {/* 比例（柱子右边外面） */}
                 <span className="w-10 whitespace-nowrap text-right text-[13px] font-medium text-gray-500">{ratioPct.toFixed(1)}%</span>
                 {/* 金额 */}

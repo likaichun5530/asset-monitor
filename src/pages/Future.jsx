@@ -174,7 +174,7 @@ export default function Future({ refreshKey = 0 }) {
               </thead>
               <tbody>
                 <tr className="border-b border-gray-50">
-                  <td className="py-2.5 px-2 sm:px-6 text-gray-600 font-medium">中证500</td>
+                  <td className="whitespace-nowrap py-2.5 px-2 sm:px-6 text-gray-600 font-medium">中证500</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(spot)}</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
                   <td className="py-2.5 px-2 text-right text-gray-600">—</td>
