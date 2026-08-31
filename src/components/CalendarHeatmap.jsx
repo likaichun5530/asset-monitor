@@ -46,6 +46,7 @@ function prevDayStr(dateStr) {
 
 export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }) {
   const handledOpenTodayRequest = useRef(0)
+  const activeCalendarMonthRef = useRef(null)
   const [historyRevision, setHistoryRevision] = useState(0)
   const history = useMemo(() => getHistory(), [refreshKey, historyRevision])
   const [selectedDay, setSelectedDay] = useState(null)
@@ -69,6 +70,39 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
   const [viewMonth, setViewMonth] = useState(now.getMonth()) // 0=1月
+
+  useEffect(() => {
+    const syncCurrentMonth = () => {
+      const current = new Date()
+      const currentMonthKey = `${current.getFullYear()}-${current.getMonth()}`
+      if (activeCalendarMonthRef.current && activeCalendarMonthRef.current !== currentMonthKey) {
+        setViewYear(current.getFullYear())
+        setViewMonth(current.getMonth())
+      }
+      activeCalendarMonthRef.current = currentMonthKey
+    }
+
+    syncCurrentMonth()
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') syncCurrentMonth()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    let midnightTimer
+    const scheduleNextMidnight = () => {
+      const current = new Date()
+      const nextDay = new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1)
+      midnightTimer = window.setTimeout(() => {
+        syncCurrentMonth()
+        scheduleNextMidnight()
+      }, nextDay.getTime() - current.getTime() + 1000)
+    }
+    scheduleNextMidnight()
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.clearTimeout(midnightTimer)
+    }
+  }, [])
 
   // 今天日期字符串
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
