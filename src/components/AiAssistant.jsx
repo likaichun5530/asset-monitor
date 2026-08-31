@@ -40,7 +40,6 @@ const AI_BUSINESS_PAGES = new Set(Object.keys(PAGE_PROMPTS))
 const AI_BUTTON_POSITION_KEY = 'youshu-ai-button-position'
 const BUTTON_SIZE = 44
 const EDGE_GAP = 8
-const BOTTOM_GESTURE_GUARD_PX = 40
 
 function clampButtonPosition(position) {
   if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
@@ -101,8 +100,8 @@ export default function AiAssistant({ auth } = {}) {
   const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
+  const [keyboardInset, setKeyboardInset] = useState(0)
   const scrollRef = useRef(null)
-  const inputRef = useRef(null)
   const abortRef = useRef(null)
   const dragRef = useRef(null)
   const longPressTimerRef = useRef(null)
@@ -220,38 +219,27 @@ export default function AiAssistant({ auth } = {}) {
   useEffect(() => {
     if (!open || typeof window === 'undefined') return undefined
     const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true
-    if (!standalone) return undefined
+    const virtualKeyboard = window.navigator.virtualKeyboard
+    if (!standalone || !virtualKeyboard) return undefined
 
-    const guardBottomGesture = (event) => {
-      if (document.activeElement !== inputRef.current) return
-      const point = event.touches?.[0] || event.changedTouches?.[0] || event
-      if (!Number.isFinite(point.clientY)) return
-
-      const visualViewport = window.visualViewport
-      const visualBottom = visualViewport
-        ? visualViewport.offsetTop + visualViewport.height
-        : window.innerHeight
-      const nearVisualBottom = point.clientY >= visualBottom - BOTTOM_GESTURE_GUARD_PX
-      const nearScreenBottom = Number.isFinite(point.screenY)
-        && point.screenY >= window.screen.height - BOTTOM_GESTURE_GUARD_PX
-      const target = event.target instanceof Element ? event.target : null
-      const interactiveTarget = target?.closest('button, textarea, input, select, a, [contenteditable="true"]')
-
-      // A physical screen-edge touch must belong to the IME/system gesture area.
-      // At the visual edge, preserve real controls but ignore blank footer/backdrop taps.
-      if (!nearScreenBottom && (!nearVisualBottom || interactiveTarget)) return
-      if (event.cancelable) event.preventDefault()
-      event.stopPropagation()
+    const previousOverlaysContent = virtualKeyboard.overlaysContent
+    const syncKeyboardInset = () => {
+      const rect = virtualKeyboard.boundingRect
+      const nextInset = rect?.height > 0
+        ? Math.max(0, Math.round(window.innerHeight - rect.top))
+        : 0
+      setKeyboardInset(nextInset)
     }
 
-    const listenerOptions = { capture: true, passive: false }
-    document.addEventListener('touchstart', guardBottomGesture, listenerOptions)
-    document.addEventListener('pointerdown', guardBottomGesture, listenerOptions)
-    document.addEventListener('click', guardBottomGesture, true)
+    // Chrome PWA 的键盘与页面使用独立表面。接管键盘遮挡区域后，
+    // 对话框明确停在键盘上方，系统手势区不会再命中网页底部。
+    virtualKeyboard.overlaysContent = true
+    virtualKeyboard.addEventListener('geometrychange', syncKeyboardInset)
+    syncKeyboardInset()
     return () => {
-      document.removeEventListener('touchstart', guardBottomGesture, listenerOptions)
-      document.removeEventListener('pointerdown', guardBottomGesture, listenerOptions)
-      document.removeEventListener('click', guardBottomGesture, true)
+      virtualKeyboard.removeEventListener('geometrychange', syncKeyboardInset)
+      virtualKeyboard.overlaysContent = previousOverlaysContent
+      setKeyboardInset(0)
     }
   }, [open])
 
@@ -478,7 +466,7 @@ export default function AiAssistant({ auth } = {}) {
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭AI资产助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
+          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
@@ -521,7 +509,6 @@ export default function AiAssistant({ auth } = {}) {
             <footer className="safe-area-bottom-12 border-t border-gray-100 bg-white px-3 pt-3 dark:border-gray-700 dark:bg-gray-800 sm:pb-3">
               <div className="flex items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 p-1.5 focus-within:border-brand-300 dark:border-gray-600 dark:bg-gray-700">
                 <textarea
-                  ref={inputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value.slice(0, 1000))}
                   onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage() } }}
