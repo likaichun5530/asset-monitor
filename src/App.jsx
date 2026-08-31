@@ -29,6 +29,7 @@ export default function App() {
     loadHoldings: needsHoldings,
     loadHistory: needsHistory,
     autoRefreshHoldings: needsHoldings,
+    autoRefreshHistory: needsHistory,
   })
   const [pageRefreshKeys, setPageRefreshKeys] = useState({ target: 0, market: 0, future: 0 })
 

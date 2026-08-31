@@ -4,12 +4,14 @@ import { getInitialAssetStatus } from '../utils/assetDataStatus.js'
 import { shouldAutoRefresh } from '../utils/refreshPolicy.js'
 
 const HOLDINGS_REFRESH_MS = 5 * 60 * 1000
+const HISTORY_REFRESH_MS = 5 * 60 * 1000
 
 export function useAssetData({
   enabled = true,
   loadHoldings = true,
   loadHistory = false,
   autoRefreshHoldings = loadHoldings,
+  autoRefreshHistory = loadHistory,
 } = {}) {
   const initialStatus = useRef(getInitialAssetStatus())
   const [source, setSource] = useState(initialStatus.current.source)
@@ -23,6 +25,7 @@ export function useAssetData({
   const historyInFlightRef = useRef(false)
   const pendingSyncAttemptedRef = useRef(false)
   const lastHoldingsRefreshRef = useRef(0)
+  const lastHistoryRefreshRef = useRef(0)
 
   useEffect(() => {
     mountedRef.current = true
@@ -63,14 +66,23 @@ export function useAssetData({
   }, [applyHoldingsStatus, enabled])
 
   const refreshHistory = useCallback(async (force = false) => {
-    if (!enabled || historyInFlightRef.current) return false
+    const visible = typeof document === 'undefined' || document.visibilityState !== 'hidden'
+    if (!enabled || (!force && !shouldAutoRefresh({
+      visible,
+      inFlight: historyInFlightRef.current,
+      lastFetchedAt: lastHistoryRefreshRef.current,
+      maxAgeMs: HISTORY_REFRESH_MS,
+    }))) return false
+    if (historyInFlightRef.current) return false
     historyInFlightRef.current = true
     setError(null)
     try {
-      await loadHistoryData({ forceRefresh: force })
+      const result = await loadHistoryData({ forceRefresh: force })
       historyLoadedRef.current = true
+      const requestSucceeded = result?.source === 'online' || result?.source === 'demo'
+      if (requestSucceeded) lastHistoryRefreshRef.current = Date.now()
       if (mountedRef.current) setRefreshKey((key) => key + 1)
-      return true
+      return requestSucceeded
     } catch (loadError) {
       if (mountedRef.current) setError(loadError?.message || String(loadError))
       return false
@@ -104,6 +116,20 @@ export function useAssetData({
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [autoRefreshHoldings, enabled, refreshHoldings])
+
+  useEffect(() => {
+    if (!enabled || !autoRefreshHistory) return undefined
+    refreshHistory(false)
+    const timer = setInterval(() => { refreshHistory(false) }, HISTORY_REFRESH_MS)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshHistory(false)
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [autoRefreshHistory, enabled, refreshHistory])
 
   return { source, syncedAt, error, refreshHoldings, refreshHistory, refreshKey, bumpRefreshKey }
 }

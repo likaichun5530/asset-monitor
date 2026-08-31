@@ -14,14 +14,19 @@ test('数据刷新策略仅在可见、过期且没有并发请求时触发', ()
   assert.equal(shouldAutoRefresh({ visible: true, inFlight: false, lastFetchedAt: now - maxAgeMs, maxAgeMs, now }), true)
 })
 
-test('资产自动刷新按页面启停，History 不参与周期刷新', async () => {
+test('Holdings 与 History 自动刷新按依赖页面启停', async () => {
   const hookSource = await readFile(new URL('../src/hooks/useAssetData.js', import.meta.url), 'utf8')
   const appSource = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(hookSource, /refreshHoldings/)
   assert.match(hookSource, /loadHoldingsData\(\{ forceRefresh: force \}\)/)
   assert.match(hookSource, /autoRefreshHoldings/)
   assert.match(hookSource, /setInterval\(\(\) => \{ refreshHoldings\(false\) \}/)
+  assert.match(hookSource, /const HISTORY_REFRESH_MS = 5 \* 60 \* 1000/)
+  assert.match(hookSource, /lastHistoryRefreshRef/)
+  assert.match(hookSource, /setInterval\(\(\) => \{ refreshHistory\(false\) \}, HISTORY_REFRESH_MS\)/)
+  assert.match(hookSource, /if \(requestSucceeded\) lastHistoryRefreshRef\.current = Date\.now\(\)/)
   assert.match(appSource, /const HOLDINGS_PAGES = new Set/)
+  assert.match(appSource, /autoRefreshHistory: needsHistory/)
   assert.doesNotMatch(appSource.match(/const HOLDINGS_PAGES[^\n]+/)?.[0] || '', /market|settings/)
 })
 
