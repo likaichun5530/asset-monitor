@@ -101,6 +101,8 @@ export default function AiAssistant({ auth } = {}) {
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
   const scrollRef = useRef(null)
+  const dialogRef = useRef(null)
+  const inputRef = useRef(null)
   const abortRef = useRef(null)
   const dragRef = useRef(null)
   const longPressTimerRef = useRef(null)
@@ -214,6 +216,36 @@ export default function AiAssistant({ auth } = {}) {
       window.scrollTo(0, scrollY)
     }
   }, [open, visible])
+
+  useEffect(() => {
+    if (!open || !window.visualViewport) return undefined
+    const viewport = window.visualViewport
+    const syncDialogToVisualViewport = () => {
+      const dialog = dialogRef.current
+      if (!dialog) return
+      if (window.innerWidth >= 640) {
+        dialog.style.removeProperty('height')
+        dialog.style.removeProperty('top')
+        dialog.style.removeProperty('bottom')
+        return
+      }
+      dialog.style.height = `${Math.round(viewport.height)}px`
+      dialog.style.top = `${Math.round(viewport.offsetTop)}px`
+      dialog.style.bottom = 'auto'
+    }
+    syncDialogToVisualViewport()
+    viewport.addEventListener('resize', syncDialogToVisualViewport)
+    viewport.addEventListener('scroll', syncDialogToVisualViewport)
+    window.addEventListener('resize', syncDialogToVisualViewport)
+    return () => {
+      viewport.removeEventListener('resize', syncDialogToVisualViewport)
+      viewport.removeEventListener('scroll', syncDialogToVisualViewport)
+      window.removeEventListener('resize', syncDialogToVisualViewport)
+      dialogRef.current?.style.removeProperty('height')
+      dialogRef.current?.style.removeProperty('top')
+      dialogRef.current?.style.removeProperty('bottom')
+    }
+  }, [open])
 
   useEffect(() => {
     const handleResize = () => setButtonPosition((current) => {
@@ -400,6 +432,12 @@ export default function AiAssistant({ auth } = {}) {
     })
   }
 
+  const handleComposerPointerDown = (event) => {
+    if (loading || event.target.closest('button, textarea, [role="option"]')) return
+    event.preventDefault()
+    inputRef.current?.focus({ preventScroll: true })
+  }
+
   const selectedModelOption = getAiModelOption(selectedModel, aiModels)
 
   return (
@@ -438,7 +476,7 @@ export default function AiAssistant({ auth } = {}) {
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭AI资产助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-0 z-[70] flex h-[100dvh] min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
+          <section ref={dialogRef} role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-0 z-[70] flex h-[100dvh] min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:h-auto sm:max-h-none sm:w-[400px] sm:rounded-2xl" data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
@@ -478,9 +516,10 @@ export default function AiAssistant({ auth } = {}) {
               {error && <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{error}</div>}
             </div>
 
-            <footer className="border-t border-gray-100 bg-white px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:pb-3">
+            <footer onPointerDown={handleComposerPointerDown} className="border-t border-gray-100 bg-white px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:pb-3">
               <div className="flex items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 p-1.5 focus-within:border-brand-300 dark:border-gray-600 dark:bg-gray-700">
                 <textarea
+                  ref={inputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value.slice(0, 1000))}
                   onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage() } }}

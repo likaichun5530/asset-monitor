@@ -192,6 +192,21 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
     }
   }, [onRefresh])
 
+  const mobileHeaderActions = (
+    <div className="flex shrink-0 items-center gap-3">
+      {auth?.isLoggedIn ? (
+        <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
+      ) : (
+        <NavLink to="/login" className="shrink-0 text-[15px] font-medium text-brand-600 dark:text-brand-400">登录</NavLink>
+      )}
+      <span className={`inline-flex shrink-0 items-center gap-1 text-[15px] font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+        <span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
+        {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
+      </span>
+      <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
+    </div>
+  )
+
   return (
     <div className="min-h-full flex dark:bg-gray-900">
       {/* PC 侧栏 */}
@@ -230,37 +245,19 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
               <span className="max-w-[58vw] truncate text-lg font-semibold text-gray-800 dark:text-gray-200">{settingsSectionTitle}</span>
             </div>
           ) : isMobileDetailPage ? (
-            <div className="relative flex h-12 items-center justify-between gap-2 px-2">
+            <div className="relative flex h-12 items-center justify-between gap-2 px-4">
               <div className="flex min-w-0 items-center">
                 <button type="button" onClick={() => navigate('/holdings')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回持仓">
                   <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
               </div>
               <span className="pointer-events-none absolute left-1/2 max-w-[30vw] -translate-x-1/2 truncate text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
-              <div className="flex shrink-0 items-center gap-2">
-                {auth?.isLoggedIn ? <span className="max-w-16 truncate text-sm font-medium text-gray-700 dark:text-gray-300">{auth.username}</span> : <NavLink to="/login" className="text-sm font-medium text-brand-600 dark:text-brand-400">登录</NavLink>}
-                <span className={`inline-flex items-center gap-1 text-sm font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-                  {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
-                </span>
-                <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
-              </div>
+              {mobileHeaderActions}
             </div>
           ) : (
             <div className="px-4 h-12 flex items-center justify-between">
               <span className={`${pagePath === '/' ? 'text-2xl font-bold' : 'text-xl font-semibold'} text-gray-800 dark:text-gray-200`}>{pageTitle}</span>
-              <div className="flex items-center gap-3">
-              {auth?.isLoggedIn ? (
-                <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
-              ) : (
-                <NavLink to="/login" className="shrink-0 text-[15px] font-medium text-brand-600 dark:text-brand-400">登录</NavLink>
-              )}
-              <span className={`inline-flex shrink-0 items-center gap-1 text-[15px] font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-                {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
-              </span>
-              <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
-              </div>
+              {mobileHeaderActions}
             </div>
           )}
         </header>
