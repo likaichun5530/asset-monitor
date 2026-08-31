@@ -478,7 +478,7 @@ export default function AiAssistant({ auth } = {}) {
               {error && <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500 dark:bg-red-500/10">{error}</div>}
             </div>
 
-            <footer className="border-t border-gray-100 bg-white px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:pb-3">
+            <footer className="safe-area-bottom-12 border-t border-gray-100 bg-white px-3 pt-3 dark:border-gray-700 dark:bg-gray-800 sm:pb-3">
               <div className="flex items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 p-1.5 focus-within:border-brand-300 dark:border-gray-600 dark:bg-gray-700">
                 <textarea
                   value={input}

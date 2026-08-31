@@ -98,11 +98,11 @@ export default function AppDialog({ open, onClose, title, description, actions, 
             </button>
           </div>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+16px)] sm:px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="safe-area-bottom-16 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
           {children}
         </div>
         {actions && (
-          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-100 bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 dark:border-gray-700 dark:bg-gray-800 sm:hidden">
+          <footer className="safe-area-bottom-12 flex shrink-0 items-center justify-between gap-3 border-t border-gray-100 bg-white px-4 pt-3 dark:border-gray-700 dark:bg-gray-800 sm:hidden">
             <button type="button" onClick={requestClose} disabled={closeDisabled} className="h-10 min-w-20 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-600 disabled:opacity-40 dark:border-gray-600 dark:text-gray-300">取消</button>
             {actions}
           </footer>
