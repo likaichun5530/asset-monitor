@@ -4,10 +4,10 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
   const isUp = Number(todayChange) > 0
   const isDown = Number(todayChange) < 0
   const changeColor = isUp
-    ? 'text-red-500 dark:text-red-400'
+    ? 'text-red-500'
     : isDown
-      ? 'text-green-600 dark:text-green-400'
-      : 'text-gray-500 dark:text-gray-400'
+      ? 'text-green-600'
+      : 'text-gray-500'
 
   return (
     <div className="card home-hero-card flex min-h-[92px] flex-col justify-center overflow-hidden px-4 py-3 sm:min-h-[150px] sm:p-5">
