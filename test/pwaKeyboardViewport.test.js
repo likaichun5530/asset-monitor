@@ -12,6 +12,8 @@ test('PWA 让软键盘缩小布局视口，避免 fixed 弹窗延伸到键盘区
   assert.match(assistant, /navigator\.virtualKeyboard/)
   assert.match(assistant, /virtualKeyboard\.overlaysContent = true/)
   assert.match(assistant, /virtualKeyboard\.addEventListener\('geometrychange'/)
+  assert.match(assistant, /rect\?\.height/)
+  assert.doesNotMatch(assistant, /window\.innerHeight - rect\.top/)
   assert.match(assistant, /bottom: `\$\{keyboardInset\}px`/)
   assert.doesNotMatch(assistant, /guardBottomGesture/)
   assert.doesNotMatch(assistant, /flex h-\[100dvh\] min-h-0 flex-col/)

@@ -225,9 +225,9 @@ export default function AiAssistant({ auth } = {}) {
     const previousOverlaysContent = virtualKeyboard.overlaysContent
     const syncKeyboardInset = () => {
       const rect = virtualKeyboard.boundingRect
-      const nextInset = rect?.height > 0
-        ? Math.max(0, Math.round(window.innerHeight - rect.top))
-        : 0
+      const keyboardHeight = Math.max(0, Math.round(rect?.height || 0))
+      const maxInset = Math.max(0, window.innerHeight - 160)
+      const nextInset = Math.min(keyboardHeight, maxInset)
       setKeyboardInset(nextInset)
     }
 
