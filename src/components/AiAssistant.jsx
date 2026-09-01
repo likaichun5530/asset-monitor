@@ -102,6 +102,7 @@ export default function AiAssistant({ auth } = {}) {
   const [showDismissButton, setShowDismissButton] = useState(false)
   const [keyboardInset, setKeyboardInset] = useState(0)
   const scrollRef = useRef(null)
+  const autoScrollRef = useRef(true)
   const abortRef = useRef(null)
   const dragRef = useRef(null)
   const longPressTimerRef = useRef(null)
@@ -122,6 +123,12 @@ export default function AiAssistant({ auth } = {}) {
     }
     setOpen(false)
     setLoading(false)
+  }, [])
+
+  const scrollToLatest = useCallback(() => {
+    const element = scrollRef.current
+    if (!element) return
+    element.scrollTop = element.scrollHeight
   }, [])
 
   useEffect(() => {
@@ -270,12 +277,21 @@ export default function AiAssistant({ auth } = {}) {
 
   useLayoutEffect(() => {
     if (!open || !scrollRef.current) return
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [open])
+    autoScrollRef.current = true
+    scrollToLatest()
+  }, [open, scrollToLatest])
+
+  useLayoutEffect(() => {
+    if (!open || !autoScrollRef.current) return undefined
+    const frame = window.requestAnimationFrame(scrollToLatest)
+    return () => window.cancelAnimationFrame(frame)
+  }, [keyboardInset, open, scrollToLatest])
 
   useEffect(() => {
-    if (open) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, open])
+    if (!open || !autoScrollRef.current) return undefined
+    const frame = window.requestAnimationFrame(scrollToLatest)
+    return () => window.cancelAnimationFrame(frame)
+  }, [messages, open, scrollToLatest])
 
   useEffect(() => () => abortRef.current?.abort(), [])
 
@@ -299,6 +315,7 @@ export default function AiAssistant({ auth } = {}) {
   const sendMessage = async (preset) => {
     const question = String(preset ?? input).trim()
     if (!question || loading) return
+    autoScrollRef.current = true
     setInput('')
     setError('')
     const requestMessages = [...messages, { role: 'user', content: question }]
@@ -416,7 +433,6 @@ export default function AiAssistant({ auth } = {}) {
     setModelMenuOpen(false)
     if (next === selectedModel) return
     setSelectedModel(next)
-    clearMessages()
   }
 
   const handleWebSearchToggle = () => {
@@ -481,7 +497,14 @@ export default function AiAssistant({ auth } = {}) {
               </div>
             </header>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+            <div
+              ref={scrollRef}
+              onScroll={(event) => {
+                const element = event.currentTarget
+                autoScrollRef.current = element.scrollHeight - element.scrollTop - element.clientHeight <= 48
+              }}
+              className="flex-1 overflow-y-auto overscroll-contain px-4 py-4"
+            >
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
@@ -510,6 +533,10 @@ export default function AiAssistant({ auth } = {}) {
               <div className="flex items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 p-1.5 focus-within:border-brand-300 dark:border-gray-600 dark:bg-gray-700">
                 <textarea
                   value={input}
+                  onFocus={() => {
+                    autoScrollRef.current = true
+                    window.requestAnimationFrame(scrollToLatest)
+                  }}
                   onChange={(event) => setInput(event.target.value.slice(0, 1000))}
                   onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage() } }}
                   rows={1}
