@@ -208,33 +208,41 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   )
 
   return (
-    <div className="min-h-full flex dark:bg-gray-900">
+    <div className="app-shell min-h-full flex dark:bg-gray-900">
       {/* PC 侧栏 */}
-      <aside className="desktop-sidebar sticky top-0 hidden h-screen w-56 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 sm:flex">
-        <div className="flex h-[72px] items-center border-b border-slate-100 px-4 dark:border-white/[0.07]">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="relative h-10 w-12 shrink-0 overflow-hidden rounded-lg bg-white">
-              <img src="/icon.png" alt="有数 App Logo" className="absolute left-1/2 top-1/2 h-[68px] w-[68px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
+      <aside className="desktop-sidebar sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col overflow-y-auto border-r border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 sm:flex">
+        <div className="desktop-brand flex h-20 items-center px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="desktop-brand-mark relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-slate-900">
+              <img src="/icon.png" alt="有数 App Logo" className="absolute left-1/2 top-1/2 h-[76px] w-[76px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
             </span>
-            <div className="min-w-0 leading-none">
-              <div className="text-[19px] font-semibold tracking-[0.08em] text-slate-900 dark:text-white">有数</div>
-              <div className="mt-1.5 text-[10px] font-medium tracking-[0.12em] text-slate-400 dark:text-slate-500">资产管理</div>
+            <div className="min-w-0">
+              <div className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-slate-950 dark:text-white">有数</div>
+              <div className="mt-1.5 text-[10px] font-semibold tracking-[0.16em] text-slate-400 dark:text-slate-500">ASSET MONITOR</div>
             </div>
           </div>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 space-y-1 px-3 pb-5 pt-2">
           {navItems.map((item, i) => {
-            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 first:pt-0 dark:text-slate-600">{item.label}</div>
+            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-5 text-[11px] font-semibold tracking-[0.12em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
             const Icon = item.icon
-            return (<NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium transition-all ${isActive ? 'bg-brand-50 text-brand-700 dark:bg-brand-600 dark:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-current opacity-80 transition-opacity group-hover:opacity-100 dark:bg-white/[0.05]"><Icon className="w-4 h-4 shrink-0" /></span><span className="truncate">{item.label}</span>
-            </NavLink>)
+            return (
+              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 ${isActive ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800 dark:text-white dark:ring-white/10' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
+                {({ isActive }) => (
+                  <>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400' : 'bg-slate-200/55 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 dark:bg-white/[0.05] dark:text-slate-500'}`}><Icon className="h-[17px] w-[17px] shrink-0" /></span>
+                    <span className="truncate">{item.label}</span>
+                    {isActive && <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true" />}
+                  </>
+                )}
+              </NavLink>
+            )
           })}
         </nav>
       </aside>
 
       {/* 主内容区 */}
-      <div className="flex-1 min-w-0 flex flex-col bg-gray-50 sm:bg-[#f4f6f9] dark:bg-gray-900">
+      <div className="desktop-workspace flex min-w-0 flex-1 flex-col bg-gray-50 sm:bg-[#f5f7fa] dark:bg-gray-900">
         {/* 移动端顶部栏 */}
         <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           {settingsSectionTitle ? (
@@ -263,13 +271,13 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
         </header>
 
         {/* PC 顶部栏 */}
-        <header className="hidden sm:flex sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-gray-700 desktop-topbar">
-          <div className="flex-1 flex items-center justify-between px-4 lg:px-5 h-[72px]">
+        <header className="desktop-topbar sticky top-0 z-20 hidden border-b border-slate-200/60 bg-[#f5f7fa]/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 sm:flex">
+          <div className="flex h-20 flex-1 items-center justify-between px-6 lg:px-8">
             <div>
-              <h1 className={`${pagePath === '/' ? 'text-2xl font-bold' : 'text-xl font-semibold'} tracking-tight text-slate-900 dark:text-gray-100`}>{pageTitle}</h1>
-              <p className="mt-0.5 text-xs text-slate-400 dark:text-gray-500">{pageDescription}</p>
+              <h1 className="text-[25px] font-semibold leading-none tracking-[-0.035em] text-slate-950 dark:text-gray-100">{pageTitle}</h1>
+              <p className="mt-2 text-[13px] text-slate-500 dark:text-slate-400">{pageDescription}</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <span className={`status-pill ${source === 'online' ? 'status-pill-online' : source === 'cache' ? 'status-pill-cache' : ''}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
                 {displayLabel}
@@ -278,7 +286,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
                 <svg className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
               </button>
               {auth?.isLoggedIn && (
-                <span className="hidden h-10 items-center rounded-xl border border-slate-200 bg-white px-3.5 text-[15px] text-slate-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 lg:flex">{auth.username}</span>
+                <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
               )}
               <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-5 w-5" /></NavLink>
             </div>
@@ -290,8 +298,8 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-3 pt-2 pb-24 sm:pb-8">
-              <Outlet />
+            <main className="desktop-content mx-auto px-3 pt-2 pb-24 w-full max-w-[1560px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pt-6">
+              <div className="desktop-page-shell"><Outlet /></div>
             </main>
           </div>
         </div>

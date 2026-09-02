@@ -243,7 +243,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   }
 
   return (
-    <div className="space-y-2" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
+    <div className="home-page space-y-2" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
       onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onMouseDown={startLongPress}
       onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
@@ -265,7 +265,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
         onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
       />
 
-      <div ref={sortRef} className="-mx-1 flex flex-wrap items-stretch">
+      <div ref={sortRef} className="home-card-grid -mx-1 flex flex-wrap items-stretch">
         {visibleItems.map((key) => {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)

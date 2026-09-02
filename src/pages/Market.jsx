@@ -111,7 +111,7 @@ export default function Market({ refreshKey = 0 }) {
         </div>
       </section>
       {groups.map((group, gi) => (
-        <section key={gi} className="sm:card sm:p-0 sm:overflow-hidden">
+        <section key={gi} className="desktop-market-group sm:card sm:overflow-hidden sm:p-0">
           <div className="sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
             <h2 className="mb-1 px-1 text-base font-semibold tracking-wide text-gray-900 dark:text-gray-100 sm:mb-0 sm:px-0">
               {group.name}
@@ -125,7 +125,7 @@ export default function Market({ refreshKey = 0 }) {
               const icon = group.name === '虚拟币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
-                  className="card flex h-[100px] min-w-0 flex-col items-center justify-center p-2 text-center sm:h-auto sm:min-h-[118px] sm:items-start sm:rounded-none sm:border-0 sm:border-b sm:border-r sm:border-slate-100 sm:p-5 sm:text-left sm:shadow-none dark:sm:border-gray-700"
+                  className="desktop-market-tile card flex h-[100px] min-w-0 flex-col items-center justify-center p-2 text-center sm:h-auto sm:min-h-[128px] sm:items-start sm:rounded-none sm:border-0 sm:border-b sm:border-r sm:border-slate-100 sm:p-5 sm:text-left sm:shadow-none dark:sm:border-gray-700"
                 >
                   <div className="flex w-full min-w-0 items-center justify-center gap-1 text-[15px] font-medium text-gray-500 dark:text-gray-400 sm:justify-start sm:text-[17px]">
                     {icon}

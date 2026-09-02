@@ -85,7 +85,7 @@ export default function Future({ refreshKey = 0 }) {
   return (
     <div className="space-y-2">
       {/* 概要 */}
-      <div className="card py-3 px-4 sm:p-0 grid grid-cols-2 sm:grid-cols-4 items-stretch overflow-hidden">
+      <div className="desktop-summary-strip card grid grid-cols-2 items-stretch overflow-hidden px-4 py-3 sm:grid-cols-4 sm:p-0">
         <div className="sm:p-6">
           <div className="text-xs text-gray-500">期货总市值</div>
           <div className="text-2xl font-bold text-gray-900 mt-0.5 sm:mt-3">{formatCurrency(sumMarketValue)}</div>

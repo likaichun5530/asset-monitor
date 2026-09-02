@@ -54,7 +54,7 @@ test('今日盈亏入口驱动收益日历打开今日明细', () => {
 
 test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
   assert.match(layoutSource, /src="\/icon\.png" alt="有数 App Logo"/)
-  assert.match(layoutSource, /border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/)
+  assert.match(layoutSource, /border-slate-200\/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/)
   for (const label of ['总览', '行情', '持仓', '目标']) assert.match(layoutSource, new RegExp(`label: '${label}'`))
   assert.doesNotMatch(layoutSource, /label: '持仓明细'|label: '配置目标'/)
   assert.doesNotMatch(layoutSource, /auth\.username\?\.slice\(0, 1\)/)
@@ -92,7 +92,7 @@ test('桌面首页同排卡片使用等高伸缩槽位', () => {
   assert.match(homeSource, /home-card-slot-analysis mb-2 w-full px-1 lg:w-1\/2/)
   assert.match(styleSource, /\.home-card-slot\s*{\s*display: flex;/)
   assert.match(styleSource, /\.home-card-slot > div > \.card\s*{[^}]*height: 100%;/s)
-  assert.match(styleSource, /\.home-card-slot-analysis > div > \.card\s*{[^}]*height: 350px;[^}]*max-height: 350px;/s)
+  assert.match(styleSource, /\.home-card-slot-analysis > div > \.card\s*{[^}]*height: 370px;[^}]*max-height: 370px;/s)
   assert.doesNotMatch(homeSource, /共展示.*张数据卡片/)
 })
 

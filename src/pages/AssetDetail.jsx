@@ -138,10 +138,10 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
 
   return (
     <div className="space-y-2">
-      <div className="card flex items-end justify-between gap-4 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6 sm:py-5">
+      <div className="desktop-asset-summary card flex items-end justify-between gap-4 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:min-h-[148px] sm:items-center sm:px-7 sm:py-6">
         <div className="min-w-0">
           <div className="text-xs text-gray-500 dark:text-gray-400">{config.label}总市值</div>
-          <div className="mt-0.5 text-3xl font-bold text-gray-900 dark:text-gray-200 sm:mt-2">
+          <div className="mt-0.5 text-3xl font-bold tracking-[-0.035em] text-gray-900 dark:text-gray-200 sm:mt-3 sm:text-[32px]">
             {showOriginalMode
               ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2)
               : formatCurrency(sumMarketValue)

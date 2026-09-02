@@ -235,6 +235,13 @@ export default function Target({ refreshKey = 0 }) {
                 const status = getTargetAllocationStatus(r.currentRatio, r.targetRatio).status
                 const isOver = status === 'over'
                 const isUnder = status === 'under'
+                const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
+                const scaleMax = hasTarget ? Math.max(r.currentRatio || 0, allowedRange?.upper || 0, 0.01) * 1.15 : Math.max(r.currentRatio || 0, 0.01)
+                const currentPosition = Math.min(((r.currentRatio || 0) / scaleMax) * 100, 100)
+                const targetPosition = hasTarget ? Math.min(((r.targetRatio || 0) / scaleMax) * 100, 98) : null
+                const rangeStart = allowedRange ? Math.min((allowedRange.lower / scaleMax) * 100, 100) : null
+                const rangeEnd = allowedRange ? Math.min((allowedRange.upper / scaleMax) * 100, 100) : null
+                const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
 
                 return (
                     <tr key={idx} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
@@ -247,10 +254,12 @@ export default function Target({ refreshKey = 0 }) {
                     <td className="py-2.5 px-2 text-right text-gray-700">{formatCurrency(r.marketValue)}</td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       <div>{(r.currentRatio * 100).toFixed(2)}%</div>
-                      <div className="relative ml-auto mt-1.5 h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-gray-700">
-                        <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(r.currentRatio * 100, 100)}%`, backgroundColor: color }} />
-                        {hasTarget && <span className="absolute -top-0.5 h-2.5 w-0.5 bg-slate-700 dark:bg-white" style={{ left: `${Math.min(r.targetRatio * 100, 100)}%` }} />}
+                      <div className="relative ml-auto mt-2 h-2 w-32 rounded-full bg-slate-100 dark:bg-gray-700">
+                        {rangeStart !== null && rangeEnd !== null && <span className="absolute inset-y-0 rounded-full bg-emerald-200 dark:bg-emerald-500/40" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} />}
+                        {targetPosition !== null && <span className="absolute -top-1 h-4 w-0.5 rounded-full bg-slate-700 dark:bg-white" style={{ left: `${targetPosition}%` }} />}
+                        <span className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} />
                       </div>
+                      {allowedRange && <div className="mt-1 whitespace-nowrap text-[10px] text-slate-400">范围 {(allowedRange.lower * 100).toFixed(1)}–{(allowedRange.upper * 100).toFixed(1)}%</div>}
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       {hasTarget ? `${(r.targetRatio * 100).toFixed(2)}%` : <span className="text-gray-300">—</span>}
