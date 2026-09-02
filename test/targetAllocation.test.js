@@ -29,6 +29,8 @@ test('手机目标页同时表达实际配置、计划目标和调整方向', as
   assert.match(source, /计划目标/)
   assert.match(source, /aria-label="目标中心位置"/)
   assert.match(source, /合理区间/)
+  assert.match(source, /三段状态尺/)
+  assert.match(source, /取更严格的范围/)
   assert.match(source, /getTargetAllowedRange/)
   assert.match(source, /建议增加 \{formatCurrency/)
   assert.match(source, /建议减少 \{formatCurrency/)

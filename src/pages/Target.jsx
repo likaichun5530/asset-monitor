@@ -24,6 +24,32 @@ const CATEGORY_ROUTE = {
 
 const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
 
+// 三段状态尺固定使用 25% / 50% / 25%，避免不同目标的独立缩放造成视觉误解。
+// 圆点只表达当前配置位于“低于 / 合理 / 超出”中的相对位置，精确范围以文字数值为准。
+function getRangeTrackPositions(currentRatio, targetRatio, allowedRange) {
+  if (!allowedRange) return null
+  const rangeStart = 25
+  const rangeEnd = 75
+  const span = Math.max(allowedRange.upper - allowedRange.lower, 0.0001)
+  const current = Number.isFinite(currentRatio) ? currentRatio : 0
+  const target = Number.isFinite(targetRatio) ? targetRatio : allowedRange.lower
+  const withinRange = (value) => rangeStart + ((value - allowedRange.lower) / span) * (rangeEnd - rangeStart)
+  let currentPosition
+  if (current < allowedRange.lower) {
+    currentPosition = rangeStart - Math.min((allowedRange.lower - current) / span, 1) * (rangeStart - 1.5)
+  } else if (current > allowedRange.upper) {
+    currentPosition = rangeEnd + Math.min((current - allowedRange.upper) / span, 1) * (98.5 - rangeEnd)
+  } else {
+    currentPosition = withinRange(current)
+  }
+  return {
+    rangeStart,
+    rangeEnd,
+    currentPosition: Math.min(98.5, Math.max(1.5, currentPosition)),
+    targetPosition: Math.min(rangeEnd, Math.max(rangeStart, withinRange(target))),
+  }
+}
+
 export default function Target({ refreshKey = 0 }) {
   const navigate = useNavigate()
   const [data, setData] = useState(() => {
@@ -241,11 +267,11 @@ export default function Target({ refreshKey = 0 }) {
                 const isOver = status === 'over'
                 const isUnder = status === 'under'
                 const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
-                const scaleMax = hasTarget ? Math.max(r.currentRatio || 0, allowedRange?.upper || 0, 0.01) * 1.15 : Math.max(r.currentRatio || 0, 0.01)
-                const currentPosition = Math.min(((r.currentRatio || 0) / scaleMax) * 100, 100)
-                const targetPosition = hasTarget ? Math.min(((r.targetRatio || 0) / scaleMax) * 100, 98) : null
-                const rangeStart = allowedRange ? Math.min((allowedRange.lower / scaleMax) * 100, 100) : null
-                const rangeEnd = allowedRange ? Math.min((allowedRange.upper / scaleMax) * 100, 100) : null
+                const track = getRangeTrackPositions(r.currentRatio, r.targetRatio, allowedRange)
+                const currentPosition = track?.currentPosition ?? 0
+                const targetPosition = track?.targetPosition ?? null
+                const rangeStart = track?.rangeStart ?? null
+                const rangeEnd = track?.rangeEnd ?? null
                 const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
 
                 return (
@@ -317,11 +343,11 @@ export default function Target({ refreshKey = 0 }) {
             const isOver = status === 'over'
             const isUnder = status === 'under'
             const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
-            const scaleMax = hasTarget ? Math.max(r.currentRatio || 0, r.targetRatio || 0, allowedRange?.upper || 0, 0.01) * 1.18 : Math.max(r.currentRatio || 0, 0.01)
-            const currentPosition = Math.min(98.5, Math.max(1.5, ((r.currentRatio || 0) / scaleMax) * 100))
-            const targetPosition = hasTarget ? Math.min(98.5, Math.max(1.5, ((r.targetRatio || 0) / scaleMax) * 100)) : null
-            const rangeStart = allowedRange ? Math.min((allowedRange.lower / scaleMax) * 100, 100) : null
-            const rangeEnd = allowedRange ? Math.min((allowedRange.upper / scaleMax) * 100, 100) : null
+            const track = getRangeTrackPositions(r.currentRatio, r.targetRatio, allowedRange)
+            const currentPosition = track?.currentPosition ?? 0
+            const targetPosition = track?.targetPosition ?? null
+            const rangeStart = track?.rangeStart ?? null
+            const rangeEnd = track?.rangeEnd ?? null
             const driftAmount = diffPct === null ? null : Math.abs(diffPct)
             const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
             const statusLabel = isOver ? '超出范围' : isUnder ? '低于范围' : hasTarget ? '范围合理' : '未设目标'
@@ -359,15 +385,15 @@ export default function Target({ refreshKey = 0 }) {
                       <span className="font-medium text-gray-600 dark:text-gray-300">合理区间</span>
                       <span className="font-num text-gray-500 dark:text-gray-400">{(allowedRange.lower * 100).toFixed(1)}% – {(allowedRange.upper * 100).toFixed(1)}%</span>
                     </div>
-                    <div className="relative mt-2.5 h-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                    <div className="relative mt-2.5 h-2 overflow-visible rounded-full bg-gradient-to-r from-green-50 via-gray-100 to-red-50 dark:from-green-500/10 dark:via-gray-700 dark:to-red-500/10" aria-label="三段状态尺：左侧低于范围，中间为合理区间，右侧超出范围">
                       <div className="absolute inset-y-0 rounded-full bg-emerald-200 dark:bg-emerald-500/40" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} aria-label={`合理区间 ${(allowedRange.lower * 100).toFixed(1)}% 至 ${(allowedRange.upper * 100).toFixed(1)}%`} />
                       <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-gray-700 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标中心位置" />
                       <div className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm transition-all dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} aria-label={`当前配置 ${(r.currentRatio * 100).toFixed(1)}%`} />
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
-                      <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: progressColor }} />当前位置</span>
-                      <span className="inline-flex items-center gap-1"><span className="h-3 w-px bg-gray-600 dark:bg-gray-300" />目标中心</span>
-                      <span className="inline-flex items-center gap-1"><span className="h-1.5 w-3 rounded-full bg-emerald-200 dark:bg-emerald-500/40" />合理范围</span>
+                    <div className="font-num mt-2 grid grid-cols-3 text-[9px] text-gray-400 dark:text-gray-500">
+                      <span>低于 {(allowedRange.lower * 100).toFixed(1)}%</span>
+                      <span className="text-center">目标 {(r.targetRatio * 100).toFixed(1)}%</span>
+                      <span className="text-right">高于 {(allowedRange.upper * 100).toFixed(1)}%</span>
                     </div>
                   </div>
                 ) : (
@@ -392,7 +418,7 @@ export default function Target({ refreshKey = 0 }) {
         <div className="target-reminder mt-3 border-t border-gray-100 pt-3 text-sm text-gray-400 dark:border-gray-700 sm:mt-0 sm:bg-slate-50/60 sm:px-6 sm:py-4 dark:sm:bg-gray-900/30">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400" aria-hidden="true">i</span>
-            <div><span className="font-medium text-gray-600 dark:text-gray-300">提醒规则</span><p className="mt-0.5 text-xs leading-5 text-gray-400">偏离目标比例达到 ±40%，或相差达到 ±2 个百分点时提醒；满足任一条件即会标记。</p></div>
+            <div><span className="font-medium text-gray-600 dark:text-gray-300">范围说明</span><p className="mt-0.5 text-xs leading-5 text-gray-400">目标比例 ±40% 与 ±2 个百分点取更严格的范围。三段尺固定表示低于、合理、超出，具体范围以卡片数值为准。</p></div>
           </div>
         </div>
       </div>
