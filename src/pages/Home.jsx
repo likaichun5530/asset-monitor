@@ -15,6 +15,7 @@ import { findBestCardOverlap, getCardInsertDirection, reorderCardIds } from '../
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
+const PRIVACY_KEY = 'youshu-home-values-hidden'
 const ALL_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown', 'currency', 'health', 'trend', 'allocation', 'holdings', 'calendar']
 const STAT_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown']
 const HALF_KEYS = ['currency', 'health']
@@ -50,6 +51,8 @@ function readCardOrder() {
   return [...ALL_KEYS]
 }
 function writeCardOrder(o) { try { localStorage.setItem(ORDER_KEY, JSON.stringify(o)) } catch {} }
+function readPrivacyMode() { try { return localStorage.getItem(PRIVACY_KEY) === 'true' } catch { return false } }
+function writePrivacyMode(hidden) { try { localStorage.setItem(PRIVACY_KEY, String(hidden)) } catch {} }
 
 const CARD_LABELS = {
   change7d: '近7日盈亏', change30d: '近1月盈亏', changeYtd: '今年盈亏',
@@ -61,6 +64,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   const [cardConfig, setCardConfig] = useState(readCardConfig)
   const [cardOrder, setCardOrder] = useState(readCardOrder)
   const [editMode, setEditMode] = useState(false)
+  const [valuesHidden, setValuesHidden] = useState(readPrivacyMode)
   const [todayDetailRequest, setTodayDetailRequest] = useState(0)
   const longPressTimer = useRef(null)
   const sortRef = useRef(null)
@@ -109,6 +113,13 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
     writeCardConfig(next)
   }
   function exitEditMode() { setEditMode(false) }
+  function togglePrivacyMode() {
+    setValuesHidden((hidden) => {
+      const next = !hidden
+      writePrivacyMode(next)
+      return next
+    })
+  }
 
   const visibleItems = useMemo(() => cardOrder.filter(k => cardConfig[k]), [cardOrder, cardConfig])
 
@@ -261,7 +272,9 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
         updateDate={updateDate}
         pendingCount={pendingCount}
         editMode={editMode}
+        valuesHidden={valuesHidden}
         onToggleEdit={() => setEditMode((value) => !value)}
+        onToggleValuesHidden={togglePrivacyMode}
         onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
       />
 
@@ -275,7 +288,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
                   )}
-                  <StatMini label={CARD_LABELS[key]} change={s.change} changePct={s.changePct} />
+                  <StatMini label={CARD_LABELS[key]} change={s.change} changePct={s.changePct} valuesHidden={valuesHidden} />
                 </div>
               </div>
             ) : null

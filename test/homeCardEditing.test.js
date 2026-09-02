@@ -31,6 +31,16 @@ test('总资产头部使用纯数字并展示今日盈亏，不再提供手动�
   assert.doesNotMatch(heroSource, /SnapshotIcon|生成快照|onSnapshot/)
 })
 
+test('首页隐私开关统一隐藏总资产和盈亏数据', () => {
+  assert.match(heroSource, /aria-label=\{valuesHidden \? '显示资产金额' : '隐藏资产金额'\}/)
+  assert.match(heroSource, /valuesHidden \? '\*\*\*\*\*\*' : formatNumber\(total\)/)
+  assert.match(heroSource, /disabled=\{valuesHidden\}/)
+  assert.match(homeSource, /youshu-home-values-hidden/)
+  assert.match(homeSource, /valuesHidden=\{valuesHidden\}/)
+  assert.match(overviewSource, /valuesHidden \? '\*\*\*\*\*\*' : formatChange\(change\)/)
+  assert.match(overviewSource, /!valuesHidden && isUp/)
+})
+
 test('盈亏小卡片使用统一金融字体与 500 字重', () => {
   assert.match(styleSource, /font-family: "SF Pro Display", "Arial Narrow", -apple-system/)
   assert.match(styleSource, /font-family: "Youshu Numerals"/)
@@ -47,7 +57,7 @@ test('今日盈亏入口驱动收益日历打开今日明细', () => {
   assert.match(heroSource, /onClick=\{onOpenTodayDetail\}/)
   assert.match(heroSource, /font-num flex flex-col items-end/)
   assert.match(heroSource, /今日盈亏[\s\S]*font-medium/)
-  assert.match(heroSource, /aria-label="查看今日盈亏明细"/)
+  assert.match(heroSource, /'查看今日盈亏明细'/)
   assert.match(homeSource, /openTodayRequest=\{todayDetailRequest\}/)
   assert.match(homeSource, /setTodayDetailRequest\(\(value\) => value \+ 1\)/)
 })

@@ -4,12 +4,12 @@ import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
-export function StatMini({ label, change, changePct }) {
+export function StatMini({ label, change, changePct, valuesHidden = false }) {
   const isUp = Number(change) > 0
   const isDown = Number(change) < 0
-  const color = isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
-  const bg = isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
-  const cardGradient = isUp
+  const color = valuesHidden ? 'text-gray-500' : isUp ? 'text-red-500' : isDown ? 'text-green-600' : 'text-gray-500'
+  const bg = valuesHidden ? 'bg-gray-50 dark:bg-gray-700/60' : isUp ? 'bg-red-50' : isDown ? 'bg-green-50' : 'bg-gray-50'
+  const cardGradient = valuesHidden ? '' : isUp
     ? 'bg-gradient-to-b from-red-100/90 via-red-50/60 to-red-50/25 dark:from-red-500/[0.20] dark:via-red-500/[0.10] dark:to-red-500/[0.04]'
     : isDown
       ? 'bg-gradient-to-b from-green-100/90 via-green-50/60 to-green-50/25 dark:from-green-500/[0.20] dark:via-green-500/[0.10] dark:to-green-500/[0.04]'
@@ -20,10 +20,10 @@ export function StatMini({ label, change, changePct }) {
         <div className="text-center text-xs font-medium text-gray-500">{label}</div>
         <span className={`absolute right-0 hidden h-2 w-2 rounded-full sm:block ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
       </div>
-      <div className={`font-num mt-2 text-base font-medium sm:mt-3 ${color}`}>{formatChange(change)}</div>
+      <div className={`font-num mt-2 text-base font-medium sm:mt-3 ${color}`}>{valuesHidden ? '******' : formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
         <span className={`font-num inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs font-medium ${bg} ${color}`}>
-          {isUp && <span>▲</span>} {isDown && <span>▼</span>} {formatPercent(Math.abs(changePct))}
+          {!valuesHidden && isUp && <span>▲</span>} {!valuesHidden && isDown && <span>▼</span>} {valuesHidden ? '******' : formatPercent(Math.abs(changePct))}
         </span>
       </div>
     </div>
