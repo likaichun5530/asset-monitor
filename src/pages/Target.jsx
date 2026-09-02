@@ -24,30 +24,32 @@ const CATEGORY_ROUTE = {
 
 const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
 
-// 三段状态尺固定使用 25% / 50% / 25%，避免不同目标的独立缩放造成视觉误解。
-// 圆点只表达当前配置位于“低于 / 合理 / 超出”中的相对位置，精确范围以文字数值为准。
+// 以目标为中心，把合理下限与上限固定映射到 25% / 75%。
+// 这是“偏离目标”的统一语义尺，不是各资产绝对占比的横轴。
 function getRangeTrackPositions(currentRatio, targetRatio, allowedRange) {
   if (!allowedRange) return null
   const rangeStart = 25
   const rangeEnd = 75
-  const span = Math.max(allowedRange.upper - allowedRange.lower, 0.0001)
   const current = Number.isFinite(currentRatio) ? currentRatio : 0
   const target = Number.isFinite(targetRatio) ? targetRatio : allowedRange.lower
-  const withinRange = (value) => rangeStart + ((value - allowedRange.lower) / span) * (rangeEnd - rangeStart)
-  let currentPosition
-  if (current < allowedRange.lower) {
-    currentPosition = rangeStart - Math.min((allowedRange.lower - current) / span, 1) * (rangeStart - 1.5)
-  } else if (current > allowedRange.upper) {
-    currentPosition = rangeEnd + Math.min((current - allowedRange.upper) / span, 1) * (98.5 - rangeEnd)
-  } else {
-    currentPosition = withinRange(current)
-  }
+  const lowerTolerance = Math.max(target - allowedRange.lower, 0.0001)
+  const upperTolerance = Math.max(allowedRange.upper - target, 0.0001)
+  const relativePosition = current <= target
+    ? 50 - ((target - current) / lowerTolerance) * 25
+    : 50 + ((current - target) / upperTolerance) * 25
   return {
     rangeStart,
     rangeEnd,
-    currentPosition: Math.min(98.5, Math.max(1.5, currentPosition)),
-    targetPosition: Math.min(rangeEnd, Math.max(rangeStart, withinRange(target))),
+    currentPosition: Math.min(98.5, Math.max(1.5, relativePosition)),
+    targetPosition: 50,
   }
+}
+
+function getRangeRuleLabel(targetRatio) {
+  if (!Number.isFinite(targetRatio)) return ''
+  return targetRatio > 0 && targetRatio * 0.4 < 0.02
+    ? '目标比例 ±40%'
+    : '±2 个百分点'
 }
 
 export default function Target({ refreshKey = 0 }) {
@@ -350,6 +352,7 @@ export default function Target({ refreshKey = 0 }) {
             const rangeEnd = track?.rangeEnd ?? null
             const driftAmount = diffPct === null ? null : Math.abs(diffPct)
             const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
+            const rangeRuleLabel = getRangeRuleLabel(r.targetRatio)
             const statusLabel = isOver ? '超出范围' : isUnder ? '低于范围' : hasTarget ? '范围合理' : '未设目标'
             const statusClass = isOver ? 'text-red-500' : isUnder ? 'text-green-600' : hasTarget ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
             return (
@@ -367,33 +370,43 @@ export default function Target({ refreshKey = 0 }) {
                   </span>
                 </div>
 
-                <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center rounded-lg bg-gray-50/80 px-3 py-2.5 dark:bg-gray-900/35">
-                  <div>
+                <div className="mt-3 grid grid-cols-3 divide-x divide-gray-200 rounded-lg bg-gray-50/80 px-1 py-2.5 dark:divide-gray-700 dark:bg-gray-900/35">
+                  <div className="px-2">
                     <div className="text-[11px] text-gray-500 dark:text-gray-400">当前配置</div>
-                    <div className={`font-num mt-0.5 text-xl font-semibold leading-none ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`}>{(r.currentRatio * 100).toFixed(1)}%</div>
+                    <div className={`font-num mt-1 text-lg font-semibold leading-none ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-900 dark:text-gray-100'}`}>{(r.currentRatio * 100).toFixed(1)}%</div>
                   </div>
-                  <svg className="mx-3 h-4 w-7 text-gray-300 dark:text-gray-600" viewBox="0 0 28 16" fill="none" aria-hidden="true"><path d="M1 8h24m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  <div className="text-right">
+                  <div className="px-2 text-center">
                     <div className="text-[11px] text-gray-500 dark:text-gray-400">计划目标</div>
-                    <div className="font-num mt-0.5 text-xl font-semibold leading-none text-gray-700 dark:text-gray-200">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</div>
+                    <div className="font-num mt-1 text-lg font-semibold leading-none text-gray-700 dark:text-gray-200">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</div>
+                  </div>
+                  <div className="px-2 text-right">
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400">相差</div>
+                    <div className={`mt-1 flex items-baseline justify-end gap-0.5 leading-none ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-600 dark:text-gray-300'}`}>
+                      <span className="font-num text-lg font-semibold">{diffPct === null ? '—' : `${diffPct > 0 ? '+' : ''}${diffPct.toFixed(1)}`}</span>
+                      {diffPct !== null && <span className="text-[8px] font-medium">百分点</span>}
+                    </div>
                   </div>
                 </div>
 
                 {allowedRange ? (
                   <div className="mt-3 px-1">
-                    <div className="flex items-center justify-between gap-3 text-[11px]">
-                      <span className="font-medium text-gray-600 dark:text-gray-300">合理区间</span>
-                      <span className="font-num text-gray-500 dark:text-gray-400">{(allowedRange.lower * 100).toFixed(1)}% – {(allowedRange.upper * 100).toFixed(1)}%</span>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] font-medium text-gray-600 dark:text-gray-300">合理区间</div>
+                        <div className="mt-0.5 text-[10px] text-gray-400">按 {rangeRuleLabel} 计算</div>
+                      </div>
+                      <span className="font-num pt-0.5 text-xs font-medium text-gray-600 dark:text-gray-300">{(allowedRange.lower * 100).toFixed(1)}% – {(allowedRange.upper * 100).toFixed(1)}%</span>
                     </div>
-                    <div className="relative mt-2.5 h-2 overflow-visible rounded-full bg-gradient-to-r from-green-50 via-gray-100 to-red-50 dark:from-green-500/10 dark:via-gray-700 dark:to-red-500/10" aria-label="三段状态尺：左侧低于范围，中间为合理区间，右侧超出范围">
+                    <div className="relative mt-3 h-2 overflow-visible rounded-full bg-gradient-to-r from-green-50 via-gray-100 to-red-50 dark:from-green-500/10 dark:via-gray-700 dark:to-red-500/10" aria-label="偏离目标范围尺：左侧低于范围，中间为合理区间，右侧超出范围">
                       <div className="absolute inset-y-0 rounded-full bg-emerald-200 dark:bg-emerald-500/40" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} aria-label={`合理区间 ${(allowedRange.lower * 100).toFixed(1)}% 至 ${(allowedRange.upper * 100).toFixed(1)}%`} />
-                      <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-gray-700 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标中心位置" />
+                      <div className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full opacity-55" style={{ left: `${Math.min(currentPosition, targetPosition)}%`, width: `${Math.abs(currentPosition - targetPosition)}%`, backgroundColor: progressColor }} aria-hidden="true" />
+                      <div className="absolute -top-1 h-4 w-0.5 -translate-x-1/2 rounded-full bg-gray-700 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标中心位置" />
                       <div className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm transition-all dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} aria-label={`当前配置 ${(r.currentRatio * 100).toFixed(1)}%`} />
                     </div>
                     <div className="font-num mt-2 grid grid-cols-3 text-[9px] text-gray-400 dark:text-gray-500">
-                      <span>低于 {(allowedRange.lower * 100).toFixed(1)}%</span>
+                      <span>低配线 {(allowedRange.lower * 100).toFixed(1)}%</span>
                       <span className="text-center">目标 {(r.targetRatio * 100).toFixed(1)}%</span>
-                      <span className="text-right">高于 {(allowedRange.upper * 100).toFixed(1)}%</span>
+                      <span className="text-right">超配线 {(allowedRange.upper * 100).toFixed(1)}%</span>
                     </div>
                   </div>
                 ) : (
