@@ -39,7 +39,7 @@ const FEATURES = [
 
 export default function AboutApp({ version }) {
   return (
-    <div>
+    <div className="about-app">
       <section className="relative isolate overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100 px-6 py-8 text-center text-gray-900 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700 dark:text-gray-100 sm:px-10 sm:py-10">
         <div aria-hidden="true" className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-amber-200/25 blur-3xl dark:bg-amber-300/5" />
         <div aria-hidden="true" className="absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-emerald-200/20 blur-3xl dark:bg-emerald-300/5" />
@@ -58,14 +58,16 @@ export default function AboutApp({ version }) {
           <h3 className="text-[17px] font-semibold text-gray-900 dark:text-gray-100">功能介绍</h3>
           <p className="mt-1 text-[13px] leading-5 text-gray-400">为个人资产管理打造的一站式数据看板</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid sm:grid-cols-2 sm:gap-3">
           {FEATURES.map((feature) => (
-            <article key={feature.title} className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 dark:border-gray-700 dark:bg-gray-800/50">
-              <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${feature.tone}`}>
+            <article key={feature.title} className="flex items-start gap-3 border-b border-gray-100 py-3 last:border-0 dark:border-gray-700 sm:block sm:rounded-xl sm:border sm:bg-gray-50/70 sm:p-3.5 dark:sm:bg-gray-800/50">
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${feature.tone}`}>
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{feature.icon}</svg>
               </div>
-              <h4 className="mt-3 text-[15px] font-semibold text-gray-800 dark:text-gray-200">{feature.title}</h4>
-              <p className="mt-1 text-[13px] leading-5 text-gray-500 dark:text-gray-400">{feature.description}</p>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-[15px] font-semibold text-gray-800 dark:text-gray-200 sm:mt-3">{feature.title}</h4>
+                <p className="mt-1 text-[13px] leading-5 text-gray-500 dark:text-gray-400">{feature.description}</p>
+              </div>
             </article>
           ))}
         </div>

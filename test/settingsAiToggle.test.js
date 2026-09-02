@@ -51,7 +51,8 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
   assert.match(about, />Google Sheets</)
   assert.match(about, />Web · PWA</)
   assert.doesNotMatch(about, /Android|本地缓存与离线浏览|Google Sheets 数据源/)
-  assert.match(source, /className="-mt-2 sm:mt-0"/)
+  assert.match(source, /settings-subpage-content/)
+  assert.doesNotMatch(source, /className="-mt-2 sm:mt-0"/)
 
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   assert.match(app, /path="settings\/:section"/)

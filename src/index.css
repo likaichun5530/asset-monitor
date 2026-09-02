@@ -350,6 +350,79 @@ html.dark body {
 }
 
 @media (max-width: 639px) {
+  .holdings-mobile-summary,
+  .holding-mobile-card {
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.38);
+  }
+  .settings-root-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .settings-root-menu > :not([hidden]) ~ :not([hidden]) {
+    border-top-width: 1px;
+  }
+  .settings-menu-row {
+    min-height: 76px;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.34);
+  }
+  .settings-subpage-content {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .settings-subpage-content > :not([hidden]) ~ :not([hidden]) {
+    border-top-width: 0;
+  }
+  .settings-group {
+    margin-bottom: 8px;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.34);
+  }
+  .settings-group:last-child {
+    margin-bottom: 0;
+  }
+  .settings-subpage-content > .about-app {
+    overflow: hidden;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.34);
+  }
+  .settings-choice,
+  .settings-action-row,
+  .settings-ai-toggle {
+    min-height: 48px;
+    background-color: rgba(248, 250, 252, 0.72);
+  }
+  .settings-choice-selected {
+    background-color: #eff6ff;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.04);
+  }
+  html.dark .settings-menu-row,
+  html.dark .settings-group,
+  html.dark .settings-subpage-content > .about-app {
+    border-color: #374151;
+    background: #1f2937;
+  }
+  html.dark .settings-choice,
+  html.dark .settings-action-row,
+  html.dark .settings-ai-toggle {
+    background-color: rgba(17, 24, 39, 0.32);
+  }
+  html.dark .settings-choice-selected {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
   .target-mobile-summary {
     background-image:
       radial-gradient(circle at 92% 0%, rgba(251, 146, 60, 0.1), transparent 9rem),
