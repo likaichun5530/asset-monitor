@@ -92,7 +92,7 @@ export default function Market({ refreshKey = 0 }) {
   const quotedCount = data.filter((item) => item.price !== null && item.price !== undefined).length
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="market-page flex flex-col gap-2">
       <section className="hidden grid-cols-3 gap-2 sm:grid">
         <div className="desktop-metric-card">
           <div className="text-xs font-medium text-slate-400">行情分组</div>
