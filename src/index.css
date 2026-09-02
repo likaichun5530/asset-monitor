@@ -350,15 +350,17 @@ html.dark body {
 }
 
 @media (max-width: 639px) {
-  .holdings-mobile-summary,
-  .holding-mobile-list {
-    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.38);
+  .market-group-card {
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.36);
   }
-  .holding-mobile-row + .holding-mobile-row {
-    border-top: 1px solid #f1f5f9;
+  .market-quote-tile:nth-child(3n) {
+    border-right-width: 0;
   }
-  html.dark .holding-mobile-row + .holding-mobile-row {
-    border-top-color: #374151;
+  .market-quote-tile:active {
+    background-color: rgba(248, 250, 252, 0.9);
+  }
+  html.dark .market-quote-tile:active {
+    background-color: rgba(55, 65, 81, 0.58);
   }
   .settings-root-menu {
     display: flex;

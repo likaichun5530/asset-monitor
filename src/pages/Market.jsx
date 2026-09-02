@@ -111,31 +111,31 @@ export default function Market({ refreshKey = 0 }) {
         </div>
       </section>
       {groups.map((group, gi) => (
-        <section key={gi} className="desktop-market-group sm:card sm:overflow-hidden sm:p-0">
-          <div className="sm:flex sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">
-            <h2 className="mb-1 px-1 text-base font-semibold tracking-wide text-gray-900 dark:text-gray-100 sm:mb-0 sm:px-0">
+        <section key={gi} className="market-group-card desktop-market-group card overflow-hidden p-0">
+          <div className="flex items-center justify-between border-b border-gray-100 px-3.5 py-2.5 dark:border-gray-700 sm:px-6 sm:py-4">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
               {group.name}
             </h2>
-            <span className="hidden sm:inline text-xs text-slate-400">{group.items.length} 个标的</span>
+            <span className="text-[11px] text-gray-400 sm:text-xs">{group.items.length} 个标的</span>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 sm:gap-0 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="market-quote-grid grid grid-cols-3 gap-0 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {group.items.map((item, idx) => {
               const isFutures = (item.name.includes('期货') || item.name.includes('IC')) && zz500Spot !== null && item.price != null
               const spread = isFutures ? zz500Spot - Number(item.price) : null
               const icon = group.name === '虚拟币' ? null : getNameIcon(item.name)
               return (
                 <div key={idx}
-                  className="desktop-market-tile card flex h-[100px] min-w-0 flex-col items-center justify-center p-2 text-center sm:h-auto sm:min-h-[128px] sm:items-start sm:rounded-none sm:border-0 sm:border-b sm:border-r sm:border-slate-100 sm:p-5 sm:text-left sm:shadow-none dark:sm:border-gray-700"
+                  className="market-quote-tile desktop-market-tile flex min-h-[88px] min-w-0 flex-col items-center justify-center border-b border-r border-gray-100 px-1.5 py-2 text-center dark:border-gray-700 sm:min-h-[128px] sm:items-start sm:p-5 sm:text-left"
                 >
-                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-[15px] font-medium text-gray-500 dark:text-gray-400 sm:justify-start sm:text-[17px]">
+                  <div className="flex w-full min-w-0 items-center justify-center gap-1 text-[14px] font-medium leading-5 text-gray-500 dark:text-gray-400 sm:justify-start sm:text-[17px]">
                     {icon}
                     <span className="truncate">{item.name}</span>
                   </div>
-                  <div className="mt-1 text-[17px] font-semibold tabular-nums text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-[19px]">
+                  <div className="font-num mt-1 text-[16px] leading-5 text-gray-900 dark:text-gray-100 sm:mt-3 sm:text-[19px]">
                     {item.price ? Number(item.price).toFixed(2) : '—'}
                   </div>
                   {spread !== null && (
-                    <div className="mt-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-300 sm:mt-2 sm:text-xs">
+                    <div className="mt-1 rounded-md bg-gray-100/80 px-1.5 py-0.5 text-[9px] font-medium leading-4 text-gray-500 dark:bg-gray-700 dark:text-gray-300 sm:mt-2 sm:px-2 sm:text-xs">
                       {spread >= 0 ? '贴水 ' : '升水 '}
                       {Math.abs(spread).toFixed(2)}
                     </div>

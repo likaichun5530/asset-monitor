@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { marketLabels, assetColors } from '../data/holdings.js'
+import { categoryColors, marketLabels, marketColors, assetColors } from '../data/holdings.js'
 import { holdingMarketValue, totalMarketValue, getActiveHoldings } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import HoldingEditor from '../components/HoldingEditor.jsx'
@@ -141,8 +141,8 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
         </div>
       </section>
 
-      <div className="holdings-mobile-summary card">
-        <div className="mb-3 flex items-center justify-between sm:mb-5">
+      <div className="card">
+        <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <h2 className="desktop-section-title">持仓明细</h2>
             <p className="hidden sm:block desktop-section-subtitle">按类别、账户或名称快速定位资产</p>
@@ -154,19 +154,11 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
               onClick={openCreate}
               disabled={!canEdit}
               title={!canEdit ? '请登录实盘账户后操作' : '新增持仓'}
-              className="flex h-9 items-center gap-1 rounded-lg bg-brand-600 px-3 text-sm font-medium text-white shadow-sm transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:rounded-xl sm:px-4 sm:hover:bg-brand-700"
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-              新增
+              ＋ 新增
             </button>
           </div>
-        </div>
-
-        <div className="mb-2.5 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:hidden">
-          <span>筛选市值</span>
-          <span className="font-num min-w-0 truncate text-[13px] text-gray-800 dark:text-gray-200">{formatCurrency(sumMarketValue)}</span>
-          <span className="text-gray-300 dark:text-gray-600">·</span>
-          <span className="font-num shrink-0 text-[13px] text-gray-600 dark:text-gray-300">{filteredRatio.toFixed(1)}%</span>
         </div>
 
         {success && <div className="mb-3 rounded-lg bg-green-50 dark:bg-green-500/10 px-3 py-2 text-sm text-green-600 dark:text-green-400">{success}</div>}
@@ -187,32 +179,15 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
           )}
         </div>
 
-        <div className="mb-3 grid grid-cols-[minmax(0,1fr)_92px_92px] gap-2 sm:hidden">
-          <label className="relative min-w-0">
-            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="搜索持仓" className="h-10 w-full rounded-lg border border-gray-100 bg-gray-50 pl-9 pr-3 text-sm text-gray-800 outline-none transition-colors focus:border-brand-300 focus:bg-white dark:border-gray-700 dark:bg-gray-900/35 dark:text-gray-200" />
-          </label>
-          <select value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} className="h-10 min-w-0 rounded-lg border border-gray-100 bg-gray-50 px-2.5 text-sm text-gray-600 outline-none focus:border-brand-300 dark:border-gray-700 dark:bg-gray-900/35 dark:text-gray-300">
-            <option>全部账户</option>
-            {accounts.map((account) => <option key={account} value={account}>{account}</option>)}
-          </select>
-          <select value={`${sortBy}:${sortDir}`} onChange={(event) => { const [field, direction] = event.target.value.split(':'); setSortBy(field); setSortDir(direction) }} className="h-10 min-w-0 rounded-lg border border-gray-100 bg-gray-50 px-2 text-sm text-gray-600 outline-none focus:border-brand-300 dark:border-gray-700 dark:bg-gray-900/35 dark:text-gray-300" aria-label="持仓排序">
-            <option value="marketValueCNY:desc">市值 ↓</option>
-            <option value="marketValueCNY:asc">市值 ↑</option>
-            <option value="ratio:desc">占比 ↓</option>
-            <option value="name:asc">名称 A-Z</option>
-          </select>
-        </div>
-
         {/* 类别筛选 */}
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:pb-0">
+        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-1 px-1">
           {FILTERS.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-all active:scale-[0.97] sm:px-3.5 sm:py-2 ${
+              className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full sm:rounded-lg text-sm whitespace-nowrap transition-colors ${
                 activeCategory === cat
-                  ? 'bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900 sm:bg-brand-600 sm:dark:bg-brand-600 sm:dark:text-white'
+                  ? 'bg-brand-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
               }`}
             >
@@ -222,31 +197,8 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
         </div>
       </div>
 
-      {/* 手机端紧凑持仓清单 */}
-      <section className="holding-mobile-list card overflow-hidden p-0 sm:hidden" aria-label="持仓列表">
-        {rows.length > 0 && (
-          <div className="grid grid-cols-[minmax(0,1fr)_112px_48px] items-center border-b border-gray-100 bg-gray-50/75 px-3 py-1.5 text-[10px] text-gray-400 dark:border-gray-700 dark:bg-gray-900/30">
-            <span>持仓 / 账户</span>
-            <span className="text-right">人民币市值</span>
-            <span className="text-right">占比</span>
-          </div>
-        )}
-        {rows.map((holding, index) => (
-          <MobileHoldingRow key={`${holding.symbol}-${index}`} holding={holding} canEdit={canEdit} onEdit={() => openEdit(holding)} />
-        ))}
-        {rows.length === 0 && (
-          <div className="flex flex-col items-center px-4 py-10 text-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h10M4 18h7" /></svg>
-            </span>
-            <div className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-200">没有符合条件的持仓</div>
-            <div className="mt-1 text-xs text-gray-400">调整类别、账户或搜索条件后再试</div>
-          </div>
-        )}
-      </section>
-
-      {/* 桌面端持仓表格 */}
-      <div className="card hidden overflow-hidden sm:block sm:p-0">
+      {/* 表格（移动端可左右滚动，名称列冻结） */}
+      <div className="card overflow-hidden sm:p-0">
         <div className="overflow-x-auto max-w-full">
           <table className="w-full text-sm">
             <colgroup>
@@ -335,40 +287,6 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
       />
 
     </div>
-  )
-}
-
-function MobileHoldingRow({ holding, canEdit, onEdit }) {
-  const color = getColor(holding)
-  const category = getCategory(holding)
-  const quantity = holding.quantity === null || holding.quantity === undefined ? '—' : formatNumber(holding.quantity, holding.quantity < 1 ? 6 : 2)
-  const price = holding.price === null || holding.price === undefined ? '—' : formatNumber(holding.price, holding.price < 1 ? 6 : 2)
-  const symbol = holding.symbol === '-' ? marketLabels[holding.market] || holding.market : holding.symbol
-
-  return (
-    <button
-      type="button"
-      onClick={canEdit ? onEdit : undefined}
-      className={`holding-mobile-row grid w-full grid-cols-[minmax(0,1fr)_112px_48px] items-center gap-0 px-3 py-2.5 text-left ${canEdit ? 'active:bg-gray-50 dark:active:bg-gray-700/45' : 'cursor-default'}`}
-      aria-label={`${holding.name}，市值${formatCurrency(holding.marketValueCNY)}，占比${holding.ratio.toFixed(2)}%${canEdit ? '，点击编辑' : ''}`}
-    >
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
-        <span className="min-w-0">
-          <span className="block truncate text-[13px] font-medium leading-[18px] text-gray-900 dark:text-gray-100">{holding.name}</span>
-          <span className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] leading-4 text-gray-400">
-            <span className="max-w-[54px] truncate">{symbol}</span>
-            <span aria-hidden="true">·</span>
-            <span className="max-w-[58px] truncate">{holding.account || category}</span>
-          </span>
-        </span>
-      </span>
-      <span className="min-w-0 text-right">
-        <span className="font-num block truncate text-[13px] leading-[18px] text-gray-800 dark:text-gray-100">{formatCurrency(holding.marketValueCNY)}</span>
-        <span className="font-num mt-0.5 block truncate text-[10px] leading-4 text-gray-400">{holding.currency} · {quantity} × {price}</span>
-      </span>
-      <span className="font-num text-right text-xs text-gray-600 dark:text-gray-300">{holding.ratio.toFixed(1)}%</span>
-    </button>
   )
 }
 
