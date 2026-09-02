@@ -350,6 +350,18 @@ html.dark body {
 }
 
 @media (max-width: 639px) {
+  .target-mobile-summary {
+    background-image:
+      radial-gradient(circle at 92% 0%, rgba(251, 146, 60, 0.1), transparent 9rem),
+      linear-gradient(145deg, rgba(255,255,255,1), rgba(248,250,252,0.72));
+    box-shadow: 0 10px 26px -24px rgba(15, 23, 42, 0.34);
+  }
+  .target-allocation-card {
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.4);
+  }
+  html.dark .target-mobile-summary {
+    background-image: radial-gradient(circle at 92% 0%, rgba(251, 146, 60, 0.12), transparent 9rem);
+  }
   .target-list-shell {
     padding: 0;
     border: 0;
