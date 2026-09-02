@@ -19,6 +19,13 @@ const KEYS = {
   lastSync: 'asset-monitor:lastSyncAt',
 }
 
+export const TARGET_UPDATED_EVENT = 'youshu-target-updated'
+
+function publishTargetResult(result) {
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(TARGET_UPDATED_EVENT, { detail: result.target || [] }))
+  return result
+}
+
 function readLocal(key, fallback) {
   try {
     const raw = localStorage.getItem(key)
@@ -252,7 +259,7 @@ export async function retryPendingSync() {
 
 export async function fetchTarget({ forceRefresh = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) {
-    return { target: demoTarget, source: 'demo', syncedAt: null }
+    return publishTargetResult({ target: demoTarget, source: 'demo', syncedAt: null })
   }
 
   if (API_BASE) {
@@ -261,7 +268,7 @@ export async function fetchTarget({ forceRefresh = false } = {}) {
       if (data.target?.length) {
         const target = normalizeTarget(data.target)
         writeLocal('asset-monitor:target', { target, syncedAt: data.syncedAt })
-        return { target, source: 'online', syncedAt: data.syncedAt }
+        return publishTargetResult({ target, source: 'online', syncedAt: data.syncedAt })
       }
     } catch { /* 使用缓存或本地计算 */ }
   }
@@ -269,15 +276,15 @@ export async function fetchTarget({ forceRefresh = false } = {}) {
   // 优先读缓存
   const cachedTarget = readLocal('asset-monitor:target', null)
   if (cachedTarget?.target?.length) {
-    return { target: normalizeTarget(cachedTarget.target), source: 'cache', syncedAt: cachedTarget.syncedAt }
+    return publishTargetResult({ target: normalizeTarget(cachedTarget.target), source: 'cache', syncedAt: cachedTarget.syncedAt })
   }
 
   // 回退：从已加载的 holdings 本地计算
   try {
     const h = await fetchHoldings()
-    return { target: computeTargetLocal(h.holdings), source: h.source, syncedAt: h.syncedAt }
+    return publishTargetResult({ target: computeTargetLocal(h.holdings), source: h.source, syncedAt: h.syncedAt })
   } catch {
-    return { target: [], source: 'empty', syncedAt: null }
+    return publishTargetResult({ target: [], source: 'empty', syncedAt: null })
   }
 }
 

@@ -21,8 +21,8 @@ export function useAssetData({
   const mountedRef = useRef(true)
   const holdingsLoadedRef = useRef(false)
   const historyLoadedRef = useRef(false)
-  const holdingsInFlightRef = useRef(false)
-  const historyInFlightRef = useRef(false)
+  const holdingsInFlightRef = useRef(null)
+  const historyInFlightRef = useRef(null)
   const pendingSyncAttemptedRef = useRef(false)
   const lastHoldingsRefreshRef = useRef(0)
   const lastHistoryRefreshRef = useRef(0)
@@ -46,22 +46,24 @@ export function useAssetData({
       lastFetchedAt: lastHoldingsRefreshRef.current,
       maxAgeMs: HOLDINGS_REFRESH_MS,
     }))) return false
-    if (holdingsInFlightRef.current) return false
-
-    holdingsInFlightRef.current = true
+    if (holdingsInFlightRef.current) return holdingsInFlightRef.current
     setError(null)
-    try {
-      const result = await loadHoldingsData({ forceRefresh: force })
-      applyHoldingsStatus(result)
-      holdingsLoadedRef.current = true
-      lastHoldingsRefreshRef.current = Date.now()
-      if (mountedRef.current) setRefreshKey((key) => key + 1)
-      return true
-    } catch (loadError) {
-      if (mountedRef.current) setError(loadError?.message || String(loadError))
-      return false
-    } finally {
-      holdingsInFlightRef.current = false
+    const request = (async () => {
+      try {
+        const result = await loadHoldingsData({ forceRefresh: force })
+        applyHoldingsStatus(result)
+        holdingsLoadedRef.current = true
+        lastHoldingsRefreshRef.current = Date.now()
+        if (mountedRef.current) setRefreshKey((key) => key + 1)
+        return true
+      } catch (loadError) {
+        if (mountedRef.current) setError(loadError?.message || String(loadError))
+        return false
+      }
+    })()
+    holdingsInFlightRef.current = request
+    try { return await request } finally {
+      if (holdingsInFlightRef.current === request) holdingsInFlightRef.current = null
     }
   }, [applyHoldingsStatus, enabled])
 
@@ -73,21 +75,24 @@ export function useAssetData({
       lastFetchedAt: lastHistoryRefreshRef.current,
       maxAgeMs: HISTORY_REFRESH_MS,
     }))) return false
-    if (historyInFlightRef.current) return false
-    historyInFlightRef.current = true
+    if (historyInFlightRef.current) return historyInFlightRef.current
     setError(null)
-    try {
-      const result = await loadHistoryData({ forceRefresh: force })
-      historyLoadedRef.current = true
-      const requestSucceeded = result?.source === 'online' || result?.source === 'demo'
-      if (requestSucceeded) lastHistoryRefreshRef.current = Date.now()
-      if (mountedRef.current) setRefreshKey((key) => key + 1)
-      return requestSucceeded
-    } catch (loadError) {
-      if (mountedRef.current) setError(loadError?.message || String(loadError))
-      return false
-    } finally {
-      historyInFlightRef.current = false
+    const request = (async () => {
+      try {
+        const result = await loadHistoryData({ forceRefresh: force })
+        historyLoadedRef.current = true
+        const requestSucceeded = result?.source === 'online' || result?.source === 'demo'
+        if (requestSucceeded) lastHistoryRefreshRef.current = Date.now()
+        if (mountedRef.current) setRefreshKey((key) => key + 1)
+        return requestSucceeded
+      } catch (loadError) {
+        if (mountedRef.current) setError(loadError?.message || String(loadError))
+        return false
+      }
+    })()
+    historyInFlightRef.current = request
+    try { return await request } finally {
+      if (historyInFlightRef.current === request) historyInFlightRef.current = null
     }
   }, [enabled])
 

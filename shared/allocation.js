@@ -60,6 +60,17 @@ export function getTargetDeviation(currentRatio, targetRatio) {
   return { status, difference, relativeDifference, triggeredBy }
 }
 
+export function getTargetAllowedRange(targetRatio) {
+  if (!Number.isFinite(targetRatio)) return null
+  const target = Math.max(0, Math.min(1, targetRatio))
+  const relativeLower = target > 0 ? target * (1 - TARGET_RELATIVE_DEVIATION) : 0
+  const relativeUpper = target > 0 ? target * (1 + TARGET_RELATIVE_DEVIATION) : 1
+  return {
+    lower: Math.max(0, target - TARGET_ABSOLUTE_DEVIATION, relativeLower),
+    upper: Math.min(1, target + TARGET_ABSOLUTE_DEVIATION, relativeUpper),
+  }
+}
+
 export function getTargetAdjustmentAmount(marketValue, totalMarketValue, targetRatio) {
   if (!Number.isFinite(marketValue) || !Number.isFinite(totalMarketValue) || !Number.isFinite(targetRatio)) return null
   return totalMarketValue * targetRatio - marketValue

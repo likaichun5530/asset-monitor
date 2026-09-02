@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
-import { fetchTarget } from '../utils/dataStore.js'
+import { fetchTarget, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
 const pieColors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#6366f1', '#14b8a6']
@@ -27,6 +27,12 @@ export default function Cash({ refreshKey = 0, targetRefreshKey = 0 }) {
   const [targetData, setTargetData] = useState([])
   const [targetLoading, setTargetLoading] = useState(false)
   const previousTargetRefreshKeyRef = useRef(targetRefreshKey)
+
+  useEffect(() => {
+    const handleTargetUpdated = (event) => setTargetData(event.detail || [])
+    window.addEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
+    return () => window.removeEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
+  }, [])
 
   useEffect(() => {
     setTargetLoading(true)

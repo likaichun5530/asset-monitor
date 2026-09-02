@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
-import { fetchTarget } from '../utils/dataStore.js'
-import { getTargetAdjustmentAmount, getTargetAllocationStatus } from '../utils/targetAllocation.js'
+import { fetchTarget, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
+import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange } from '../utils/targetAllocation.js'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -37,6 +37,12 @@ export default function Target({ refreshKey = 0 }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const previousRefreshKeyRef = useRef(refreshKey)
+
+  useEffect(() => {
+    const handleTargetUpdated = (event) => setData(event.detail || [])
+    window.addEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
+    return () => window.removeEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
+  }, [])
 
   const loadData = useCallback(async (forceRefresh = false) => {
     setError(null)
@@ -288,9 +294,12 @@ export default function Target({ refreshKey = 0 }) {
             const status = getTargetAllocationStatus(r.currentRatio, r.targetRatio).status
             const isOver = status === 'over'
             const isUnder = status === 'under'
-            const scaleMax = hasTarget ? Math.max(r.currentRatio || 0, r.targetRatio || 0, 0.01) * 1.18 : Math.max(r.currentRatio || 0, 0.01)
-            const currentWidth = Math.min(((r.currentRatio || 0) / scaleMax) * 100, 100)
+            const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
+            const scaleMax = hasTarget ? Math.max(r.currentRatio || 0, r.targetRatio || 0, allowedRange?.upper || 0, 0.01) * 1.18 : Math.max(r.currentRatio || 0, 0.01)
+            const currentPosition = Math.min(((r.currentRatio || 0) / scaleMax) * 100, 100)
             const targetPosition = hasTarget ? Math.min(((r.targetRatio || 0) / scaleMax) * 100, 98) : null
+            const rangeStart = allowedRange ? Math.min((allowedRange.lower / scaleMax) * 100, 100) : null
+            const rangeEnd = allowedRange ? Math.min((allowedRange.upper / scaleMax) * 100, 100) : null
             const driftAmount = diffPct === null ? null : Math.abs(diffPct)
             const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
             return (
@@ -311,9 +320,18 @@ export default function Target({ refreshKey = 0 }) {
                   <div className="text-right"><div className="text-xs text-gray-500 dark:text-gray-400">计划目标</div><div className="mt-0.5 text-lg font-semibold text-gray-600 dark:text-gray-300">{hasTarget ? `${(r.targetRatio * 100).toFixed(1)}%` : '—'}</div></div>
                 </div>
                 <div className="relative mt-2 h-2 rounded-full bg-gray-100 dark:bg-gray-700">
-                  <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${currentWidth}%`, backgroundColor: progressColor }} />
-                  {targetPosition !== null && <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-gray-800 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标位置" />}
+                  {rangeStart !== null && rangeEnd !== null && (
+                    <div className="absolute inset-y-0 rounded-full bg-emerald-200 dark:bg-emerald-500/40" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} aria-label={`合理区间 ${(allowedRange.lower * 100).toFixed(1)}% 至 ${(allowedRange.upper * 100).toFixed(1)}%`} />
+                  )}
+                  {targetPosition !== null && <div className="absolute -top-1 h-4 w-0.5 rounded-full bg-gray-800 dark:bg-white" style={{ left: `${targetPosition}%` }} aria-label="目标中心位置" />}
+                  <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm transition-all dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} aria-label={`当前配置 ${(r.currentRatio * 100).toFixed(1)}%`} />
                 </div>
+                {allowedRange && (
+                  <div className="mt-1.5 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
+                    <span>合理区间 {(allowedRange.lower * 100).toFixed(1)}%–{(allowedRange.upper * 100).toFixed(1)}%</span>
+                    <span>目标 {(r.targetRatio * 100).toFixed(1)}%</span>
+                  </div>
+                )}
                 <div className="mt-2 flex items-center justify-between gap-2 text-xs">
                   {isOver && <span className="rounded-md bg-red-50 px-2 py-1 font-semibold text-red-600 dark:bg-red-500/10 dark:text-red-400">建议减少 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}</span>}
                   {isUnder && <span className="rounded-md bg-green-50 px-2 py-1 font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-400">建议增加 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}</span>}

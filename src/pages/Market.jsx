@@ -1,19 +1,8 @@
-import { useState, useMemo, useCallback } from 'react'
-import { getApiJson } from '../utils/api.js'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useVisiblePolling } from '../hooks/useVisiblePolling.js'
-
-const CACHE_KEY = 'asset-monitor:market'
+import { MARKET_UPDATED_EVENT, readMarketData, refreshMarketData } from '../utils/quoteData.js'
 
 const GROUP_ORDER = ['汇率', '虚拟币', 'A股', '境外', '期货']
-
-function readMarketCache() {
-  try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null')
-    return Array.isArray(cached) ? cached : cached?.items || []
-  } catch {
-    return []
-  }
-}
 
 // 标的名 -> 图标映射
 function getNameIcon(name) {
@@ -58,18 +47,21 @@ function getNameIcon(name) {
 }
 
 export default function Market({ refreshKey = 0 }) {
-  const [data, setData] = useState(readMarketCache)
+  const [data, setData] = useState(readMarketData)
   const [loading, setLoading] = useState(!data.length)
 
   const loadMarket = useCallback(async ({ forceRefresh = false } = {}) => {
     try {
-      const res = await getApiJson('market', { auth: false, forceRefresh })
-      const marketData = res.market || []
-      setData(marketData)
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(marketData)) } catch { /* ignore */ }
+      await refreshMarketData({ forceRefresh })
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    const handleMarketUpdated = (event) => setData(event.detail || [])
+    window.addEventListener(MARKET_UPDATED_EVENT, handleMarketUpdated)
+    return () => window.removeEventListener(MARKET_UPDATED_EVENT, handleMarketUpdated)
   }, [])
 
   useVisiblePolling(loadMarket, { refreshKey })

@@ -1,8 +1,8 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
-import { getApiJson } from '../utils/api.js'
 import { useVisiblePolling } from '../hooks/useVisiblePolling.js'
+import { FUTURES_UPDATED_EVENT, readFuturesData, refreshFuturesData } from '../utils/quoteData.js'
 
 function getMultiplier(symbol) {
   if (!symbol) return 1
@@ -35,23 +35,16 @@ export default function Future({ refreshKey = 0 }) {
   }, 0)
   const aggregateUsageRate = sumMarketValue ? (totalUsageRate / sumMarketValue) * 100 : 0
 
-  const FUTURES_CACHE_KEY = 'asset-monitor:futures'
-
-  const [futuresData, setFuturesData] = useState(() => {
-    try {
-      const cached = localStorage.getItem(FUTURES_CACHE_KEY)
-      if (cached) return JSON.parse(cached)
-    } catch { /* ignore */ }
-    return null
-  })
+  const [futuresData, setFuturesData] = useState(readFuturesData)
 
   const loadQuotes = useCallback(async ({ forceRefresh = false } = {}) => {
-    const response = await getApiJson('futures', { auth: false, forceRefresh })
-    const data = response.futures || null
-    setFuturesData(data)
-    if (data) {
-      try { localStorage.setItem(FUTURES_CACHE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
-    }
+    await refreshFuturesData({ forceRefresh })
+  }, [])
+
+  useEffect(() => {
+    const handleFuturesUpdated = (event) => setFuturesData(event.detail || null)
+    window.addEventListener(FUTURES_UPDATED_EVENT, handleFuturesUpdated)
+    return () => window.removeEventListener(FUTURES_UPDATED_EVENT, handleFuturesUpdated)
   }, [])
 
   useVisiblePolling(loadQuotes, { refreshKey })

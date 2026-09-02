@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
@@ -12,11 +12,12 @@ import Login from './pages/Login.jsx'
 import { useAssetData } from './hooks/useAssetData.js'
 import { useAuth } from './hooks/useAuth.js'
 import Settings, { initTheme } from './pages/Settings.jsx'
+import { fetchTarget } from './utils/dataStore.js'
+import { refreshFuturesData, refreshMarketData } from './utils/quoteData.js'
+import { getPageRefreshPlan } from './utils/pageRefreshQueue.js'
 
 const HOLDINGS_PAGES = new Set(['/', '/holdings', '/target', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash'])
 const HISTORY_PAGES = new Set(['/', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto'])
-const ASSET_DETAIL_PAGES = new Set(['/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto'])
-
 export default function App() {
   const location = useLocation()
   const auth = useAuth()
@@ -31,28 +32,31 @@ export default function App() {
     autoRefreshHoldings: needsHoldings,
     autoRefreshHistory: needsHistory,
   })
-  const [pageRefreshKeys, setPageRefreshKeys] = useState({ target: 0, market: 0, future: 0 })
+  const refreshQueueRef = useRef(Promise.resolve())
 
-  const bumpPageRefresh = useCallback((page) => {
-    setPageRefreshKeys((current) => ({ ...current, [page]: current[page] + 1 }))
-  }, [])
+  const refreshSource = useCallback(async (sourceName) => {
+    try {
+      if (sourceName === 'holdings') return await refreshHoldings(true)
+      if (sourceName === 'history') return await refreshHistory(true)
+      if (sourceName === 'target') return await fetchTarget({ forceRefresh: true })
+      if (sourceName === 'market') return await refreshMarketData({ forceRefresh: true })
+      if (sourceName === 'futures') return await refreshFuturesData({ forceRefresh: true })
+    } catch {
+      return false
+    }
+    return false
+  }, [refreshHistory, refreshHoldings])
 
-  const refreshCurrentPage = useCallback(async () => {
-    const path = location.pathname
-    if (path === '/') {
-      await Promise.all([refreshHoldings(true), refreshHistory(true)])
-      return
+  const refreshCurrentPage = useCallback(() => {
+    const plan = getPageRefreshPlan(location.pathname)
+    const runQueue = async () => {
+      await Promise.all(plan.primary.map(refreshSource))
+      for (const sourceName of plan.queued) await refreshSource(sourceName)
     }
-    if (path === '/target') { bumpPageRefresh('target'); return }
-    if (path === '/market') { bumpPageRefresh('market'); return }
-    if (path === '/future') { bumpPageRefresh('future'); return }
-    if (path === '/settings' || path.startsWith('/settings/')) return
-    if (ASSET_DETAIL_PAGES.has(path)) {
-      await Promise.all([refreshHoldings(true), refreshHistory(true)])
-      return
-    }
-    if (HOLDINGS_PAGES.has(path)) await refreshHoldings(true)
-  }, [bumpPageRefresh, location.pathname, refreshHistory, refreshHoldings])
+    const request = refreshQueueRef.current.catch(() => {}).then(runQueue)
+    refreshQueueRef.current = request
+    return request
+  }, [location.pathname, refreshSource])
 
   const canRefreshCurrentPage = !(location.pathname === '/settings' || location.pathname.startsWith('/settings/'))
 
@@ -65,7 +69,7 @@ export default function App() {
       <Route element={isAuthenticated ? <Layout source={source} syncedAt={syncedAt} error={error} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
         <Route index element={<Home refreshKey={refreshKey} />} />
         <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
-        <Route path="target" element={<Target refreshKey={pageRefreshKeys.target} />} />
+        <Route path="target" element={<Target />} />
         <Route path="settings" element={<Settings auth={auth} />} />
         <Route path="settings/:section" element={<Settings auth={auth} />} />
         <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
@@ -74,8 +78,8 @@ export default function App() {
         <Route path="jp" element={<AssetDetail refreshKey={refreshKey} assetType="jp" />} />
         <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
         <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
-        <Route path="market" element={<Market refreshKey={pageRefreshKeys.market} />} />
-        <Route path="future" element={<Future refreshKey={pageRefreshKeys.future} />} />
+        <Route path="market" element={<Market />} />
+        <Route path="future" element={<Future refreshKey={refreshKey} />} />
         <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
         <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
         <Route path="*" element={<Home refreshKey={refreshKey} />} />
