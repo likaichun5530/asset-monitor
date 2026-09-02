@@ -351,8 +351,14 @@ html.dark body {
 
 @media (max-width: 639px) {
   .holdings-mobile-summary,
-  .holding-mobile-card {
+  .holding-mobile-list {
     box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.38);
+  }
+  .holding-mobile-row + .holding-mobile-row {
+    border-top: 1px solid #f1f5f9;
+  }
+  html.dark .holding-mobile-row + .holding-mobile-row {
+    border-top-color: #374151;
   }
   .settings-root-menu {
     display: flex;

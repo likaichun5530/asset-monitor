@@ -162,15 +162,11 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
           </div>
         </div>
 
-        <div className="mb-3 grid grid-cols-[1fr_auto] items-end rounded-xl border border-gray-100 bg-gray-50/80 px-3.5 py-3 dark:border-gray-700 dark:bg-gray-900/35 sm:hidden">
-          <div className="min-w-0">
-            <div className="text-[11px] text-gray-500 dark:text-gray-400">当前筛选市值</div>
-            <div className="font-num mt-1 truncate text-xl font-semibold leading-none tracking-[-0.025em] text-gray-900 dark:text-gray-100">{formatCurrency(sumMarketValue)}</div>
-          </div>
-          <div className="pl-4 text-right">
-            <div className="text-[11px] text-gray-500 dark:text-gray-400">占总资产</div>
-            <div className="font-num mt-1 text-base font-semibold leading-none text-brand-600 dark:text-brand-400">{filteredRatio.toFixed(1)}%</div>
-          </div>
+        <div className="mb-2.5 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:hidden">
+          <span>筛选市值</span>
+          <span className="font-num min-w-0 truncate text-[13px] text-gray-800 dark:text-gray-200">{formatCurrency(sumMarketValue)}</span>
+          <span className="text-gray-300 dark:text-gray-600">·</span>
+          <span className="font-num shrink-0 text-[13px] text-gray-600 dark:text-gray-300">{filteredRatio.toFixed(1)}%</span>
         </div>
 
         {success && <div className="mb-3 rounded-lg bg-green-50 dark:bg-green-500/10 px-3 py-2 text-sm text-green-600 dark:text-green-400">{success}</div>}
@@ -226,13 +222,20 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
         </div>
       </div>
 
-      {/* 手机端持仓卡片 */}
-      <section className="space-y-2 sm:hidden" aria-label="持仓列表">
+      {/* 手机端紧凑持仓清单 */}
+      <section className="holding-mobile-list card overflow-hidden p-0 sm:hidden" aria-label="持仓列表">
+        {rows.length > 0 && (
+          <div className="grid grid-cols-[minmax(0,1fr)_112px_48px] items-center border-b border-gray-100 bg-gray-50/75 px-3 py-1.5 text-[10px] text-gray-400 dark:border-gray-700 dark:bg-gray-900/30">
+            <span>持仓 / 账户</span>
+            <span className="text-right">人民币市值</span>
+            <span className="text-right">占比</span>
+          </div>
+        )}
         {rows.map((holding, index) => (
-          <MobileHoldingCard key={`${holding.symbol}-${index}`} holding={holding} canEdit={canEdit} onEdit={() => openEdit(holding)} />
+          <MobileHoldingRow key={`${holding.symbol}-${index}`} holding={holding} canEdit={canEdit} onEdit={() => openEdit(holding)} />
         ))}
         {rows.length === 0 && (
-          <div className="card flex flex-col items-center px-4 py-10 text-center">
+          <div className="flex flex-col items-center px-4 py-10 text-center">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 6h16M4 12h10M4 18h7" /></svg>
             </span>
@@ -335,55 +338,37 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
   )
 }
 
-function MobileHoldingCard({ holding, canEdit, onEdit }) {
+function MobileHoldingRow({ holding, canEdit, onEdit }) {
   const color = getColor(holding)
   const category = getCategory(holding)
   const quantity = holding.quantity === null || holding.quantity === undefined ? '—' : formatNumber(holding.quantity, holding.quantity < 1 ? 6 : 2)
   const price = holding.price === null || holding.price === undefined ? '—' : formatNumber(holding.price, holding.price < 1 ? 6 : 2)
-  const originalValue = holding.marketValue === null || holding.marketValue === undefined ? '—' : formatNumber(holding.marketValue, 2)
+  const symbol = holding.symbol === '-' ? marketLabels[holding.market] || holding.market : holding.symbol
 
   return (
-    <article className="holding-mobile-card card px-3.5 pb-3 pt-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-2.5">
-          <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-[3px]" style={{ backgroundColor: color }} />
-          <div className="min-w-0">
-            <h3 className="truncate text-[15px] font-semibold leading-5 text-gray-900 dark:text-gray-100">{holding.name}</h3>
-            <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] text-gray-400">
-              <span className="shrink-0">{category}</span>
-              <span aria-hidden="true">·</span>
-              <span className="truncate">{holding.symbol === '-' ? marketLabels[holding.market] || holding.market : holding.symbol}</span>
-            </div>
-          </div>
-        </div>
-        {canEdit && <button type="button" onClick={onEdit} className="-mr-1 rounded-lg px-2 py-1 text-xs font-medium text-brand-600 transition-colors active:bg-brand-50 dark:text-brand-400 dark:active:bg-brand-500/10">编辑</button>}
-      </div>
-
-      <div className="mt-3 flex items-end justify-between gap-3">
-        <div>
-          <div className="text-[11px] text-gray-400">人民币市值</div>
-          <div className="font-num mt-1 text-lg font-semibold leading-none tracking-[-0.02em] text-gray-900 dark:text-gray-100">{formatCurrency(holding.marketValueCNY)}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-[11px] text-gray-400">总资产占比</div>
-          <div className="font-num mt-1 text-sm font-medium leading-none text-gray-600 dark:text-gray-300">{holding.ratio.toFixed(2)}%</div>
-        </div>
-      </div>
-
-      <dl className="mt-3 grid grid-cols-3 divide-x divide-gray-100 rounded-lg bg-gray-50/80 py-2.5 text-center dark:divide-gray-700 dark:bg-gray-900/35">
-        <div className="min-w-0 px-1.5"><dt className="text-[10px] text-gray-400">数量</dt><dd className="font-num mt-1 truncate text-xs font-medium text-gray-700 dark:text-gray-200">{quantity}</dd></div>
-        <div className="min-w-0 px-1.5"><dt className="text-[10px] text-gray-400">单价</dt><dd className="font-num mt-1 truncate text-xs font-medium text-gray-700 dark:text-gray-200">{price}</dd></div>
-        <div className="min-w-0 px-1.5"><dt className="text-[10px] text-gray-400">原币市值</dt><dd className="font-num mt-1 truncate text-xs font-medium text-gray-700 dark:text-gray-200">{originalValue}</dd></div>
-      </dl>
-
-      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-gray-400">
-        <span className="truncate">{holding.account || '未设置账户'}</span>
-        <span aria-hidden="true">·</span>
-        <span className="shrink-0">{marketLabels[holding.market] || holding.market}</span>
-        <span aria-hidden="true">·</span>
-        <span className="shrink-0">{holding.currency}</span>
-      </div>
-    </article>
+    <button
+      type="button"
+      onClick={canEdit ? onEdit : undefined}
+      className={`holding-mobile-row grid w-full grid-cols-[minmax(0,1fr)_112px_48px] items-center gap-0 px-3 py-2.5 text-left ${canEdit ? 'active:bg-gray-50 dark:active:bg-gray-700/45' : 'cursor-default'}`}
+      aria-label={`${holding.name}，市值${formatCurrency(holding.marketValueCNY)}，占比${holding.ratio.toFixed(2)}%${canEdit ? '，点击编辑' : ''}`}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: color }} />
+        <span className="min-w-0">
+          <span className="block truncate text-[13px] font-medium leading-[18px] text-gray-900 dark:text-gray-100">{holding.name}</span>
+          <span className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] leading-4 text-gray-400">
+            <span className="max-w-[54px] truncate">{symbol}</span>
+            <span aria-hidden="true">·</span>
+            <span className="max-w-[58px] truncate">{holding.account || category}</span>
+          </span>
+        </span>
+      </span>
+      <span className="min-w-0 text-right">
+        <span className="font-num block truncate text-[13px] leading-[18px] text-gray-800 dark:text-gray-100">{formatCurrency(holding.marketValueCNY)}</span>
+        <span className="font-num mt-0.5 block truncate text-[10px] leading-4 text-gray-400">{holding.currency} · {quantity} × {price}</span>
+      </span>
+      <span className="font-num text-right text-xs text-gray-600 dark:text-gray-300">{holding.ratio.toFixed(1)}%</span>
+    </button>
   )
 }
 
