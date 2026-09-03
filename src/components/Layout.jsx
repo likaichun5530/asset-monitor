@@ -127,11 +127,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
     const ignoredGesture = document.body.dataset.sortableDragging === 'true'
       || document.body.dataset.modalOpen === 'true'
       || shouldIgnorePullRefresh(e.target)
-    if (!onRefresh || scrollY > 5 || window.innerWidth >= 640 || refreshingRef.current || ignoredGesture) {
+    if (!onRefresh || scrollY > 5 || window.innerWidth >= 640 || ignoredGesture) {
       touchStartY.current = null
       pullingRef.current = false
       return
     }
+    clearTimeout(sloganTimerRef.current)
     touchStartY.current = e.touches[0].clientY
     pullingRef.current = false
   }, [onRefresh])
@@ -143,7 +144,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       resetPull()
       return
     }
-    if (refreshingRef.current || window.innerWidth >= 640 || touchStartY.current === null || document.body.dataset.sortableDragging === 'true') return
+    if (window.innerWidth >= 640 || touchStartY.current === null || document.body.dataset.sortableDragging === 'true') return
     const scrollY = window.scrollY || document.documentElement.scrollTop
     if (scrollY > 5) return
     const deltaY = e.touches[0].clientY - touchStartY.current
@@ -155,7 +156,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   }, [resetPull])
 
   const handleTouchEnd = useCallback(async () => {
-    if (refreshingRef.current || window.innerWidth >= 640 || touchStartY.current === null || !pullingRef.current) {
+    if (window.innerWidth >= 640 || touchStartY.current === null || !pullingRef.current) {
       touchStartY.current = null
       pullingRef.current = false
       return
@@ -165,13 +166,17 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
     const match = (contentRef.current?.style?.transform || '').match(/translateY\(([\d.]+)px\)/)
     const dist = match ? parseFloat(match[1]) : 0
     if (dist < THRESHOLD) { resetPull(); return }
-    refreshingRef.current = true; setIsRefreshing(true)
     clearTimeout(sloganTimerRef.current)
-    sloganTimerRef.current = setTimeout(async () => {
-      if (contentRef.current) { contentRef.current.style.transition = 'transform 0.3s ease-out'; contentRef.current.style.transform = 'translateY(0px)' }
-      await new Promise((r) => setTimeout(r, 450))
-      try { await onRefresh() } finally { refreshingRef.current = false; setIsRefreshing(false) }
-    }, 1000)
+    sloganTimerRef.current = setTimeout(resetPull, 450)
+
+    // 数据仍在更新时也保留下拉手势和回弹反馈，但不重复创建刷新队列。
+    if (refreshingRef.current) return
+    refreshingRef.current = true
+    setIsRefreshing(true)
+    try { await onRefresh() } finally {
+      refreshingRef.current = false
+      setIsRefreshing(false)
+    }
   }, [onRefresh, resetPull])
 
   const handleTouchCancel = useCallback(() => {
