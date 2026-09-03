@@ -115,6 +115,8 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   const accountCashName = isAccountCash ? getMarketCashName(form.category) : ''
   const isAmount = form.category === '现金' || isAccountCash || (form.category === '债基' && form.holdingForm === 'amount')
   const isFuture = form.category === '期货'
+  const allowsCashFormula = form.category === '现金' || isAccountCash
+  const marketValueIsFormula = (isFuture || allowsCashFormula) && String(form.marketValueInput).trim().startsWith('=')
   const isTracked = Boolean(form.category) && !isAmount && !isFuture
   const portfolioMarket = STOCK_MARKETS[form.category]
   const fixedMarket = portfolioMarket || ''
@@ -331,8 +333,8 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
                 )}
 
                 {(isAmount || isFuture) && (
-                  <Field label="原币市值" required hint={isFuture ? '可填写数字或以 = 开头的公式' : ''}>
-                    <input value={form.marketValueInput} inputMode={isFuture ? 'text' : 'decimal'} onChange={(e) => setField('marketValueInput', e.target.value)} className="input-style" placeholder={isFuture ? '=价格*数量*乘数' : ''} required />
+                  <Field label="原币市值" required hint={isFuture || allowsCashFormula ? '可填写数字或以 = 开头的公式' : ''}>
+                    <input value={form.marketValueInput} inputMode={isFuture || allowsCashFormula ? 'text' : 'decimal'} onChange={(e) => setField('marketValueInput', e.target.value)} className="input-style" placeholder={isFuture ? '=价格*数量*乘数' : allowsCashFormula ? '=金额1+金额2' : ''} required />
                   </Field>
                 )}
               </div>
@@ -344,7 +346,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
                 <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">自动计算预览</div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <Preview label="单价" value={isAmount ? '—' : marketItem ? formatNumber(marketItem.price, 6) : isFuture ? '保存后计算' : '待匹配'} />
-                  <Preview label="原币市值" value={preview.original === null ? (isFuture && String(form.marketValueInput).trim().startsWith('=') ? '保存后计算' : '—') : formatNumber(preview.original, 2)} />
+                  <Preview label="原币市值" value={preview.original === null ? (marketValueIsFormula ? '保存后计算' : '—') : formatNumber(preview.original, 2)} />
                   <Preview label="人民币市值" value={preview.cny === null ? '保存后计算' : formatCurrency(preview.cny)} />
                   <Preview label="预计占比" value={preview.ratio === null ? '保存后计算' : `${preview.ratio.toFixed(2)}%`} />
                 </div>

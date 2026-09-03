@@ -142,8 +142,9 @@ export function parseInput(body, rows) {
   }
   const symbol = valuationMode === 'amount' ? '-' : cleanText(body.symbol, '代码', { max: 40 }).toUpperCase()
   const quantity = valuationMode === 'amount' ? '' : positiveNumber(body.quantity, '数量')
+  const allowsAmountFormula = isCash || (valuationMode === 'amount' && config.assetType === 'Stock')
   const originalValue = valuationMode === 'amount'
-    ? parseMarketValueInput(body.marketValueInput, false)
+    ? parseMarketValueInput(body.marketValueInput, allowsAmountFormula)
     : valuationMode === 'formula'
       ? parseMarketValueInput(body.marketValueInput, true)
       : null

@@ -62,6 +62,30 @@ test('现金只写入原币市值并自动生成人民币市值公式', () => {
   assert.match(row[9], /I9/)
 })
 
+test('独立现金和证券账户现金允许使用安全公式填写原币市值', () => {
+  const independentCash = parseInput({
+    category: '现金', valuationMode: 'amount', name: '人民币现金', market: 'CN', account: '银行',
+    currency: 'CNY', marketValueInput: '=1000+250',
+  }, market)
+  assert.equal(independentCash.originalValue, '=1000+250')
+  assert.equal(buildRow(headers, 12, independentCash)[8], '=1000+250')
+
+  const accountCash = parseInput({
+    category: 'A股', valuationMode: 'amount', name: '人民币现金', market: 'CN', account: '证券账户',
+    currency: 'CNY', marketValueInput: '=3000+500',
+  }, market)
+  assert.equal(accountCash.originalValue, '=3000+500')
+  assert.equal(buildRow(headers, 13, accountCash)[8], '=3000+500')
+
+  assert.throws(
+    () => parseInput({
+      category: '现金', valuationMode: 'amount', name: '人民币现金', market: 'CN', account: '银行',
+      currency: 'CNY', marketValueInput: '=IMPORTRANGE("x","A1")',
+    }, market),
+    /不能调用外部数据/,
+  )
+})
+
 test('证券账户现金保持 Stock 归属，但按金额估值', () => {
   const input = parseInput({
     category: '美股', valuationMode: 'amount', name: '美元现金',
