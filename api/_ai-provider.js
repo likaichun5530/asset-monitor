@@ -67,9 +67,12 @@ export async function createAiStream(selection, context, messages, rules, { mode
 
 export function extractAiStreamEvent(provider, event, streamFormat = 'chat') {
   if (streamFormat === 'responses') {
+    const incompleteReason = String(event?.response?.incomplete_details?.reason || '').trim().toLowerCase()
     return {
       content: event?.type === 'response.output_text.delta' ? String(event.delta || '') : '',
-      finishReason: event?.type === 'response.incomplete' ? 'MAX_TOKENS' : event?.type === 'response.completed' ? 'STOP' : null,
+      finishReason: event?.type === 'response.incomplete'
+        ? incompleteReason === 'max_output_tokens' ? 'MAX_TOKENS' : incompleteReason === 'content_filter' ? 'CONTENT_FILTER' : 'INCOMPLETE'
+        : event?.type === 'response.completed' ? 'STOP' : null,
     }
   }
   if (provider === 'gemini') {

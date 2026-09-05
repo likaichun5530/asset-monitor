@@ -16,8 +16,10 @@ test('首页编辑模式使用整张卡片拖动并移除手柄', () => {
 })
 
 test('桌面首页使用完整货币圆环和简洁总资产卡片', () => {
-  assert.match(overviewSource, /2 \* Math\.PI \* 46/)
+  assert.match(overviewSource, /function ringSegmentPath/)
+  assert.match(overviewSource, /ringSegmentPath\(segment\.startAngle, segment\.endAngle\)/)
   assert.match(overviewSource, /<circle cx="64" cy="64" r="46"/)
+  assert.doesNotMatch(overviewSource, /strokeDasharray/)
   assert.doesNotMatch(overviewSource, /halfRing|M 14 60 A 50 50/)
   assert.doesNotMatch(styleSource, /border-top: 3px solid #2563eb/)
   assert.doesNotMatch(heroSource, /bg-brand-500.*总资产/)

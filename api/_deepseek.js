@@ -1,6 +1,7 @@
 import { DEFAULT_AI_RULES } from './_ai-rules.js'
 
 const REQUEST_TIMEOUTS = [18000, 30000]
+export const DEFAULT_DEEPSEEK_MAX_OUTPUT_TOKENS = 8192
 
 export function normalizeAiMessages(messages = []) {
   return (Array.isArray(messages) ? messages : [])
@@ -25,7 +26,8 @@ export function buildDeepSeekSearchRequest(context, messages, rules = DEFAULT_AI
     input: normalizeAiMessages(messages),
     tools: [{ type: 'web_search' }],
     tool_choice: 'auto',
-    max_output_tokens: 1200,
+    reasoning: { effort: 'none' },
+    max_output_tokens: DEFAULT_DEEPSEEK_MAX_OUTPUT_TOKENS,
     stream: true,
   }
 }
@@ -84,7 +86,7 @@ export async function createDeepSeekStream(context, messages, rules = DEFAULT_AI
       model,
       messages: buildDeepSeekMessages(context, messages, rules),
       temperature: 0.2,
-      max_tokens: 1200,
+      max_tokens: DEFAULT_DEEPSEEK_MAX_OUTPUT_TOKENS,
       thinking: { type: 'disabled' },
       stream: true,
     }),

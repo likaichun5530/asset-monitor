@@ -4,6 +4,26 @@ import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 
+function polarPoint(radius, angle) {
+  const radians = (angle * Math.PI) / 180
+  return { x: 64 + radius * Math.cos(radians), y: 64 + radius * Math.sin(radians) }
+}
+
+function ringSegmentPath(startAngle, endAngle) {
+  const outerStart = polarPoint(57, startAngle)
+  const outerEnd = polarPoint(57, endAngle)
+  const innerEnd = polarPoint(35, endAngle)
+  const innerStart = polarPoint(35, startAngle)
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0
+  return [
+    `M ${outerStart.x} ${outerStart.y}`,
+    `A 57 57 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
+    `L ${innerEnd.x} ${innerEnd.y}`,
+    `A 35 35 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}`,
+    'Z',
+  ].join(' ')
+}
+
 export function StatMini({ label, change, changePct, valuesHidden = false }) {
   const isUp = Number(change) > 0
   const isDown = Number(change) < 0
@@ -56,26 +76,25 @@ export function CurrencyCard({ refreshKey = 0 }) {
   }, [holdings])
 
   const ring = useMemo(() => {
-    const circumference = 2 * Math.PI * 46
-    let offset = 0
+    let angle = -90
     const segments = pieData.map((item) => {
-      const segment = { color: item.color, len: (item.ratio / 100) * circumference, offset }
-      offset += segment.len
+      const span = (item.ratio / 100) * 360
+      const segment = { color: item.color, startAngle: angle, endAngle: angle + span }
+      angle += span
       return segment
     })
-    return { segments, totalLen: offset || circumference }
+    return segments
   }, [pieData])
 
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
       <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        <svg viewBox="0 0 128 128" className="h-24 w-24 shrink-0 -rotate-90">
+        <svg viewBox="0 0 128 128" className="h-24 w-24 shrink-0">
           <circle cx="64" cy="64" r="46" fill="none" strokeWidth="22" className="stroke-gray-200 dark:stroke-gray-700" />
-          {ring.segments.map((segment, index) => (
-            <circle key={index} cx="64" cy="64" r="46" fill="none" stroke={segment.color} strokeWidth="22"
-              strokeDasharray={`${segment.len} ${ring.totalLen - segment.len}`} strokeDashoffset={-segment.offset} />
-          ))}
+          {ring.length === 1
+            ? <circle cx="64" cy="64" r="46" fill="none" stroke={ring[0].color} strokeWidth="22" />
+            : ring.map((segment, index) => <path key={index} d={ringSegmentPath(segment.startAngle, segment.endAngle)} fill={segment.color} />)}
         </svg>
         <div className="-mx-2 grid w-[calc(100%+16px)] shrink-0 grid-cols-[max-content_max-content] justify-center gap-x-4 gap-y-0 leading-[14px]">
           {pieData.map((item) => (

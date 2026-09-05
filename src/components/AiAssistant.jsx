@@ -462,8 +462,8 @@ export default function AiAssistant({ auth } = {}) {
             onPointerUp={handleButtonPointerEnd}
             onPointerCancel={handleButtonPointerEnd}
             className={`flex h-11 w-11 touch-none select-none items-center justify-center rounded-xl bg-transparent drop-shadow-[0_5px_7px_rgba(79,70,229,0.28)] outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-brand-400 ${showDismissButton ? 'scale-105' : ''}`}
-            title="有数资产管理助手"
-            aria-label="打开有数资产管理助手"
+            title="有数助手"
+            aria-label="打开有数助手"
           >
             <RobotIcon className="h-11 w-11" />
           </button>
@@ -481,13 +481,13 @@ export default function AiAssistant({ auth } = {}) {
 
       {open && (
         <>
-          <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭AI资产助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="有数资产管理助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
+          <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭有数助手" onClick={close} />
+          <section role="dialog" aria-modal="true" aria-label="有数助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">有数资产管理助手</div>
+                  <div className="text-base font-semibold text-gray-900 dark:text-gray-100">有数助手</div>
                   <div className="text-[10px] text-gray-400">{actualModel ? `${actualModel}${dataAsOf ? ` · 数据截至 ${dataAsOf}` : ''}` : '发送问题时读取最新资产数据'}</div>
                 </div>
               </div>

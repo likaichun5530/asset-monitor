@@ -3,9 +3,9 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { buildAiContextFromSheets, compactAiHistory } from '../api/_ai-context.js'
 import { DEFAULT_AI_RULES, MAX_AI_RULES_LENGTH, normalizeAiRules } from '../api/_ai-rules.js'
-import { buildDeepSeekMessages, buildDeepSeekSearchRequest, createDeepSeekStream, normalizeAiMessages } from '../api/_deepseek.js'
+import { buildDeepSeekMessages, buildDeepSeekSearchRequest, createDeepSeekStream, DEFAULT_DEEPSEEK_MAX_OUTPUT_TOKENS, normalizeAiMessages } from '../api/_deepseek.js'
 import { buildGeminiRequest, createGeminiStream, DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, extractGeminiText, getGeminiFinishReason, getGeminiMaxOutputTokens, getGeminiThinkingLevel } from '../api/_gemini.js'
-import { AI_MODELS, createAiStream, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
+import { AI_MODELS, createAiStream, extractAiStreamEvent, extractAiStreamText, normalizeAiProvider, resolveAiModel } from '../api/_ai-provider.js'
 import { createSseDataParser } from '../api/_ai-stream.js'
 import { DEFAULT_AI_MODELS, normalizeAiModels, readAiModels, writeAiModels } from '../api/_ai-models.js'
 import { clearAiDataCache, invalidateAiDataCache, readCachedAiData } from '../api/_ai-data-cache.js'
@@ -90,7 +90,7 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /setTimeout\(\(\) =>/)
   assert.match(source, /setShowDismissButton\(true\)/)
   assert.match(source, /setAiEnabled\(false\)/)
-  assert.match(source, /有数资产管理助手/)
+  assert.match(source, /有数助手/)
   assert.match(source, /useLayoutEffect/)
   assert.match(source, /element\.scrollTop = element\.scrollHeight/)
   const modelChangeHandler = source.slice(source.indexOf('const handleModelChange'), source.indexOf('const handleWebSearchToggle'))
@@ -142,6 +142,15 @@ test('DeepSeek连接异常会自动重试，并区分供应商业务错误', asy
     if (originalModel === undefined) delete process.env.DEEPSEEK_MODEL
     else process.env.DEEPSEEK_MODEL = originalModel
   }
+})
+
+test('DeepSeek 联网回答为可见内容预留足够额度并关闭默认思考', () => {
+  const request = buildDeepSeekSearchRequest({}, [{ role: 'user', content: '联网分析' }], undefined, 'deepseek-v4-pro')
+  assert.equal(request.max_output_tokens, DEFAULT_DEEPSEEK_MAX_OUTPUT_TOKENS)
+  assert.equal(request.max_output_tokens, 8192)
+  assert.deepEqual(request.reasoning, { effort: 'none' })
+  assert.equal(extractAiStreamEvent('deepseek', { type: 'response.incomplete', response: { incomplete_details: { reason: 'max_output_tokens' } } }, 'responses').finishReason, 'MAX_TOKENS')
+  assert.equal(extractAiStreamEvent('deepseek', { type: 'response.incomplete', response: { incomplete_details: { reason: 'content_filter' } } }, 'responses').finishReason, 'CONTENT_FILTER')
 })
 
 test('Gemini 使用官方流式接口格式，并保持资产数据为只读系统上下文', async () => {
