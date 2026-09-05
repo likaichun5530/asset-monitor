@@ -10,6 +10,7 @@ const GET_CACHE_TTL_MS = Object.freeze({
   market: 20_000,
   futures: 20_000,
   target: 15_000,
+  subscriptions: 5 * 60 * 1000,
 })
 
 const MUTATION_INVALIDATIONS = Object.freeze({

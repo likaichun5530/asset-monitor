@@ -5,6 +5,7 @@ import AllocationChart from '../components/AllocationChart.jsx'
 import HoldingsOverview from '../components/HoldingsOverview.jsx'
 import CalendarHeatmap from '../components/CalendarHeatmap.jsx'
 import HomeAssetHero from '../components/HomeAssetHero.jsx'
+import SubscriptionTicker from '../components/SubscriptionTicker.jsx'
 import { CurrencyCard, HealthCard, StatMini } from '../components/HomeOverviewCards.jsx'
 import {
   currentTotal, change7d, change30d, changeYtd, drawdownFromPeak,
@@ -277,6 +278,8 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
         onToggleValuesHidden={togglePrivacyMode}
         onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
       />
+
+      <SubscriptionTicker refreshKey={refreshKey} />
 
       <div ref={sortRef} className="home-card-grid -mx-1 flex flex-wrap items-stretch">
         {visibleItems.map((key) => {

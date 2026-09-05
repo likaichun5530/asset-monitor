@@ -17,6 +17,7 @@ const routes = [
   ['/api/market', '../api/market.js'],
   ['/api/snapshot', '../api/snapshot.js'],
   ['/api/snapshot-auto', '../api/snapshot-auto.js'],
+  ['/api/subscriptions', '../api/subscriptions.js'],
   ['/api/target', '../api/target.js'],
 ]
 
