@@ -41,7 +41,6 @@ export default function AllocationChart({ refreshKey = 0 }) {
     <div className="card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-gray-800">资产配置</h3>
-        <span className="text-xs text-gray-400">按类别</span>
       </div>
       <div className="space-y-1">
         {data.map((item) => {
