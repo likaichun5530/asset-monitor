@@ -105,6 +105,7 @@ export default function Target({ refreshKey = 0 }) {
   const underWeight = rows.filter((r) => getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'under')
   const noTarget = rows.filter((r) => r.targetRatio === null)
   const normalWeight = rows.length - overWeight.length - underWeight.length - noTarget.length
+  const attentionCategories = [...overWeight, ...underWeight, ...noTarget].map((r) => r.category)
   const attentionCount = overWeight.length + underWeight.length + noTarget.length
   const adjustmentAmount = (row) => Math.abs(getTargetAdjustmentAmount(
     Number(row.marketValue),
@@ -158,14 +159,13 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </section>
 
-      <section className="target-mobile-summary card overflow-hidden px-4 pb-3 pt-4 sm:hidden">
+      <section className="target-mobile-summary card overflow-hidden px-4 pb-3 pt-4 sm:hidden" aria-label="实际配置与计划目标的差距">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-xs font-medium text-gray-500 dark:text-gray-400">配置状态</div>
             <div className="mt-1 text-xl font-semibold tracking-[-0.025em] text-gray-900 dark:text-gray-100">
-              {attentionCount > 0 ? `${attentionCount} 项需要关注` : '当前配置合理'}
+              {attentionCount > 0 ? `${attentionCategories.join('、')}需要关注` : '当前配置合理'}
             </div>
-            <div className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">实际配置与计划目标的差距</div>
           </div>
           <div className={`flex h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-xl border ${attentionCount > 0 ? 'border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400' : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400'}`}>
             <span className="font-num text-lg font-semibold leading-none">{attentionCount}</span>
@@ -394,7 +394,7 @@ export default function Target({ refreshKey = 0 }) {
                       </div>
                       <div>
                         <div className="text-[10px] text-gray-400">偏差</div>
-                        <div className={`font-num mt-0.5 text-sm font-medium ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-600 dark:text-gray-300'}`}>{`${diffPct > 0 ? '+' : ''}${diffPct.toFixed(1)}pp`}</div>
+                        <div className={`font-num mt-0.5 text-sm font-medium ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-600 dark:text-gray-300'}`}>{`${diffPct > 0 ? '+' : ''}${diffPct.toFixed(1)}%`}</div>
                       </div>
                     </div>
                   </div>
@@ -404,8 +404,8 @@ export default function Target({ refreshKey = 0 }) {
 
                 <div className={`mt-3 flex min-h-10 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isOver ? 'border-red-100 bg-red-50/70 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400' : isUnder ? 'border-green-100 bg-green-50/70 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400' : hasTarget ? 'border-gray-100 bg-gray-50/70 text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-300' : 'border-amber-100 bg-amber-50/60 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
                   <span className="font-medium">
-                    {isOver && <>建议减少 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}<span className="ml-1 font-normal opacity-70">· 超出 {driftAmount.toFixed(1)}%</span></>}
-                    {isUnder && <>建议增加 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}<span className="ml-1 font-normal opacity-70">· 低于 {driftAmount.toFixed(1)}%</span></>}
+                    {isOver && <>超出 {driftAmount.toFixed(1)}%<span className="ml-1 font-normal opacity-70">· 建议减少 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}</span></>}
+                    {isUnder && <>低于 {driftAmount.toFixed(1)}%<span className="ml-1 font-normal opacity-70">· 建议增加 {formatCurrency(adjustmentAmount(r), { decimals: 0 })}</span></>}
                     {hasTarget && !isOver && !isUnder && '当前配置在合理区间内，无需调整'}
                     {!hasTarget && '请先设置计划目标比例'}
                   </span>
@@ -420,7 +420,7 @@ export default function Target({ refreshKey = 0 }) {
         <div className="target-reminder mt-3 border-t border-gray-100 pt-3 text-sm text-gray-400 dark:border-gray-700 sm:mt-0 sm:bg-slate-50/60 sm:px-6 sm:py-4 dark:sm:bg-gray-900/30">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400" aria-hidden="true">i</span>
-            <div><span className="font-medium text-gray-600 dark:text-gray-300">范围说明</span><p className="mt-0.5 text-xs leading-5 text-gray-400">目标比例 ±40% 与 ±2 个百分点取更严格的范围。三段尺固定表示低于、合理、超出，具体范围以卡片数值为准。</p></div>
+            <div><span className="font-medium text-gray-600 dark:text-gray-300">范围说明</span><p className="mt-0.5 text-xs leading-5 text-gray-400">目标比例 ±40% 与 ±2 个百分点取更严格的范围。</p></div>
           </div>
         </div>
       </div>
