@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { getShanghaiDate, normalizeSubscription } from '../api/_subscription-data.js'
+import { fetchTodaySubscriptions, getShanghaiDate, normalizeSubscription } from '../api/_subscription-data.js'
 
 test('申购日历按上海时区判断当天', () => {
   assert.equal(getShanghaiDate(new Date('2026-09-04T16:30:00.000Z')), '2026-09-05')
@@ -42,6 +42,18 @@ test('新债使用网上申购代码并保持统一结构', () => {
     maxApply: null,
     market: 'CNSESH',
   })
+})
+
+test('无申购日的数据源空结果是正常空列表而不是接口故障', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => ({ version: null, result: null, success: false, message: '返回数据为空', code: 9201 }),
+  })
+  const result = await fetchTodaySubscriptions({
+    now: new Date('2026-09-05T04:00:00.000Z'),
+    fetchImpl,
+  })
+  assert.deepEqual(result, { date: '2026-09-05', items: [], partial: false })
 })
 
 test('首页提醒位于总资产卡片之后且当天无数据时组件不占位', async () => {

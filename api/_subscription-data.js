@@ -91,6 +91,8 @@ async function fetchReport(report, date, fetchImpl) {
   })
   if (!response.ok) throw new Error(`申购日历读取失败: ${response.status}`)
   const payload = await response.json()
+  // 东方财富在正常的“当天没有申购项目”场景下返回 code=9201，而不是空 data。
+  if (payload?.code === 9201 && payload?.result === null) return []
   if (!payload?.success || !payload?.result) throw new Error('申购日历返回异常')
   return (payload.result.data || [])
     .map((row) => normalizeSubscription(row, report.type))
