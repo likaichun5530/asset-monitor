@@ -43,7 +43,10 @@ function readAuthToken() {
 }
 
 function resourceName(endpoint) {
-  return String(endpoint).replace(/^\//, '').split(/[?#]/, 1)[0]
+  const normalized = String(endpoint).replace(/^\//, '')
+  const [path, query = ''] = normalized.split('?', 2)
+  if (path === 'market' && new URLSearchParams(query).get('view') === 'subscriptions') return 'subscriptions'
+  return path.split('#', 1)[0]
 }
 
 function deleteMatchingEntries(predicate) {

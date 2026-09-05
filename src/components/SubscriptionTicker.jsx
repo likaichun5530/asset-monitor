@@ -28,7 +28,7 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
     let active = true
     const forceRefresh = mountedRef.current
     mountedRef.current = true
-    getApiJson('subscriptions', {
+    getApiJson('market?view=subscriptions', {
       auth: false,
       cacheTtlMs: SUBSCRIPTION_CACHE_MS,
       forceRefresh,
