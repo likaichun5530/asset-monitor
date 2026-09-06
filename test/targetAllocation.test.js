@@ -22,7 +22,9 @@ test('目标合理区间同时满足绝对偏差和相对偏差限制', () => {
 })
 
 test('手机目标页同时表达实际配置、计划目标和调整方向', async () => {
-  const source = await readFile(new URL('../src/pages/Target.jsx', import.meta.url), 'utf8')
+  const page = await readFile(new URL('../src/pages/Target.jsx', import.meta.url), 'utf8')
+  const scale = await readFile(new URL('../src/components/TargetAllocationScale.jsx', import.meta.url), 'utf8')
+  const source = `${page}\n${scale}`
 
   assert.match(source, /实际配置与计划目标的差距/)
   assert.match(source, /当前配置/)

@@ -1,9 +1,8 @@
-import { getTargetAllocationStatus, getTargetAllowedRange, getTargetTrackPositions } from '../utils/targetAllocation.js'
+import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
+import { formatCurrency, formatWan } from '../utils/format.js'
 import AppDialog from './AppDialog.jsx'
-
-function percent(value, digits = 1) {
-  return Number.isFinite(Number(value)) ? `${(Number(value) * 100).toFixed(digits)}%` : '未设置'
-}
+import TargetAllocationScale from './TargetAllocationScale.jsx'
+import TargetEditButton from './TargetEditButton.jsx'
 
 function statusPresentation(currentRatio, targetRatio) {
   const { status } = getTargetAllocationStatus(currentRatio, targetRatio)
@@ -13,7 +12,7 @@ function statusPresentation(currentRatio, targetRatio) {
   return { label: '未设目标', className: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' }
 }
 
-export default function TargetDetailDialog({ open, row, detail, onClose, onEdit }) {
+export default function TargetDetailDialog({ open, row, detail, onClose, onEdit, editDisabled = false }) {
   if (!row) return null
   const allocation = detail?.allocation || null
   const detailItems = allocation?.items || []
@@ -51,26 +50,30 @@ export default function TargetDetailDialog({ open, row, detail, onClose, onEdit 
           <section>
             <div className="mb-2 flex items-end justify-between gap-3 px-0.5">
               <div><h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{row.category}内部配置</h4><p className="mt-0.5 text-xs text-gray-400">当前比例按该类资产内部市值计算</p></div>
-              <button type="button" onClick={onEdit} className="h-8 shrink-0 rounded-lg border border-brand-200 bg-brand-50 px-3 text-xs font-medium text-brand-600 transition-transform active:scale-95 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400">调整细分目标</button>
+              <TargetEditButton onClick={onEdit} disabled={editDisabled}>调整目标</TargetEditButton>
             </div>
-            <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
-              {detailItems.map((item, index) => {
+            <div className="space-y-2">
+              {detailItems.map((item) => {
                 const itemStatus = statusPresentation(item.currentRatio, item.targetRatio)
-                const itemRange = item.targetRatio !== null ? getTargetAllowedRange(item.targetRatio) : null
-                const track = getTargetTrackPositions(item.currentRatio, item.targetRatio, itemRange, 18)
-                const trackColor = itemStatus.label === '超出范围' ? '#ef4444' : itemStatus.label === '低于范围' ? '#10b981' : '#3b82f6'
+                const status = getTargetAllocationStatus(item.currentRatio, item.targetRatio).status
+                const hasTarget = item.targetRatio !== null && item.targetRatio !== undefined
+                const driftAmount = hasTarget ? Math.abs(item.diff * 100) : null
+                const adjustmentAmount = hasTarget ? Math.abs(allocation.marketValue * item.targetRatio - item.marketValue) : null
                 return (
-                  <div key={item.name} className={`px-3.5 py-3 ${index ? 'border-t border-gray-100 dark:border-gray-700' : ''}`}>
-                    <div className="flex items-center justify-between gap-3"><div className="min-w-0"><div className="truncate text-sm font-medium text-gray-800 dark:text-gray-100">{item.name}</div><div className={`mt-0.5 flex items-center gap-1 text-[11px] ${itemStatus.className}`}><span className={`h-1.5 w-1.5 rounded-full ${itemStatus.dot}`} />{itemStatus.label}</div></div>{item.targetRatio !== null && <span className="font-num shrink-0 text-sm font-medium text-gray-600 dark:text-gray-300">目标 {percent(item.targetRatio)}</span>}</div>
-                    {track ? (
-                      <div className="mt-2.5 px-0.5">
-                        <div className="relative h-[68px]" aria-label={`${item.name}偏离目标范围尺：当前 ${percent(item.currentRatio)}，目标 ${percent(item.targetRatio)}`}>
-                          <span className="absolute left-0 top-0 text-[10px] font-medium text-gray-400">低配</span><span className="absolute left-1/2 top-0 -translate-x-1/2 text-[10px] font-semibold text-gray-700 dark:text-gray-200">目标</span><span className="absolute right-0 top-0 text-[10px] font-medium text-gray-400">超配</span>
-                          <div className="absolute inset-x-0 top-[30px] h-px bg-gray-300 dark:bg-gray-600" /><div className="absolute top-[23px] h-[15px] rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-100/70 dark:bg-emerald-500/10 dark:ring-emerald-400/10" style={{ left: `${track.rangeStart}%`, width: `${track.rangeEnd - track.rangeStart}%` }} /><div className="absolute top-[17px] h-7 w-px -translate-x-1/2 bg-gray-800 dark:bg-gray-100" style={{ left: `${track.targetPosition}%` }} /><div className="absolute top-[30px] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-sm dark:border-gray-800" style={{ left: `${track.currentPosition}%`, backgroundColor: trackColor }} /><span className="absolute top-[44px] -translate-x-1/2 whitespace-nowrap text-[9px] font-medium" style={{ left: `${Math.min(96, Math.max(4, track.currentPosition))}%`, color: trackColor }}>当前</span>
-                        </div>
-                        <div className="grid grid-cols-3 border-t border-gray-100 pt-2 text-center dark:border-gray-700/80"><div><div className="text-[10px] text-gray-400">当前</div><div className={`font-num mt-0.5 text-sm font-medium ${itemStatus.className}`}>{percent(item.currentRatio)}</div></div><div><div className="text-[10px] text-gray-400">目标</div><div className="font-num mt-0.5 text-sm font-medium text-gray-700 dark:text-gray-200">{percent(item.targetRatio)}</div></div><div><div className="text-[10px] text-gray-400">偏差</div><div className={`font-num mt-0.5 text-sm font-medium ${itemStatus.className}`}>{`${item.diff > 0 ? '+' : ''}${(item.diff * 100).toFixed(1)}%`}</div></div></div>
-                      </div>
-                    ) : <div className="mt-2 rounded-lg bg-gray-50 px-2 py-2 text-center text-xs text-gray-400 dark:bg-gray-700/35">当前占该类资产 {percent(item.currentRatio)}，尚未设置细分目标</div>}
+                  <div key={item.name} className="target-allocation-card rounded-xl border border-gray-100 bg-white px-3.5 pb-3 pt-3.5 dark:border-gray-700 dark:bg-gray-800">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0"><div className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</div><div className="mt-0.5 text-[11px] text-gray-400">当前金额 {formatWan(item.marketValue)}</div></div>
+                      <span className={`inline-flex shrink-0 items-center gap-1.5 pt-0.5 text-xs font-medium ${itemStatus.className}`}><span className={`h-1.5 w-1.5 rounded-full ${itemStatus.dot}`} />{itemStatus.label}</span>
+                    </div>
+                    <TargetAllocationScale currentRatio={item.currentRatio} targetRatio={item.targetRatio} diff={item.diff} status={status} label={item.name} />
+                    <div className={`mt-3 flex min-h-10 items-center rounded-lg border px-3 py-2 text-xs ${status === 'over' ? 'border-red-100 bg-red-50/70 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400' : status === 'under' ? 'border-green-100 bg-green-50/70 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400' : hasTarget ? 'border-gray-100 bg-gray-50/70 text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-300' : 'border-amber-100 bg-amber-50/60 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
+                      <span className="font-medium">
+                        {status === 'over' && <>超出 {driftAmount.toFixed(1)}%<span className="ml-1 font-normal opacity-70">· 建议减少 {formatCurrency(adjustmentAmount, { decimals: 0 })}</span></>}
+                        {status === 'under' && <>低于 {driftAmount.toFixed(1)}%<span className="ml-1 font-normal opacity-70">· 建议增加 {formatCurrency(adjustmentAmount, { decimals: 0 })}</span></>}
+                        {hasTarget && status !== 'over' && status !== 'under' && '当前配置在合理区间内，无需调整'}
+                        {!hasTarget && '请先设置计划目标比例'}
+                      </span>
+                    </div>
                   </div>
                 )
               })}
@@ -78,7 +81,7 @@ export default function TargetDetailDialog({ open, row, detail, onClose, onEdit 
           </section>
         ) : (
           <section className="rounded-xl border border-gray-100 p-3.5 dark:border-gray-700">
-            <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">配置思路</h4><button type="button" onClick={onEdit} className="h-8 rounded-lg border border-brand-200 bg-brand-50 px-3 text-xs font-medium text-brand-600 active:scale-95 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400">编辑配置思路</button></div>
+            <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">配置思路</h4><TargetEditButton onClick={onEdit} disabled={editDisabled}>编辑配置思路</TargetEditButton></div>
             <p className={`mt-2 whitespace-pre-wrap text-sm leading-6 ${detail?.strategy ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}>{detail?.strategy || '暂未填写配置思路'}</p>
           </section>
         )}

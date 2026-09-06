@@ -66,7 +66,8 @@ export function buildTargetDetails(holdingsResult, targetMap, strategyMap, targe
     })
     const categoryTotal = categoryHoldings.reduce((sum, holding) => sum + getHoldingMarketValueCNY(holding), 0)
     const matchedIndexes = new Set()
-    const items = group.items.map((targetItem) => {
+    const otherTarget = group.items.find((targetItem) => detailKey(targetItem.name) === detailKey('其他'))
+    const items = group.items.filter((targetItem) => targetItem !== otherTarget).map((targetItem) => {
       const targetKey = detailKey(targetItem.name)
       let marketValue = 0
       categoryHoldings.forEach((holding, index) => {
@@ -88,26 +89,20 @@ export function buildTargetDetails(holdingsResult, targetMap, strategyMap, targe
       }
     })
 
-    const unmatched = new Map()
-    categoryHoldings.forEach((holding, index) => {
-      if (matchedIndexes.has(index)) return
-      const symbol = holdingText(holding, 'Symbol')
-      const name = holdingText(holding, 'Name')
-      const label = symbol && symbol !== '-' ? symbol : name
-      if (!label) return
-      const key = detailKey(label)
-      const current = unmatched.get(key) || { name: label, marketValue: 0 }
-      current.marketValue += getHoldingMarketValueCNY(holding)
-      unmatched.set(key, current)
-    })
-    for (const item of unmatched.values()) {
+    const otherMarketValue = categoryHoldings.reduce((sum, holding, index) => (
+      matchedIndexes.has(index) ? sum : sum + getHoldingMarketValueCNY(holding)
+    ), 0)
+    if (otherTarget || otherMarketValue !== 0) {
+      const currentRatio = categoryTotal ? otherMarketValue / categoryTotal : 0
+      const targetRatio = otherTarget?.targetRatio ?? null
+      const deviation = getTargetDeviation(currentRatio, targetRatio)
       items.push({
-        name: item.name,
-        marketValue: Math.round(item.marketValue * 100) / 100,
-        currentRatio: categoryTotal ? item.marketValue / categoryTotal : 0,
-        targetRatio: null,
-        diff: null,
-        status: 'unset',
+        name: otherTarget?.name || '其他',
+        marketValue: Math.round(otherMarketValue * 100) / 100,
+        currentRatio,
+        targetRatio,
+        diff: deviation.difference,
+        status: deviation.status,
       })
     }
 

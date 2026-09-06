@@ -6,6 +6,8 @@ import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedR
 import TargetConfigDialog from '../components/TargetConfigDialog.jsx'
 import TargetDetailDialog from '../components/TargetDetailDialog.jsx'
 import TargetDetailConfigDialog from '../components/TargetDetailConfigDialog.jsx'
+import TargetAllocationScale from '../components/TargetAllocationScale.jsx'
+import TargetEditButton from '../components/TargetEditButton.jsx'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -20,13 +22,6 @@ const colorMap = {
 }
 
 const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
-
-function getRangeRuleLabel(targetRatio) {
-  if (!Number.isFinite(targetRatio)) return ''
-  return targetRatio > 0 && targetRatio * 0.4 < 0.02
-    ? '目标比例 ±40%'
-    : '±2 个百分点'
-}
 
 export default function Target({ refreshKey = 0 }) {
   const [data, setData] = useState(() => {
@@ -243,7 +238,7 @@ export default function Target({ refreshKey = 0 }) {
             <p className="desktop-section-subtitle">点击类别可查看对应资产详情</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowTargetEditor(true)} disabled={demoMode} className="h-9 rounded-lg bg-brand-600 px-3.5 text-sm font-medium text-white transition-all active:scale-95 disabled:opacity-40">调整目标</button>
+            <TargetEditButton onClick={() => setShowTargetEditor(true)} disabled={demoMode} className="sm:h-9 sm:px-3.5 sm:text-sm" />
             <button onClick={loadData} className="desktop-secondary-button h-9">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
               刷新数据
@@ -340,7 +335,7 @@ export default function Target({ refreshKey = 0 }) {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-gray-400">共 {rows.length} 项</span>
-              <button type="button" onClick={() => setShowTargetEditor(true)} disabled={demoMode} className="h-8 rounded-lg bg-brand-600 px-3 text-xs font-medium text-white transition-all active:scale-95 disabled:opacity-40">调整目标</button>
+              <TargetEditButton onClick={() => setShowTargetEditor(true)} disabled={demoMode} />
             </div>
           </div>
           <div className="space-y-2">
@@ -351,15 +346,7 @@ export default function Target({ refreshKey = 0 }) {
             const status = getTargetAllocationStatus(r.currentRatio, r.targetRatio).status
             const isOver = status === 'over'
             const isUnder = status === 'under'
-            const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
-            const track = getTargetTrackPositions(r.currentRatio, r.targetRatio, allowedRange, 18)
-            const currentPosition = track?.currentPosition ?? 0
-            const targetPosition = track?.targetPosition ?? null
-            const rangeStart = track?.rangeStart ?? null
-            const rangeEnd = track?.rangeEnd ?? null
             const driftAmount = diffPct === null ? null : Math.abs(diffPct)
-            const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
-            const rangeRuleLabel = getRangeRuleLabel(r.targetRatio)
             const statusLabel = isOver ? '超出范围' : isUnder ? '低于范围' : hasTarget ? '范围合理' : '未设目标'
             const statusClass = isOver ? 'text-red-500' : isUnder ? 'text-green-600' : hasTarget ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
             return (
@@ -377,37 +364,7 @@ export default function Target({ refreshKey = 0 }) {
                   </span>
                 </div>
 
-                {allowedRange ? (
-                  <div className="mt-3 px-1">
-                    <div className="relative h-[68px]" aria-label={`偏离目标范围尺：当前 ${(r.currentRatio * 100).toFixed(1)}%，目标 ${(r.targetRatio * 100).toFixed(1)}%，合理区间 ${(allowedRange.lower * 100).toFixed(1)}% 至 ${(allowedRange.upper * 100).toFixed(1)}%`}>
-                      <span className="sr-only">合理区间按 {rangeRuleLabel} 计算，低配线 {(allowedRange.lower * 100).toFixed(1)}%，超配线 {(allowedRange.upper * 100).toFixed(1)}%</span>
-                      <span className="absolute left-0 top-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">低配</span>
-                      <span className="absolute left-1/2 top-0 -translate-x-1/2 text-[10px] font-semibold text-gray-700 dark:text-gray-200">目标</span>
-                      <span className="absolute right-0 top-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">超配</span>
-                      <div className="absolute inset-x-0 top-[30px] h-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
-                      <div className="absolute top-[23px] h-[15px] rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-100/70 dark:bg-emerald-500/10 dark:ring-emerald-400/10" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} aria-label="合理区间" />
-                      <div className="absolute top-[17px] h-7 w-px -translate-x-1/2 bg-gray-800 dark:bg-gray-100" style={{ left: `${targetPosition}%` }} aria-label="目标中心位置" />
-                      <div className="absolute top-[30px] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-sm transition-all dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} aria-label={`当前配置 ${(r.currentRatio * 100).toFixed(1)}%`} />
-                      <span className="absolute top-[44px] -translate-x-1/2 whitespace-nowrap text-[9px] font-medium" style={{ left: `${Math.min(96, Math.max(4, currentPosition))}%`, color: progressColor }}>当前</span>
-                    </div>
-                    <div className="grid grid-cols-3 border-t border-gray-100 pt-2 text-center dark:border-gray-700/80">
-                      <div>
-                        <div className="text-[10px] text-gray-400">当前</div>
-                        <div className={`font-num mt-0.5 text-sm font-medium ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-700 dark:text-gray-200'}`}>{(r.currentRatio * 100).toFixed(1)}%</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-gray-400">目标</div>
-                        <div className="font-num mt-0.5 text-sm font-medium text-gray-700 dark:text-gray-200">{(r.targetRatio * 100).toFixed(1)}%</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-gray-400">偏差</div>
-                        <div className={`font-num mt-0.5 text-sm font-medium ${isOver ? 'text-red-500' : isUnder ? 'text-green-600' : 'text-gray-600 dark:text-gray-300'}`}>{`${diffPct > 0 ? '+' : ''}${diffPct.toFixed(1)}%`}</div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-3 rounded-lg border border-dashed border-amber-200 bg-amber-50/50 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">设置计划目标后，这里会显示合理区间。</div>
-                )}
+                <TargetAllocationScale currentRatio={r.currentRatio} targetRatio={r.targetRatio} diff={r.diff} status={status} color={color} label={r.category} />
 
                 <div className={`mt-3 flex min-h-10 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isOver ? 'border-red-100 bg-red-50/70 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400' : isUnder ? 'border-green-100 bg-green-50/70 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400' : hasTarget ? 'border-gray-100 bg-gray-50/70 text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-300' : 'border-amber-100 bg-amber-50/60 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
                   <span className="font-medium">
@@ -432,7 +389,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </div>
       <TargetConfigDialog open={showTargetEditor} targets={targetConfig} onClose={() => setShowTargetEditor(false)} onSaved={handleTargetSaved} />
-      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} onClose={() => setDetailCategory(null)} onEdit={editDetailFromDetail} />
+      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} onClose={() => setDetailCategory(null)} onEdit={editDetailFromDetail} editDisabled={demoMode} />
       <TargetDetailConfigDialog open={Boolean(editDetailRow)} row={editDetailRow} detail={editDetailConfig} onClose={() => setEditDetailCategory(null)} onSaved={handleTargetSaved} />
     </div>
   )

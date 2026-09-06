@@ -81,7 +81,7 @@ test('target 横向列组分别解析大类目标和各市场内部目标', () =
 test('细分目标按所属资产内部市值计算并同时匹配代码和名称', () => {
   const targetMap = new Map([['美股', 0.25], ['A股', 0.08]])
   const groups = [
-    { category: '美股', label: '美股', items: [{ name: 'VOO', targetRatio: 0.6 }] },
+    { category: '美股', label: '美股', items: [{ name: 'VOO', targetRatio: 0.6 }, { name: '其他', targetRatio: 0.4 }] },
     { category: 'A股', label: 'A股', items: [{ name: '美的集团', targetRatio: 0.5 }] },
   ]
   const details = buildTargetDetails({ data: [
@@ -94,9 +94,13 @@ test('细分目标按所属资产内部市值计算并同时匹配代码和名�
   const us = details.find((detail) => detail.category === '美股').allocation
   assert.equal(us.marketValue, 1000)
   assert.equal(us.items.find((item) => item.name === 'VOO').currentRatio, 0.6)
-  assert.equal(us.items.find((item) => item.name === 'NVDA').targetRatio, null)
+  assert.equal(us.items.find((item) => item.name === '其他').currentRatio, 0.4)
+  assert.equal(us.items.find((item) => item.name === '其他').targetRatio, 0.4)
+  assert.equal(us.items.some((item) => item.name === 'NVDA'), false)
   const cn = details.find((detail) => detail.category === 'A股').allocation
   assert.equal(cn.items.find((item) => item.name === '美的集团').currentRatio, 0.6)
+  assert.equal(cn.items.find((item) => item.name === '其他').currentRatio, 0.4)
+  assert.equal(cn.items.find((item) => item.name === '其他').targetRatio, null)
 })
 
 test('配置思路允许留空但限制类别和长度', () => {
@@ -111,8 +115,9 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   const dialog = await readFile(new URL('../src/components/TargetConfigDialog.jsx', import.meta.url), 'utf8')
   const detailDialog = await readFile(new URL('../src/components/TargetDetailDialog.jsx', import.meta.url), 'utf8')
   const detailConfigDialog = await readFile(new URL('../src/components/TargetDetailConfigDialog.jsx', import.meta.url), 'utf8')
+  const editButton = await readFile(new URL('../src/components/TargetEditButton.jsx', import.meta.url), 'utf8')
   const api = await readFile(new URL('../api/target.js', import.meta.url), 'utf8')
-  assert.match(page, /调整目标/)
+  assert.match(editButton, /调整目标/)
   assert.match(page, /<TargetConfigDialog/)
   assert.match(dialog, /<AppDialog/)
   assert.match(dialog, /saveTargetConfig/)
@@ -122,8 +127,10 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   assert.match(detailDialog, /配置符合度/)
   assert.match(detailDialog, /当前细分配置合理/)
   assert.doesNotMatch(detailDialog, /大类配置符合度/)
-  assert.match(detailDialog, /调整细分目标/)
+  assert.match(detailDialog, /调整目标/)
+  assert.match(detailDialog, /TargetAllocationScale/)
   assert.doesNotMatch(detailDialog, /调整大类目标/)
+  assert.match(page, /TargetEditButton/)
   assert.match(detailConfigDialog, /saveTargetStrategy/)
   assert.match(detailConfigDialog, /saveTargetDetailTargets/)
   assert.match(detailConfigDialog, /新增行/)
