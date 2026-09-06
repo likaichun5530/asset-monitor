@@ -335,6 +335,21 @@ export async function saveTargetStrategy(category, strategy) {
   return publishTargetResult({ target, targetConfig, targetDetails, source: 'online', syncedAt: data.syncedAt })
 }
 
+export async function saveTargetDetailTargets(category, targets) {
+  if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘目标')
+  const data = await requestApiJson('target', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'detail-targets', category, targets }),
+    timeoutMs: 15000,
+  })
+  const target = normalizeTarget(data.target || [])
+  const targetConfig = data.targetConfig || targetConfigFromRows(target)
+  const targetDetails = data.targetDetails || targetDetailsFromConfig(targetConfig)
+  writeLocal('asset-monitor:target', { target, targetConfig, targetDetails, syncedAt: data.syncedAt })
+  return publishTargetResult({ target, targetConfig, targetDetails, source: 'online', syncedAt: data.syncedAt })
+}
+
 function normalizeTarget(rows) {
   return rows.map((row) => row.category === '债券' ? { ...row, category: '债基' } : row)
 }

@@ -1,8 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { findStrategyColumn, parseTargetStrategies, serializeTargetConfig, sheetColumnName, validateTargetConfig, validateTargetStrategy } from '../api/_target-config.js'
+import { findStrategyColumn, parseTargetGroups, parseTargetStrategies, serializeTargetConfig, sheetColumnName, validateTargetConfig, validateTargetGroup, validateTargetStrategy } from '../api/_target-config.js'
 import { parseTargetMap } from '../api/_allocation.js'
+import { buildTargetDetails } from '../api/target.js'
 import { TARGET_CATEGORIES } from '../shared/targetCategories.js'
 
 const VALID_TARGETS = [25, 15, 5, 5, 15, 10, 10, 5, 10]
@@ -52,6 +53,49 @@ test('target 表英文类别兼容为 APP 使用的中文资产类别', () => {
   assert.equal(targets.get('现金'), 0.1)
   assert.equal(findStrategyColumn(sheet.headers), 4)
   assert.equal(parseTargetStrategies(sheet).get('现金'), '保留流动性')
+})
+
+test('target 横向列组分别解析大类目标和各市场内部目标', () => {
+  const sheet = {
+    headers: ['类型', '目标', '', '美股', '目标', '', 'A股', '目标', '', '虚拟币', '目标', '', '基金', '目标'],
+    rawRows: [
+      ['美股', '25%', '', 'VOO', '30%', '', '美的集团', '30%', '', 'BTC', '30%', '', '债基一号', '60%'],
+      ['A股', '8%', '', 'NVDA', '12%', '', '招商银行', '30%'],
+      ['债基', '27%', '', '合计', '100%'],
+    ],
+  }
+  const targets = parseTargetMap(sheet)
+  assert.equal(targets.get('美股'), 0.25)
+  assert.equal(targets.get('A股'), 0.08)
+  assert.equal(targets.get('债基'), 0.27)
+  const groups = parseTargetGroups(sheet)
+  assert.deepEqual(groups.map((group) => group.category), ['美股', 'A股', '虚拟币', '债基'])
+  assert.deepEqual(groups[0].items.map((item) => [item.name, item.targetRatio]), [['VOO', 0.3], ['NVDA', 0.12]])
+  assert.equal(groups[3].items[0].name, '债基一号')
+  const validated = validateTargetGroup('美股', [{ name: 'VOO', targetPercent: 35 }, { name: 'NVDA', targetPercent: 15 }], sheet)
+  assert.equal(validated.totalPercent, 50)
+  assert.throws(() => validateTargetGroup('美股', [{ name: 'VOO', targetPercent: 90 }, { name: 'NVDA', targetPercent: 20 }], sheet), /不能超过 100%/)
+})
+
+test('细分目标按所属资产内部市值计算并同时匹配代码和名称', () => {
+  const targetMap = new Map([['美股', 0.25], ['A股', 0.08]])
+  const groups = [
+    { category: '美股', label: '美股', items: [{ name: 'VOO', targetRatio: 0.6 }] },
+    { category: 'A股', label: 'A股', items: [{ name: '美的集团', targetRatio: 0.5 }] },
+  ]
+  const details = buildTargetDetails({ data: [
+    { AssetType: 'Stock', Market: 'US', Symbol: 'VOO', Name: '标普ETF', MarketValueCNY: 600 },
+    { AssetType: 'Stock', Market: 'US', Symbol: 'NVDA', Name: '英伟达', MarketValueCNY: 400 },
+    { AssetType: 'Stock', Market: 'US', Symbol: '-', Name: '美元现金', MarketValueCNY: 500 },
+    { AssetType: 'Stock', Market: 'CN', Symbol: '000333', Name: '美的集团', MarketValueCNY: 300 },
+    { AssetType: 'Stock', Market: 'CN', Symbol: '600036', Name: '招商银行', MarketValueCNY: 200 },
+  ] }, targetMap, new Map(), groups)
+  const us = details.find((detail) => detail.category === '美股').allocation
+  assert.equal(us.marketValue, 1000)
+  assert.equal(us.items.find((item) => item.name === 'VOO').currentRatio, 0.6)
+  assert.equal(us.items.find((item) => item.name === 'NVDA').targetRatio, null)
+  const cn = details.find((detail) => detail.category === 'A股').allocation
+  assert.equal(cn.items.find((item) => item.name === '美的集团').currentRatio, 0.6)
 })
 
 test('配置思路允许留空但限制类别和长度', () => {
