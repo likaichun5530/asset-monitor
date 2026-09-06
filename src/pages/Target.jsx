@@ -268,7 +268,7 @@ export default function Target({ refreshKey = 0 }) {
                 const isOver = status === 'over'
                 const isUnder = status === 'under'
                 const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
-                const track = getRangeTrackPositions(r.currentRatio, r.targetRatio, allowedRange)
+                const track = getTargetTrackPositions(r.currentRatio, r.targetRatio, allowedRange)
                 const currentPosition = track?.currentPosition ?? 0
                 const targetPosition = track?.targetPosition ?? null
                 const rangeStart = track?.rangeStart ?? null

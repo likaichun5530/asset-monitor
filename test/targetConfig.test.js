@@ -116,6 +116,7 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   assert.match(dialog, /saveTargetConfig/)
   assert.match(page, /setDetailCategory\(r\.category\)/)
   assert.match(page, /<TargetDetailDialog/)
+  assert.doesNotMatch(page, /getRangeTrackPositions/)
   assert.match(detailDialog, /配置符合度/)
   assert.match(detailDialog, /saveTargetStrategy/)
   assert.match(api, /\['GET', 'PUT'\]/)
