@@ -70,7 +70,9 @@ test('AI接口要求登录，且API密钥仅在服务端读取', async () => {
   const clientSource = await readFile(new URL('../src/components/AiAssistant.jsx', import.meta.url), 'utf8')
   assert.match(apiSource, /requireAuth\(req\)/)
   assert.doesNotMatch(clientSource, /DEEPSEEK_API_KEY/)
-  assert.match(clientSource, /我是您的专属资产管理助手，有什么要求，您尽管吩咐。/)
+  assert.match(clientSource, /我是薯薯，您的专属资产管理助手。薯薯数数，心中有数。/)
+  assert.match(clientSource, /navigator\.clipboard\?\.writeText/)
+  assert.match(clientSource, /已复制/)
 })
 
 test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭', async () => {
@@ -90,7 +92,7 @@ test('AI悬浮按钮支持拖动，弹窗锁定页面并由返回键优先关闭
   assert.match(source, /setTimeout\(\(\) =>/)
   assert.match(source, /setShowDismissButton\(true\)/)
   assert.match(source, /setAiEnabled\(false\)/)
-  assert.match(source, /有数助手/)
+  assert.match(source, /薯薯AI助手/)
   assert.match(source, /useLayoutEffect/)
   assert.match(source, /element\.scrollTop = element\.scrollHeight/)
   const modelChangeHandler = source.slice(source.indexOf('const handleModelChange'), source.indexOf('const handleWebSearchToggle'))

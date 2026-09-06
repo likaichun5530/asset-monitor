@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import RobotIcon from './RobotIcon.jsx'
+import ShushuIcon from './ShushuIcon.jsx'
 import {
   AI_MESSAGES_KEY,
   AI_MESSAGES_CLEARED_EVENT,
@@ -101,6 +101,7 @@ export default function AiAssistant({ auth } = {}) {
   const [buttonDragging, setButtonDragging] = useState(false)
   const [showDismissButton, setShowDismissButton] = useState(false)
   const [keyboardInset, setKeyboardInset] = useState(0)
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState(null)
   const scrollRef = useRef(null)
   const autoScrollRef = useRef(true)
   const abortRef = useRef(null)
@@ -110,6 +111,7 @@ export default function AiAssistant({ auth } = {}) {
   const suppressClickRef = useRef(false)
   const historyEntryRef = useRef(false)
   const modelMenuRef = useRef(null)
+  const copyFeedbackTimerRef = useRef(null)
   const currentPageRef = useRef(location.pathname)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
   const visible = enabled && auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
@@ -167,6 +169,7 @@ export default function AiAssistant({ auth } = {}) {
       window.removeEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
       window.removeEventListener(AI_MODEL_CHANGED_EVENT, onModelChanged)
       window.removeEventListener('storage', onStorage)
+      if (copyFeedbackTimerRef.current) window.clearTimeout(copyFeedbackTimerRef.current)
     }
   }, [aiModels, close])
 
@@ -444,6 +447,18 @@ export default function AiAssistant({ auth } = {}) {
     })
   }
 
+  const copyMessage = async (content, index) => {
+    if (!content || !navigator.clipboard?.writeText) return
+    try {
+      await navigator.clipboard.writeText(content)
+      if (copyFeedbackTimerRef.current) window.clearTimeout(copyFeedbackTimerRef.current)
+      setCopiedMessageIndex(index)
+      copyFeedbackTimerRef.current = window.setTimeout(() => setCopiedMessageIndex(null), 1400)
+    } catch {
+      setError('复制失败，请长按文字复制')
+    }
+  }
+
   const selectedModelOption = getAiModelOption(selectedModel, aiModels)
 
   return (
@@ -462,18 +477,18 @@ export default function AiAssistant({ auth } = {}) {
             onPointerUp={handleButtonPointerEnd}
             onPointerCancel={handleButtonPointerEnd}
             className={`flex h-11 w-11 touch-none select-none items-center justify-center rounded-xl bg-transparent drop-shadow-[0_5px_7px_rgba(79,70,229,0.28)] outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-brand-400 ${showDismissButton ? 'scale-105' : ''}`}
-            title="有数助手"
-            aria-label="打开有数助手"
+            title="薯薯AI助手"
+            aria-label="打开薯薯AI助手"
           >
-            <RobotIcon className="h-11 w-11" />
+            <ShushuIcon className="h-11 w-11" />
           </button>
           {showDismissButton && (
             <button
               type="button"
               onClick={disableAssistant}
               className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-800 text-sm font-bold leading-none text-white shadow-md dark:border-gray-900"
-              aria-label="关闭AI机器人"
-              title="关闭AI机器人"
+              aria-label="关闭薯薯AI助手"
+              title="关闭薯薯AI助手"
             >×</button>
           )}
         </div>
@@ -481,13 +496,13 @@ export default function AiAssistant({ auth } = {}) {
 
       {open && (
         <>
-          <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭有数助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="有数助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
+          <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭薯薯AI助手" onClick={close} />
+          <section role="dialog" aria-modal="true" aria-label="薯薯AI助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><RobotIcon className="h-5 w-5" /></span>
+                <span className="flex h-9 w-9 items-center justify-center"><ShushuIcon className="h-9 w-9" /></span>
                 <div>
-                  <div className="text-base font-semibold text-gray-900 dark:text-gray-100">有数助手</div>
+                  <div className="text-base font-semibold text-gray-900 dark:text-gray-100">薯薯AI助手</div>
                   <div className="text-[10px] text-gray-400">{actualModel ? `${actualModel}${dataAsOf ? ` · 数据截至 ${dataAsOf}` : ''}` : '发送问题时读取最新资产数据'}</div>
                 </div>
               </div>
@@ -508,7 +523,7 @@ export default function AiAssistant({ auth } = {}) {
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
-                    我是您的专属资产管理助手，有什么要求，您尽管吩咐。
+                    我是薯薯，您的专属资产管理助手。薯薯数数，心中有数。有什么要求，您尽管吩咐。
                   </div>
                   <div className="mt-4 text-xs font-medium text-gray-500">你可以这样问</div>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -519,10 +534,11 @@ export default function AiAssistant({ auth } = {}) {
 
               <div className="space-y-3">
                 {messages.map((message, index) => (
-                  <div key={`${message.role}-${index}`} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${message.role === 'user' ? 'rounded-br-md bg-brand-600 text-white' : 'rounded-bl-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'}`}>
+                  <div key={`${message.role}-${index}`} className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`max-w-[88%] select-text whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${message.role === 'user' ? 'rounded-br-md bg-brand-600 text-white' : 'rounded-bl-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'}`}>
                       {message.content || (loading && index === messages.length - 1 ? <span className="inline-flex gap-1"><i className="h-1.5 w-1.5 animate-pulse rounded-full bg-gray-400" /><i className="h-1.5 w-1.5 animate-pulse rounded-full bg-gray-400 [animation-delay:150ms]" /><i className="h-1.5 w-1.5 animate-pulse rounded-full bg-gray-400 [animation-delay:300ms]" /></span> : '')}
                     </div>
+                    {message.content && <button type="button" onClick={() => copyMessage(message.content, index)} className="mt-1 px-1 text-[10px] text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200" aria-label={`复制${message.role === 'user' ? '我的问题' : '薯薯的回答'}`}>{copiedMessageIndex === index ? '已复制' : '复制'}</button>}
                   </div>
                 ))}
               </div>

@@ -18,7 +18,7 @@ export default function TargetDetailConfigDialog({ open, row, detail, onClose, o
   useEffect(() => {
     if (!open) return
     sequenceRef.current = 0
-    setItems((detail?.allocation?.items || []).filter((item) => item.targetRatio !== null).map((item) => ({ id: `saved-${sequenceRef.current++}`, name: item.name, targetPercent: percentInput(item.targetRatio) })))
+    setItems((detail?.allocation?.items || []).filter((item) => item.targetRatio !== null).slice().sort((a, b) => b.targetRatio - a.targetRatio).map((item) => ({ id: `saved-${sequenceRef.current++}`, name: item.name, targetPercent: percentInput(item.targetRatio) })))
     setStrategy(detail?.strategy || '')
     setSaving(false)
     setError('')

@@ -28,16 +28,23 @@ function displayPercent(value) {
   return Number(value).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
+function sortedCategories(targets = []) {
+  const values = new Map(targets.map((item) => [item.category === '债券' ? '债基' : item.category, Number(item.targetPercent) || 0]))
+  return [...TARGET_CATEGORIES].sort((a, b) => (values.get(b) || 0) - (values.get(a) || 0) || TARGET_CATEGORIES.indexOf(a) - TARGET_CATEGORIES.indexOf(b))
+}
+
 export default function TargetConfigDialog({ open, targets, onClose, onSaved }) {
   const [fields, setFields] = useState(() => initialFields(targets))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [categoryOrder, setCategoryOrder] = useState(() => sortedCategories(targets))
   const closeTimerRef = useRef(null)
 
   useEffect(() => {
     if (!open) return undefined
     setFields(initialFields(targets))
+    setCategoryOrder(sortedCategories(targets))
     setSaving(false)
     setError('')
     setSuccess(false)
@@ -111,7 +118,7 @@ export default function TargetConfigDialog({ open, targets, onClose, onSaved }) 
         </div>
 
         <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
-          {TARGET_CATEGORIES.map((category, index) => (
+          {categoryOrder.map((category, index) => (
             <label key={category} className={`flex min-h-12 items-center justify-between gap-4 px-3.5 py-2 ${index ? 'border-t border-gray-100 dark:border-gray-700' : ''}`}>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{category}</span>
               <span className="flex items-center gap-1.5">

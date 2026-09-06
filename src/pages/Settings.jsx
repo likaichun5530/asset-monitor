@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { requestApiJson } from '../utils/api.js'
 import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
-import RobotIcon from '../components/RobotIcon.jsx'
+import ShushuIcon from '../components/ShushuIcon.jsx'
 import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
 import AiModelSettingsDialog from '../components/AiModelSettingsDialog.jsx'
 import AppDialog from '../components/AppDialog.jsx'
@@ -280,7 +280,7 @@ export default function Settings({ auth } = {}) {
         <SettingsSubpage title="AI 与智能分析" description="管理助手显示、回答规则和模型清单" onBack={returnToSettingsMenu}>
           <SettingsGroup title="AI 资产助手" description="使用所选大模型分析 Holdings、History 和目标配置">
           <button type="button" onClick={handleAiToggle} disabled={!isLoggedIn || demoMode} role="switch" aria-checked={aiControlEnabled} className={`settings-ai-toggle flex w-full items-center justify-between rounded-xl border px-4 py-3 transition-all active:scale-[0.99] ${aiControlEnabled ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 dark:border-gray-700'} ${!isLoggedIn || demoMode ? 'cursor-not-allowed opacity-50' : ''}`}>
-            <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"><RobotIcon className="h-6 w-6" /></span><span><span className="block text-sm font-normal text-gray-800 dark:text-gray-200">在业务页面显示 AI 机器人</span><span className="mt-0.5 block text-xs font-normal text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在业务页面显示' : '当前已关闭'}</span></span></span>
+            <span className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center"><ShushuIcon className="h-9 w-9" /></span><span><span className="block text-sm font-normal text-gray-800 dark:text-gray-200">在业务页面显示薯薯AI助手</span><span className="mt-0.5 block text-xs font-normal text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在业务页面显示' : '当前已关闭'}</span></span></span>
             <span aria-hidden="true" className={`relative ml-3 h-6 w-11 shrink-0 rounded-full transition-colors ${aiControlEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}><span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} /></span>
           </button>
           <p className="mt-3 text-xs font-normal leading-[18px] text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
