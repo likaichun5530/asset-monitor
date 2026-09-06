@@ -1,26 +1,26 @@
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import AppDialog from './AppDialog.jsx'
-import TargetAllocationScale from './TargetAllocationScale.jsx'
+import TargetAllocationScale, { getTargetCardTone } from './TargetAllocationScale.jsx'
 import TargetEditButton from './TargetEditButton.jsx'
 
 const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
 
-function isIgnoredOtherOver(item) {
-  return item.name.trim() === '其他' && getTargetAllocationStatus(item.currentRatio, item.targetRatio).status === 'over'
+function isOtherItem(item) {
+  return /^(其他|其它|other|others)$/i.test(String(item?.name || '').trim())
 }
 
 function itemDisplayStatus(item) {
-  return isIgnoredOtherOver(item) ? 'balanced' : getTargetAllocationStatus(item.currentRatio, item.targetRatio).status
+  return isOtherItem(item) ? 'balanced' : getTargetAllocationStatus(item.currentRatio, item.targetRatio).status
 }
 
 function statusPresentation(item) {
-  if (isIgnoredOtherOver(item)) return { label: '归集项', className: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' }
+  if (isOtherItem(item)) return { label: '归集项', className: 'font-normal text-gray-600 dark:text-gray-300', dot: 'bg-gray-400' }
   const status = itemDisplayStatus(item)
-  if (status === 'over') return { label: '超出范围', className: 'text-red-500', dot: 'bg-red-500' }
-  if (status === 'under') return { label: '低于范围', className: 'text-green-600', dot: 'bg-green-500' }
-  if (status === 'balanced') return { label: '范围合理', className: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' }
-  return { label: '未设目标', className: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' }
+  if (status === 'over') return { label: '超出目标', className: 'font-semibold text-red-500', dot: 'bg-red-500' }
+  if (status === 'under') return { label: '低于目标', className: 'font-semibold text-green-600', dot: 'bg-green-500' }
+  if (status === 'balanced') return { label: '范围合理', className: 'font-normal text-gray-900 dark:text-gray-100', dot: 'bg-gray-500 dark:bg-gray-300' }
+  return { label: '未设目标', className: 'font-medium text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' }
 }
 
 export default function TargetDetailDialog({ open, row, detail, onClose, onEdit, editDisabled = false }) {
@@ -30,7 +30,7 @@ export default function TargetDetailDialog({ open, row, detail, onClose, onEdit,
     STATUS_PRIORITY[itemDisplayStatus(a)] - STATUS_PRIORITY[itemDisplayStatus(b)] || (b.marketValue || 0) - (a.marketValue || 0)
   ))
   const hasConfiguredDetailTargets = detailItems.some((item) => item.targetRatio !== null && item.targetRatio !== undefined)
-  const evaluatedItems = detailItems.filter((item) => !isIgnoredOtherOver(item))
+  const evaluatedItems = detailItems.filter((item) => !isOtherItem(item))
   const overItems = evaluatedItems.filter((item) => itemDisplayStatus(item) === 'over')
   const underItems = evaluatedItems.filter((item) => itemDisplayStatus(item) === 'under')
   const balancedItems = evaluatedItems.filter((item) => itemDisplayStatus(item) === 'balanced')
@@ -52,9 +52,9 @@ export default function TargetDetailDialog({ open, row, detail, onClose, onEdit,
             <div className={`flex h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-xl border ${attentionItems.length ? 'border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400' : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400'}`}><span className="font-num text-lg font-semibold leading-none">{attentionItems.length}</span><span className="mt-0.5 text-[9px] leading-none">需关注</span></div>
           </div>
           <div className="mt-3 grid grid-cols-4 rounded-xl bg-gray-50 py-2.5 text-center dark:bg-gray-700/35">
-              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-red-500">{overItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">超出范围</div></div>
-              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-green-600">{underItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">低于范围</div></div>
-              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-gray-700 dark:text-gray-200">{balancedItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">范围合理</div></div>
+              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-red-500">{overItems.length}</div><div className="mt-1 text-[10px] font-semibold text-red-500">超出目标</div></div>
+              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-green-600">{underItems.length}</div><div className="mt-1 text-[10px] font-semibold text-green-600">低于目标</div></div>
+              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-gray-700 dark:text-gray-200">{balancedItems.length}</div><div className="mt-1 text-[10px] font-normal text-gray-900 dark:text-gray-100">范围合理</div></div>
               <div><div className="font-num text-sm font-semibold text-amber-500">{unsetItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">未设目标</div></div>
           </div>
         </section>}
@@ -67,27 +67,28 @@ export default function TargetDetailDialog({ open, row, detail, onClose, onEdit,
             </div>
             <div className="space-y-2">
               {detailItems.map((item) => {
-                const ignoredOtherOver = isIgnoredOtherOver(item)
+                const otherItem = isOtherItem(item)
                 const itemStatus = statusPresentation(item)
                 const status = itemDisplayStatus(item)
                 const hasTarget = item.targetRatio !== null && item.targetRatio !== undefined
                 const driftAmount = hasTarget ? Math.abs(item.diff * 100) : null
                 const adjustmentAmount = hasTarget ? Math.abs(allocation.marketValue * item.targetRatio - item.marketValue) : null
                 return (
-                  <div key={item.name} className="target-allocation-card rounded-xl border border-gray-100 bg-white px-3.5 pb-3 pt-3.5 dark:border-gray-700 dark:bg-gray-800">
+                  <div key={item.name} className={`target-allocation-card rounded-xl border border-gray-100 px-3.5 pb-3 pt-3.5 dark:border-gray-700 ${otherItem ? 'bg-white dark:bg-gray-800' : getTargetCardTone(status)}`}>
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0"><div className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</div><div className="mt-0.5 text-[11px] text-gray-400">当前金额 {formatWan(item.marketValue)}</div></div>
-                      <span className={`inline-flex shrink-0 items-center gap-1.5 pt-0.5 text-xs font-medium ${itemStatus.className}`}><span className={`h-1.5 w-1.5 rounded-full ${itemStatus.dot}`} />{itemStatus.label}</span>
+                      <div className="min-w-0"><div className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</div>{!otherItem && <div className="mt-0.5 text-[11px] text-gray-400">当前金额 {formatWan(item.marketValue)}</div>}</div>
+                      <span className={`inline-flex shrink-0 items-center gap-1.5 pt-0.5 text-xs ${itemStatus.className}`}><span className={`h-1.5 w-1.5 rounded-full ${itemStatus.dot}`} />{itemStatus.label}</span>
                     </div>
+                    {otherItem ? <div className="mt-3 grid grid-cols-2 rounded-lg bg-gray-50/80 py-2.5 text-center dark:bg-gray-700/35"><div className="border-r border-gray-200/70 dark:border-gray-600"><div className="text-[10px] text-gray-400">当前金额</div><div className="font-num mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-100">{formatCurrency(item.marketValue, { decimals: 0 })}</div></div><div><div className="text-[10px] text-gray-400">当前占比</div><div className="font-num mt-0.5 text-sm font-medium text-gray-800 dark:text-gray-100">{(item.currentRatio * 100).toFixed(1)}%</div></div></div> : <>
                     <TargetAllocationScale currentRatio={item.currentRatio} targetRatio={item.targetRatio} diff={item.diff} status={status} label={item.name} />
-                    {!ignoredOtherOver && <div className={`mt-3 flex min-h-10 items-center rounded-lg border px-3 py-2 text-xs ${status === 'over' ? 'border-red-100 bg-red-50/70 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400' : status === 'under' ? 'border-green-100 bg-green-50/70 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400' : hasTarget ? 'border-gray-100 bg-gray-50/70 text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-300' : 'border-amber-100 bg-amber-50/60 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
+                    <div className={`mt-3 flex min-h-10 items-center rounded-lg border px-3 py-2 text-xs ${status === 'over' ? 'border-red-100 bg-red-50/70 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400' : status === 'under' ? 'border-green-100 bg-green-50/70 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400' : hasTarget ? 'border-gray-100 bg-gray-50/70 text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-300' : 'border-amber-100 bg-amber-50/60 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'}`}>
                       <span className="font-medium">
                         {status === 'over' && <>超出 {driftAmount.toFixed(1)}%<span className="ml-1 font-normal opacity-70">· 建议减少 {formatCurrency(adjustmentAmount, { decimals: 0 })}</span></>}
                         {status === 'under' && <>低于 {driftAmount.toFixed(1)}%<span className="ml-1 font-normal opacity-70">· 建议增加 {formatCurrency(adjustmentAmount, { decimals: 0 })}</span></>}
                         {hasTarget && status !== 'over' && status !== 'under' && '当前配置在合理区间内，无需调整'}
                         {!hasTarget && '请先设置计划目标比例'}
                       </span>
-                    </div>}
+                    </div></>}
                   </div>
                 )
               })}

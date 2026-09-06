@@ -50,6 +50,10 @@ function detailKey(value) {
   return String(value ?? '').trim().toLocaleUpperCase('zh-CN')
 }
 
+function isOtherDetail(value) {
+  return /^(其他|其它|OTHER|OTHERS)$/.test(detailKey(value))
+}
+
 export function buildTargetDetails(holdingsResult, targetMap, strategyMap, targetGroups) {
   const holdings = holdingsResult.data || []
   const groups = new Map(targetGroups.map((group) => [group.category, group]))
@@ -66,7 +70,7 @@ export function buildTargetDetails(holdingsResult, targetMap, strategyMap, targe
     })
     const categoryTotal = categoryHoldings.reduce((sum, holding) => sum + getHoldingMarketValueCNY(holding), 0)
     const matchedIndexes = new Set()
-    const otherTarget = group.items.find((targetItem) => detailKey(targetItem.name) === detailKey('其他'))
+    const otherTarget = group.items.find((targetItem) => isOtherDetail(targetItem.name))
     const items = group.items.filter((targetItem) => targetItem !== otherTarget).map((targetItem) => {
       const targetKey = detailKey(targetItem.name)
       let marketValue = 0

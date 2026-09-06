@@ -8,6 +8,12 @@ function getRangeRuleLabel(targetRatio) {
   return targetRatio > 0 && targetRatio * 0.4 < 0.02 ? '目标比例 ±40%' : '±2 个百分点'
 }
 
+export function getTargetCardTone(status) {
+  if (status === 'over') return 'bg-gradient-to-b from-red-100/90 via-red-50/60 to-red-50/25 dark:from-red-500/[0.20] dark:via-red-500/[0.10] dark:to-red-500/[0.04]'
+  if (status === 'under') return 'bg-gradient-to-b from-green-100/90 via-green-50/60 to-green-50/25 dark:from-green-500/[0.20] dark:via-green-500/[0.10] dark:to-green-500/[0.04]'
+  return 'bg-white dark:bg-gray-800'
+}
+
 export default function TargetAllocationScale({ currentRatio, targetRatio, diff, status, color = '#3b82f6', label = '配置' }) {
   const hasTarget = targetRatio !== null && targetRatio !== undefined && Number.isFinite(Number(targetRatio))
   if (!hasTarget) {
