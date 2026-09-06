@@ -95,9 +95,10 @@ test('细分目标按所属资产内部市值计算并同时匹配代码和名�
     { AssetType: 'Stock', Market: 'CN', Symbol: '600036', Name: '招商银行', MarketValueCNY: 200 },
   ] }, targetMap, new Map(), groups)
   const us = details.find((detail) => detail.category === '美股').allocation
-  assert.equal(us.marketValue, 1000)
-  assert.equal(us.items.find((item) => item.name === 'VOO').currentRatio, 0.6)
-  assert.equal(us.items.find((item) => item.name === '其他').currentRatio, 0.4)
+  assert.equal(us.marketValue, 1500)
+  assert.equal(us.items.find((item) => item.name === 'VOO').currentRatio, 0.4)
+  assert.equal(us.items.find((item) => item.name === '其他').marketValue, 900)
+  assert.equal(us.items.find((item) => item.name === '其他').currentRatio, 0.6)
   assert.equal(us.items.find((item) => item.name === '其他').targetRatio, 0.4)
   assert.equal(us.items.some((item) => item.name === 'NVDA'), false)
   const cn = details.find((detail) => detail.category === 'A股').allocation
@@ -146,6 +147,7 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   assert.match(page, /onSaved=\{handleDetailTargetSaved\}/)
   assert.doesNotMatch(page, /共 \{rows\.length\} 项/)
   assert.doesNotMatch(page, /setTimeout\([^\n]+, 120\)/)
+  assert.match(page, /setEditDetailCategory\(detailCategory\)/)
   assert.match(detailDialog, /getTargetCardTone/)
   assert.match(api, /\['GET', 'PUT'\]/)
   assert.match(api, /invalidateAiDataCache\('target'\)/)

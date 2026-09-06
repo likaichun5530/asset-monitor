@@ -64,9 +64,7 @@ export function buildTargetDetails(holdingsResult, targetMap, strategyMap, targe
 
     const categoryHoldings = holdings.filter((holding) => {
       const category = getHoldingCategory(holdingText(holding, 'AssetType'), holdingText(holding, 'Market'))
-      if (category !== config.category) return false
-      const symbol = holdingText(holding, 'Symbol')
-      return !['美股', 'A股', '港股', '日股'].includes(config.category) || (symbol && symbol !== '-')
+      return category === config.category
     })
     const categoryTotal = categoryHoldings.reduce((sum, holding) => sum + getHoldingMarketValueCNY(holding), 0)
     const matchedIndexes = new Set()

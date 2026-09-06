@@ -2,6 +2,12 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 let dialogSequence = 0
+const openDialogStack = []
+
+function removeFromDialogStack(dialogId) {
+  const index = openDialogStack.lastIndexOf(dialogId)
+  if (index >= 0) openDialogStack.splice(index, 1)
+}
 
 export default function AppDialog({ open, onClose, title, description, actions, children, ariaLabel = title, maxWidth = 'sm:max-w-2xl', closeDisabled = false, titleClassName = '', descriptionClassName = '' }) {
   const dialogIdRef = useRef('')
@@ -14,6 +20,7 @@ export default function AppDialog({ open, onClose, title, description, actions, 
     if (!open) return undefined
     const dialogId = `youshu-dialog-${++dialogSequence}`
     dialogIdRef.current = dialogId
+    openDialogStack.push(dialogId)
     const scrollY = window.scrollY
     const body = document.body
     const html = document.documentElement
@@ -36,8 +43,10 @@ export default function AppDialog({ open, onClose, title, description, actions, 
     html.style.overflow = 'hidden'
     window.history.pushState({ ...window.history.state, youshuDialog: dialogId }, '', window.location.href)
 
-    const handlePopState = () => {
+    const handlePopState = (event) => {
       if (dialogIdRef.current !== dialogId) return
+      if (openDialogStack.at(-1) !== dialogId) return
+      if (event.state?.youshuDialog === dialogId) return
       if (closeDisabledRef.current) {
         window.history.pushState({ ...window.history.state, youshuDialog: dialogId }, '', window.location.href)
         return
@@ -48,11 +57,13 @@ export default function AppDialog({ open, onClose, title, description, actions, 
         return
       }
       dialogIdRef.current = ''
+      removeFromDialogStack(dialogId)
     }
     window.addEventListener('popstate', handlePopState)
 
     return () => {
       window.removeEventListener('popstate', handlePopState)
+      removeFromDialogStack(dialogId)
       if (dialogIdRef.current === dialogId && window.history.state?.youshuDialog === dialogId) {
         dialogIdRef.current = ''
         window.history.back()

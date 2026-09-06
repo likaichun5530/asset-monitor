@@ -107,15 +107,11 @@ export default function Target({ refreshKey = 0 }) {
   const editDetailConfig = targetDetails.find((item) => item.category === editDetailCategory) || null
 
   function editDetailFromDetail() {
-    const category = detailCategory
-    setDetailCategory(null)
-    window.setTimeout(() => setEditDetailCategory(category), 0)
+    setEditDetailCategory(detailCategory)
   }
 
   function returnToDetail() {
-    const category = editDetailCategory
     setEditDetailCategory(null)
-    if (category) window.setTimeout(() => setDetailCategory(category), 0)
   }
 
   function handleDetailTargetSaved(result) {
