@@ -45,6 +45,7 @@
 - 相对目标偏离达到 ±40%，或绝对偏离达到 ±2 个百分点时，提醒超配或低配
 - 对已触发提醒的类别，按照当前总资产与目标比例给出建议增加或减少的金额
 - 首页账户健康度与现金加仓建议使用相同的偏差判断口径
+- 可在目标页直接调整九类资产目标比例；点击配置明细可查看该类资产的目标符合度，并将配置思路保存到 `target` 表
 
 ### 🤖 AI 资产助手
 - 设置中可独立开启或关闭；开启后仅在登录状态的首页显示机器人入口，拖动松手后自动吸附到距离最近的屏幕左侧或右侧；长按入口可显示关闭按钮
@@ -386,7 +387,7 @@ JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。
 | `/api/history` | GET / PUT | 私人；读取 History 或按日期更新当天最后一列备注 |
 | `/api/snapshot` | POST | 私人；从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
 | `/api/snapshot-auto` | GET | 服务调用；每日北京时间 23:00 自动快照，必须使用 `CRON_SECRET` Bearer 鉴权 |
-| `/api/target` | GET | 私人；读取 target 表 + 实时持仓计算，返回目标配置对比数据 |
+| `/api/target` | GET / PUT | 私人；读取或修改 target 表目标比例与配置思路，并结合实时持仓返回配置符合度 |
 | `/api/market` | GET | 读取 Market 表行情（公开） |
 | `/api/futures` | GET | 中证500股指期货贴水（公开） |
 

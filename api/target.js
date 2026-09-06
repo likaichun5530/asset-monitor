@@ -1,10 +1,19 @@
 // Vercel Function: GET /api/target
-import { appendRows, batchUpdateRows, isConfigured, readSheet } from './_google.js'
+import { appendRows, batchUpdateRows, isConfigured, readSheet, updateRows } from './_google.js'
 import { requireAuth } from './_auth.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { aggregateHoldingsByCategory, calculateAllocations, parseTargetMap } from './_allocation.js'
 import { invalidateAiDataCache } from './_ai-data-cache.js'
-import { normalizeTargetCategory, serializeTargetConfig, sheetColumnName, validateTargetConfig } from './_target-config.js'
+import {
+  findStrategyColumn,
+  normalizeTargetCategory,
+  parseTargetStrategies,
+  serializeTargetConfig,
+  serializeTargetDetails,
+  sheetColumnName,
+  validateTargetConfig,
+  validateTargetStrategy,
+} from './_target-config.js'
 
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json' })
@@ -51,36 +60,59 @@ export default async function handler(req, res) {
       req.method === 'PUT' ? readSheet('target') : readSheet('target').catch(() => null),
     ])
     let targetMap = parseTargetMap(tResult)
+    const strategyMap = parseTargetStrategies(tResult)
 
     if (req.method === 'PUT') {
       if (!tResult?.headers?.length) return json(res, 409, { error: 'target 工作表缺少表头' })
       const body = await readJsonBody(req)
-      const config = validateTargetConfig(body.targets)
-      const configMap = new Map(config.map((item) => [item.category, item]))
       const headers = tResult.headers
-      const targetColumnIndex = headers.findIndex((header) => /目标|比例/.test(String(header)))
-      if (targetColumnIndex < 0) return json(res, 409, { error: 'target 工作表缺少目标比例列' })
-      const targetColumn = sheetColumnName(targetColumnIndex)
-      const found = new Set()
-      const updates = []
+      if (body.action === 'strategy') {
+        const { category, strategy } = validateTargetStrategy(body.category, body.strategy)
+        let strategyColumnIndex = findStrategyColumn(headers)
+        if (strategyColumnIndex < 0) {
+          strategyColumnIndex = headers.length
+          await updateRows('target', `${sheetColumnName(strategyColumnIndex)}1`, [['配置思路']], { valueInputOption: 'RAW' })
+        }
+        const strategyColumn = sheetColumnName(strategyColumnIndex)
+        const matchingRows = (tResult.rawRows || [])
+          .map((row, index) => ({ category: normalizeTargetCategory(row?.[0]), rowNumber: index + 2 }))
+          .filter((row) => row.category === category)
+        if (matchingRows.length) {
+          await batchUpdateRows('target', matchingRows.map(({ rowNumber }) => ({ range: `${strategyColumn}${rowNumber}`, values: [[strategy]] })), { valueInputOption: 'RAW' })
+        } else {
+          const row = Array(strategyColumnIndex + 1).fill('')
+          row[0] = category
+          row[strategyColumnIndex] = strategy
+          await appendRows('target', [row], { valueInputOption: 'RAW' })
+        }
+        strategyMap.set(category, strategy)
+      } else {
+        const config = validateTargetConfig(body.targets)
+        const configMap = new Map(config.map((item) => [item.category, item]))
+        const targetColumnIndex = headers.findIndex((header) => /目标|比例/.test(String(header)))
+        if (targetColumnIndex < 0) return json(res, 409, { error: 'target 工作表缺少目标比例列' })
+        const targetColumn = sheetColumnName(targetColumnIndex)
+        const found = new Set()
+        const updates = []
 
-      for (let index = 0; index < (tResult.rawRows || []).length; index += 1) {
-        const category = normalizeTargetCategory(tResult.rawRows[index]?.[0])
-        const item = configMap.get(category)
-        if (!item) continue
-        found.add(category)
-        updates.push({ range: `${targetColumn}${index + 2}`, values: [[`${item.targetPercent}%`]] })
+        for (let index = 0; index < (tResult.rawRows || []).length; index += 1) {
+          const category = normalizeTargetCategory(tResult.rawRows[index]?.[0])
+          const item = configMap.get(category)
+          if (!item) continue
+          found.add(category)
+          updates.push({ range: `${targetColumn}${index + 2}`, values: [[`${item.targetPercent}%`]] })
+        }
+
+        const missingRows = config.filter((item) => !found.has(item.category)).map((item) => {
+          const row = Array(targetColumnIndex + 1).fill('')
+          row[0] = item.category
+          row[targetColumnIndex] = `${item.targetPercent}%`
+          return row
+        })
+        if (updates.length) await batchUpdateRows('target', updates)
+        if (missingRows.length) await appendRows('target', missingRows)
+        targetMap = new Map(config.map((item) => [item.category, item.targetRatio]))
       }
-
-      const missingRows = config.filter((item) => !found.has(item.category)).map((item) => {
-        const row = Array(targetColumnIndex + 1).fill('')
-        row[0] = item.category
-        row[targetColumnIndex] = `${item.targetPercent}%`
-        return row
-      })
-      if (updates.length) await batchUpdateRows('target', updates)
-      if (missingRows.length) await appendRows('target', missingRows)
-      targetMap = new Map(config.map((item) => [item.category, item.targetRatio]))
       invalidateAiDataCache('target')
     }
 
@@ -88,6 +120,7 @@ export default async function handler(req, res) {
       ok: true,
       target: buildTargetRows(hResult, targetMap),
       targetConfig: serializeTargetConfig(targetMap),
+      targetDetails: serializeTargetDetails(targetMap, strategyMap),
       syncedAt: new Date().toISOString(),
     })
   } catch (e) {

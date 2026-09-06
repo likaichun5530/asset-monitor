@@ -32,6 +32,10 @@ function targetConfigFromRows(rows = []) {
     .map((row) => ({ category: row.category === '债券' ? '债基' : row.category, targetPercent: Number(row.targetRatio) * 100 }))
 }
 
+function targetDetailsFromConfig(targetConfig = []) {
+  return targetConfig.map((item) => ({ ...item, strategy: item.strategy || '' }))
+}
+
 function readLocal(key, fallback) {
   try {
     const raw = localStorage.getItem(key)
@@ -265,7 +269,8 @@ export async function retryPendingSync() {
 
 export async function fetchTarget({ forceRefresh = false } = {}) {
   if (readLocal('youshu-demo-mode', false)) {
-    return publishTargetResult({ target: demoTarget, source: 'demo', syncedAt: null })
+    const targetConfig = targetConfigFromRows(demoTarget)
+    return publishTargetResult({ target: demoTarget, targetConfig, targetDetails: targetDetailsFromConfig(targetConfig), source: 'demo', syncedAt: null })
   }
 
   if (API_BASE) {
@@ -274,8 +279,9 @@ export async function fetchTarget({ forceRefresh = false } = {}) {
       if (data.target?.length) {
         const target = normalizeTarget(data.target)
         const targetConfig = data.targetConfig || targetConfigFromRows(target)
-        writeLocal('asset-monitor:target', { target, targetConfig, syncedAt: data.syncedAt })
-        return publishTargetResult({ target, targetConfig, source: 'online', syncedAt: data.syncedAt })
+        const targetDetails = data.targetDetails || targetDetailsFromConfig(targetConfig)
+        writeLocal('asset-monitor:target', { target, targetConfig, targetDetails, syncedAt: data.syncedAt })
+        return publishTargetResult({ target, targetConfig, targetDetails, source: 'online', syncedAt: data.syncedAt })
       }
     } catch { /* 使用缓存或本地计算 */ }
   }
@@ -284,14 +290,16 @@ export async function fetchTarget({ forceRefresh = false } = {}) {
   const cachedTarget = readLocal('asset-monitor:target', null)
   if (cachedTarget?.target?.length) {
     const target = normalizeTarget(cachedTarget.target)
-    return publishTargetResult({ target, targetConfig: cachedTarget.targetConfig || targetConfigFromRows(target), source: 'cache', syncedAt: cachedTarget.syncedAt })
+    const targetConfig = cachedTarget.targetConfig || targetConfigFromRows(target)
+    return publishTargetResult({ target, targetConfig, targetDetails: cachedTarget.targetDetails || targetDetailsFromConfig(targetConfig), source: 'cache', syncedAt: cachedTarget.syncedAt })
   }
 
   // 回退：从已加载的 holdings 本地计算
   try {
     const h = await fetchHoldings()
     const target = computeTargetLocal(h.holdings)
-    return publishTargetResult({ target, targetConfig: targetConfigFromRows(target), source: h.source, syncedAt: h.syncedAt })
+    const targetConfig = targetConfigFromRows(target)
+    return publishTargetResult({ target, targetConfig, targetDetails: targetDetailsFromConfig(targetConfig), source: h.source, syncedAt: h.syncedAt })
   } catch {
     return publishTargetResult({ target: [], source: 'empty', syncedAt: null })
   }
@@ -307,8 +315,24 @@ export async function saveTargetConfig(targets) {
   })
   const target = normalizeTarget(data.target || [])
   const targetConfig = data.targetConfig || targetConfigFromRows(target)
-  writeLocal('asset-monitor:target', { target, targetConfig, syncedAt: data.syncedAt })
-  return publishTargetResult({ target, targetConfig, source: 'online', syncedAt: data.syncedAt })
+  const targetDetails = data.targetDetails || targetDetailsFromConfig(targetConfig)
+  writeLocal('asset-monitor:target', { target, targetConfig, targetDetails, syncedAt: data.syncedAt })
+  return publishTargetResult({ target, targetConfig, targetDetails, source: 'online', syncedAt: data.syncedAt })
+}
+
+export async function saveTargetStrategy(category, strategy) {
+  if (readLocal('youshu-demo-mode', false)) throw new Error('演示模式不能修改实盘目标')
+  const data = await requestApiJson('target', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'strategy', category, strategy }),
+    timeoutMs: 15000,
+  })
+  const target = normalizeTarget(data.target || [])
+  const targetConfig = data.targetConfig || targetConfigFromRows(target)
+  const targetDetails = data.targetDetails || targetDetailsFromConfig(targetConfig)
+  writeLocal('asset-monitor:target', { target, targetConfig, targetDetails, syncedAt: data.syncedAt })
+  return publishTargetResult({ target, targetConfig, targetDetails, source: 'online', syncedAt: data.syncedAt })
 }
 
 function normalizeTarget(rows) {

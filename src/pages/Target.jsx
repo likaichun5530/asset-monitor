@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
 import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange } from '../utils/targetAllocation.js'
 import TargetConfigDialog from '../components/TargetConfigDialog.jsx'
+import TargetDetailDialog from '../components/TargetDetailDialog.jsx'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -16,11 +16,6 @@ const colorMap = {
   债基: assetColors.债基,
   期货: assetColors.期货,
   现金: assetColors.现金,
-}
-
-const CATEGORY_ROUTE = {
-  '美股': '/us', 'A股': '/cn', '港股': '/hk', '日股': '/jp',
-  '债基': '/bond', '虚拟币': '/crypto', '期货': '/future', '黄金': '/gold', '现金': '/cash',
 }
 
 const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
@@ -54,7 +49,6 @@ function getRangeRuleLabel(targetRatio) {
 }
 
 export default function Target({ refreshKey = 0 }) {
-  const navigate = useNavigate()
   const [data, setData] = useState(() => {
     // 优先读缓存，实现即时渲染
     try {
@@ -68,7 +62,11 @@ export default function Target({ refreshKey = 0 }) {
   const [targetConfig, setTargetConfig] = useState(() => {
     try { return JSON.parse(localStorage.getItem('asset-monitor:target') || 'null')?.targetConfig || [] } catch { return [] }
   })
+  const [targetDetails, setTargetDetails] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('asset-monitor:target') || 'null')?.targetDetails || [] } catch { return [] }
+  })
   const [showTargetEditor, setShowTargetEditor] = useState(false)
+  const [detailCategory, setDetailCategory] = useState(null)
   const previousRefreshKeyRef = useRef(refreshKey)
 
   useEffect(() => {
@@ -83,6 +81,7 @@ export default function Target({ refreshKey = 0 }) {
       const result = await fetchTarget({ forceRefresh })
       setData(result.target || [])
       setTargetConfig(result.targetConfig || [])
+      setTargetDetails(result.targetDetails || [])
     } catch (e) {
       setError('无法加载配置目标: ' + (e?.message || String(e)))
     } finally {
@@ -123,6 +122,15 @@ export default function Target({ refreshKey = 0 }) {
   function handleTargetSaved(result) {
     setData(result.target || [])
     setTargetConfig(result.targetConfig || [])
+    setTargetDetails(result.targetDetails || [])
+  }
+
+  const detailRow = rows.find((row) => row.category === detailCategory) || null
+  const detailConfig = targetDetails.find((item) => item.category === detailCategory) || null
+
+  function editTargetFromDetail() {
+    setDetailCategory(null)
+    window.setTimeout(() => setShowTargetEditor(true), 120)
   }
 
   if (loading) {
@@ -289,7 +297,7 @@ export default function Target({ refreshKey = 0 }) {
                 const progressColor = isOver ? '#ef4444' : isUnder ? '#10b981' : color
 
                 return (
-                    <tr key={idx} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
+                    <tr key={idx} className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50" onClick={() => setDetailCategory(r.category)}>
                       <td className="py-2.5 px-6">
                       <span className="inline-flex items-center gap-1.5">
                         <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: color }} />
@@ -371,7 +379,7 @@ export default function Target({ refreshKey = 0 }) {
             const statusLabel = isOver ? '超出范围' : isUnder ? '低于范围' : hasTarget ? '范围合理' : '未设目标'
             const statusClass = isOver ? 'text-red-500' : isUnder ? 'text-green-600' : hasTarget ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
             return (
-              <button key={idx} type="button" className="target-allocation-card w-full rounded-xl border border-gray-100 bg-white px-3.5 pb-3 pt-3.5 text-left transition-transform active:scale-[0.99] dark:border-gray-700 dark:bg-gray-800" onClick={() => { const route = CATEGORY_ROUTE[r.category]; if (route) navigate(route) }}>
+              <button key={idx} type="button" className="target-allocation-card w-full rounded-xl border border-gray-100 bg-white px-3.5 pb-3 pt-3.5 text-left transition-transform active:scale-[0.99] dark:border-gray-700 dark:bg-gray-800" onClick={() => setDetailCategory(r.category)}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-[3px]" style={{ backgroundColor: color }} />
@@ -440,6 +448,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </div>
       <TargetConfigDialog open={showTargetEditor} targets={targetConfig} onClose={() => setShowTargetEditor(false)} onSaved={handleTargetSaved} />
+      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} totalMarketValue={totalRow?.marketValue} onClose={() => setDetailCategory(null)} onEditTarget={editTargetFromDetail} onSaved={handleTargetSaved} />
     </div>
   )
 }

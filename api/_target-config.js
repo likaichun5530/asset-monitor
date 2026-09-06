@@ -45,6 +45,37 @@ export function serializeTargetConfig(targetMap) {
   }))
 }
 
+export function validateTargetStrategy(categoryValue, strategyValue) {
+  const category = normalizeTargetCategory(categoryValue)
+  if (!TARGET_CATEGORIES.includes(category)) throw inputError(`不支持的资产类别：${category || '空'}`)
+  const strategy = String(strategyValue ?? '').trim()
+  if (strategy.length > 2000) throw inputError('配置思路不能超过 2000 个字符')
+  return { category, strategy }
+}
+
+export function findStrategyColumn(headers = []) {
+  return headers.findIndex((header) => /配置思路|配置说明|投资思路|配置备注/.test(String(header)))
+}
+
+export function parseTargetStrategies(result) {
+  const strategies = new Map()
+  if (!result?.headers?.length) return strategies
+  const strategyColumnIndex = findStrategyColumn(result.headers)
+  if (strategyColumnIndex < 0) return strategies
+  for (const row of result.rawRows || []) {
+    const category = normalizeTargetCategory(row?.[0])
+    if (TARGET_CATEGORIES.includes(category)) strategies.set(category, String(row?.[strategyColumnIndex] || '').trim())
+  }
+  return strategies
+}
+
+export function serializeTargetDetails(targetMap, strategyMap = new Map()) {
+  return serializeTargetConfig(targetMap).map((item) => ({
+    ...item,
+    strategy: strategyMap.get(item.category) || '',
+  }))
+}
+
 export function sheetColumnName(index) {
   if (!Number.isInteger(index) || index < 0) throw new Error('工作表列索引无效')
   let value = index + 1
