@@ -4,6 +4,7 @@ import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
 import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange } from '../utils/targetAllocation.js'
+import TargetConfigDialog from '../components/TargetConfigDialog.jsx'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -64,6 +65,10 @@ export default function Target({ refreshKey = 0 }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [targetConfig, setTargetConfig] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('asset-monitor:target') || 'null')?.targetConfig || [] } catch { return [] }
+  })
+  const [showTargetEditor, setShowTargetEditor] = useState(false)
   const previousRefreshKeyRef = useRef(refreshKey)
 
   useEffect(() => {
@@ -77,6 +82,7 @@ export default function Target({ refreshKey = 0 }) {
     try {
       const result = await fetchTarget({ forceRefresh })
       setData(result.target || [])
+      setTargetConfig(result.targetConfig || [])
     } catch (e) {
       setError('无法加载配置目标: ' + (e?.message || String(e)))
     } finally {
@@ -112,6 +118,12 @@ export default function Target({ refreshKey = 0 }) {
     Number(totalRow?.marketValue),
     Number(row.targetRatio),
   ) || 0)
+  const demoMode = (() => { try { return localStorage.getItem('youshu-demo-mode') === 'true' } catch { return false } })()
+
+  function handleTargetSaved(result) {
+    setData(result.target || [])
+    setTargetConfig(result.targetConfig || [])
+  }
 
   if (loading) {
     return (
@@ -238,13 +250,13 @@ export default function Target({ refreshKey = 0 }) {
             <h2 className="desktop-section-title">目标配置明细</h2>
             <p className="desktop-section-subtitle">点击类别可查看对应资产详情</p>
           </div>
-          <button
-            onClick={loadData}
-            className="desktop-secondary-button h-9"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
-            刷新数据
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowTargetEditor(true)} disabled={demoMode} className="h-9 rounded-lg bg-brand-600 px-3.5 text-sm font-medium text-white transition-all active:scale-95 disabled:opacity-40">调整目标</button>
+            <button onClick={loadData} className="desktop-secondary-button h-9">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
+              刷新数据
+            </button>
+          </div>
         </div>
 
         {/* 桌面端表格 */}
@@ -334,7 +346,10 @@ export default function Target({ refreshKey = 0 }) {
               <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">配置明细</h2>
               <p className="mt-0.5 text-[11px] text-gray-400">优先显示需要调整的类别</p>
             </div>
-            <span className="text-[11px] text-gray-400">共 {rows.length} 项</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-400">共 {rows.length} 项</span>
+              <button type="button" onClick={() => setShowTargetEditor(true)} disabled={demoMode} className="h-8 rounded-lg bg-brand-600 px-3 text-xs font-medium text-white transition-all active:scale-95 disabled:opacity-40">调整目标</button>
+            </div>
           </div>
           <div className="space-y-2">
           {rows.map((r, idx) => {
@@ -424,6 +439,7 @@ export default function Target({ refreshKey = 0 }) {
           </div>
         </div>
       </div>
+      <TargetConfigDialog open={showTargetEditor} targets={targetConfig} onClose={() => setShowTargetEditor(false)} onSaved={handleTargetSaved} />
     </div>
   )
 }

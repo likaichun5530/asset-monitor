@@ -1,8 +1,37 @@
 // Vercel Function: GET /api/target
-import { isConfigured, readSheet } from './_google.js'
+import { appendRows, batchUpdateRows, isConfigured, readSheet } from './_google.js'
 import { requireAuth } from './_auth.js'
-import { setPrivateResponseHeaders } from './_http.js'
+import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { aggregateHoldingsByCategory, calculateAllocations, parseTargetMap } from './_allocation.js'
+import { invalidateAiDataCache } from './_ai-data-cache.js'
+import { normalizeTargetCategory, serializeTargetConfig, sheetColumnName, validateTargetConfig } from './_target-config.js'
+
+function json(res, status, body) {
+  res.writeHead(status, { 'Content-Type': 'application/json' })
+  return res.end(JSON.stringify(body))
+}
+
+function buildTargetRows(holdingsResult, targetMap) {
+  const { categoryTotals, total: totalCNY } = aggregateHoldingsByCategory(holdingsResult.data || [])
+  const result = calculateAllocations(categoryTotals, totalCNY, targetMap).map((row) => ({
+    category: row.category,
+    marketValue: Math.round(row.marketValue * 100) / 100,
+    currentRatio: row.currentRatio,
+    targetRatio: row.targetRatio,
+    diff: row.difference,
+    isTotal: false,
+  }))
+  const totalTarget = Array.from(targetMap.values()).reduce((sum, value) => sum + value, 0)
+  result.push({
+    category: '合计',
+    marketValue: Math.round(totalCNY * 100) / 100,
+    currentRatio: 1,
+    targetRatio: totalTarget > 0 ? totalTarget : null,
+    diff: null,
+    isTotal: true,
+  })
+  return result
+}
 
 export default async function handler(req, res) {
   setPrivateResponseHeaders(res)
@@ -10,52 +39,58 @@ export default async function handler(req, res) {
     res.writeHead(204)
     return res.end()
   }
-  if (req.method !== 'GET') {
-    res.writeHead(405, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: 'Method not allowed' }))
-  }
+  if (!['GET', 'PUT'].includes(req.method)) return json(res, 405, { error: 'Method not allowed' })
 
   try {
     await requireAuth(req)
     if (!isConfigured()) {
-      res.writeHead(503, { 'Content-Type': 'application/json' })
-      return res.end(JSON.stringify({ error: 'Google Sheets 未配置' }))
+      return json(res, 503, { error: 'Google Sheets 未配置' })
     }
-    // 并行读取 Holdings 和 target 表
     const [hResult, tResult] = await Promise.all([
       readSheet('Holdings'),
-      readSheet('target').catch(() => null),
+      req.method === 'PUT' ? readSheet('target') : readSheet('target').catch(() => null),
     ])
-    const { categoryTotals, total: totalCNY } = aggregateHoldingsByCategory(hResult.data || [])
-    const targetMap = parseTargetMap(tResult)
+    let targetMap = parseTargetMap(tResult)
 
-    // 3. 合并
-    const result = calculateAllocations(categoryTotals, totalCNY, targetMap).map((row) => ({
-      category: row.category,
-      marketValue: Math.round(row.marketValue * 100) / 100,
-      currentRatio: row.currentRatio,
-      targetRatio: row.targetRatio,
-      diff: row.difference,
-      isTotal: false,
-    }))
+    if (req.method === 'PUT') {
+      if (!tResult?.headers?.length) return json(res, 409, { error: 'target 工作表缺少表头' })
+      const body = await readJsonBody(req)
+      const config = validateTargetConfig(body.targets)
+      const configMap = new Map(config.map((item) => [item.category, item]))
+      const headers = tResult.headers
+      const targetColumnIndex = headers.findIndex((header) => /目标|比例/.test(String(header)))
+      if (targetColumnIndex < 0) return json(res, 409, { error: 'target 工作表缺少目标比例列' })
+      const targetColumn = sheetColumnName(targetColumnIndex)
+      const found = new Set()
+      const updates = []
 
-    const totalTarget = Array.from(targetMap.values()).reduce((s, v) => s + v, 0)
-    result.push({
-      category: '合计',
-      marketValue: Math.round(totalCNY * 100) / 100,
-      currentRatio: 1,
-      targetRatio: totalTarget > 0 ? totalTarget : null,
-      diff: null,
-      isTotal: true,
-    })
+      for (let index = 0; index < (tResult.rawRows || []).length; index += 1) {
+        const category = normalizeTargetCategory(tResult.rawRows[index]?.[0])
+        const item = configMap.get(category)
+        if (!item) continue
+        found.add(category)
+        updates.push({ range: `${targetColumn}${index + 2}`, values: [[`${item.targetPercent}%`]] })
+      }
 
-    res.writeHead(200, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({
-      target: result,
+      const missingRows = config.filter((item) => !found.has(item.category)).map((item) => {
+        const row = Array(targetColumnIndex + 1).fill('')
+        row[0] = item.category
+        row[targetColumnIndex] = `${item.targetPercent}%`
+        return row
+      })
+      if (updates.length) await batchUpdateRows('target', updates)
+      if (missingRows.length) await appendRows('target', missingRows)
+      targetMap = new Map(config.map((item) => [item.category, item.targetRatio]))
+      invalidateAiDataCache('target')
+    }
+
+    return json(res, 200, {
+      ok: true,
+      target: buildTargetRows(hResult, targetMap),
+      targetConfig: serializeTargetConfig(targetMap),
       syncedAt: new Date().toISOString(),
-    }))
+    })
   } catch (e) {
-    res.writeHead(e.statusCode || 500, { 'Content-Type': 'application/json' })
-    return res.end(JSON.stringify({ error: e.statusCode ? e.message : '目标配置读取失败' }))
+    return json(res, e.statusCode || 500, { error: e.statusCode ? e.message : req.method === 'PUT' ? '目标配置保存失败' : '目标配置读取失败' })
   }
 }

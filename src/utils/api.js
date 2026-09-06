@@ -17,6 +17,7 @@ const MUTATION_INVALIDATIONS = Object.freeze({
   holdings: ['holdings', 'target'],
   snapshot: ['history'],
   history: ['history'],
+  target: ['target'],
 })
 
 export const AUTH_STORAGE_KEY = 'youshu-auth-token'
