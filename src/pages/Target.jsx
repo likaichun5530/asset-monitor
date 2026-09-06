@@ -5,6 +5,7 @@ import { fetchTarget, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
 import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange, getTargetTrackPositions } from '../utils/targetAllocation.js'
 import TargetConfigDialog from '../components/TargetConfigDialog.jsx'
 import TargetDetailDialog from '../components/TargetDetailDialog.jsx'
+import TargetDetailConfigDialog from '../components/TargetDetailConfigDialog.jsx'
 
 const colorMap = {
   美股: assetColors.美股,
@@ -46,6 +47,7 @@ export default function Target({ refreshKey = 0 }) {
   })
   const [showTargetEditor, setShowTargetEditor] = useState(false)
   const [detailCategory, setDetailCategory] = useState(null)
+  const [editDetailCategory, setEditDetailCategory] = useState(null)
   const previousRefreshKeyRef = useRef(refreshKey)
 
   useEffect(() => {
@@ -106,10 +108,13 @@ export default function Target({ refreshKey = 0 }) {
 
   const detailRow = rows.find((row) => row.category === detailCategory) || null
   const detailConfig = targetDetails.find((item) => item.category === detailCategory) || null
+  const editDetailRow = rows.find((row) => row.category === editDetailCategory) || null
+  const editDetailConfig = targetDetails.find((item) => item.category === editDetailCategory) || null
 
-  function editTargetFromDetail() {
+  function editDetailFromDetail() {
+    const category = detailCategory
     setDetailCategory(null)
-    window.setTimeout(() => setShowTargetEditor(true), 120)
+    window.setTimeout(() => setEditDetailCategory(category), 120)
   }
 
   if (loading) {
@@ -427,7 +432,8 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </div>
       <TargetConfigDialog open={showTargetEditor} targets={targetConfig} onClose={() => setShowTargetEditor(false)} onSaved={handleTargetSaved} />
-      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} totalMarketValue={totalRow?.marketValue} onClose={() => setDetailCategory(null)} onEditTarget={editTargetFromDetail} onSaved={handleTargetSaved} />
+      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} totalMarketValue={totalRow?.marketValue} onClose={() => setDetailCategory(null)} onEdit={editDetailFromDetail} />
+      <TargetDetailConfigDialog open={Boolean(editDetailRow)} row={editDetailRow} detail={editDetailConfig} onClose={() => setEditDetailCategory(null)} onSaved={handleTargetSaved} />
     </div>
   )
 }

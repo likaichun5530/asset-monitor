@@ -165,11 +165,14 @@ export default async function handler(req, res) {
         await updateRows('target', `${strategyColumn}${matchingRows.rowNumber}`, [[strategy]], { valueInputOption: 'RAW' })
       } else if (body.action === 'detail-targets') {
         const validated = validateTargetGroup(body.category, body.targets, tResult)
+        const nameColumn = sheetColumnName(validated.group.nameColumnIndex)
         const targetColumn = sheetColumnName(validated.group.targetColumnIndex)
-        await batchUpdateRows('target', validated.items.map((item) => ({
-          range: `${targetColumn}${item.rowNumber}`,
-          values: [[`${item.targetPercent}%`]],
-        })))
+        const values = validated.items.map((item) => [item.name, `${item.targetPercent}%`])
+        if (validated.group.totalRowNumber) values.push(['合计', `${validated.totalPercent}%`])
+        const newLastRowNumber = Math.max(1 + values.length, 2)
+        const clearThroughRow = Math.max(validated.group.lastUsedRowNumber, newLastRowNumber)
+        while (values.length < clearThroughRow - 1) values.push(['', ''])
+        await updateRows('target', `${nameColumn}2:${targetColumn}${clearThroughRow}`, values)
       } else {
         const config = validateTargetConfig(body.targets)
         const configMap = new Map(config.map((item) => [item.category, item]))
