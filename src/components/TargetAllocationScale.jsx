@@ -9,8 +9,8 @@ function getRangeRuleLabel(targetRatio) {
 }
 
 export function getTargetCardTone(status) {
-  if (status === 'over') return 'bg-gradient-to-b from-red-100/90 via-red-50/60 to-red-50/25 dark:from-red-500/[0.20] dark:via-red-500/[0.10] dark:to-red-500/[0.04]'
-  if (status === 'under') return 'bg-gradient-to-b from-green-100/90 via-green-50/60 to-green-50/25 dark:from-green-500/[0.20] dark:via-green-500/[0.10] dark:to-green-500/[0.04]'
+  if (status === 'over') return 'bg-gradient-to-b from-red-100/90 via-red-50/45 to-white dark:from-red-500/[0.20] dark:via-red-500/[0.08] dark:to-gray-800'
+  if (status === 'under') return 'bg-gradient-to-b from-green-100/90 via-green-50/45 to-white dark:from-green-500/[0.20] dark:via-green-500/[0.08] dark:to-gray-800'
   return 'bg-white dark:bg-gray-800'
 }
 
@@ -35,7 +35,7 @@ export default function TargetAllocationScale({ currentRatio, targetRatio, diff,
         <span className="absolute left-1/2 top-0 -translate-x-1/2 text-[10px] font-semibold text-gray-700 dark:text-gray-200">目标</span>
         <span className="absolute right-0 top-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">超配</span>
         <div className="absolute inset-x-0 top-[30px] h-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
-        <div className="absolute top-[23px] h-[15px] rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-100/70 dark:bg-emerald-500/10 dark:ring-emerald-400/10" style={{ left: `${track.rangeStart}%`, width: `${Math.max(track.rangeEnd - track.rangeStart, 1)}%` }} aria-label="合理区间" />
+        <div className="absolute top-[23px] h-[15px] rounded-md bg-blue-100/95 ring-1 ring-inset ring-blue-300/80 dark:bg-blue-400/20 dark:ring-blue-300/35" style={{ left: `${track.rangeStart}%`, width: `${Math.max(track.rangeEnd - track.rangeStart, 1)}%` }} aria-label="合理区间" />
         <div className="absolute top-[17px] h-7 w-px -translate-x-1/2 bg-gray-800 dark:bg-gray-100" style={{ left: `${track.targetPosition}%` }} aria-label="目标中心位置" />
         <div className="absolute top-[30px] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-sm transition-all dark:border-gray-800" style={{ left: `${track.currentPosition}%`, backgroundColor: pointColor }} aria-label={`当前配置 ${percent(currentRatio)}`} />
         <span className="absolute top-[44px] -translate-x-1/2 whitespace-nowrap text-[9px] font-medium" style={{ left: `${Math.min(96, Math.max(4, track.currentPosition))}%`, color: pointColor }}>当前</span>

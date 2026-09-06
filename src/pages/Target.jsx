@@ -109,13 +109,13 @@ export default function Target({ refreshKey = 0 }) {
   function editDetailFromDetail() {
     const category = detailCategory
     setDetailCategory(null)
-    window.setTimeout(() => setEditDetailCategory(category), 120)
+    window.setTimeout(() => setEditDetailCategory(category), 0)
   }
 
   function returnToDetail() {
     const category = editDetailCategory
     setEditDetailCategory(null)
-    if (category) window.setTimeout(() => setDetailCategory(category), 120)
+    if (category) window.setTimeout(() => setDetailCategory(category), 0)
   }
 
   function handleDetailTargetSaved(result) {
@@ -298,7 +298,7 @@ export default function Target({ refreshKey = 0 }) {
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       <div>{(r.currentRatio * 100).toFixed(2)}%</div>
                       <div className="relative ml-auto mt-2 h-2 w-32 rounded-full bg-slate-100 dark:bg-gray-700">
-                        {rangeStart !== null && rangeEnd !== null && <span className="absolute inset-y-0 rounded-full bg-emerald-200 dark:bg-emerald-500/40" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} />}
+                        {rangeStart !== null && rangeEnd !== null && <span className="absolute inset-y-0 rounded-full bg-blue-100 ring-1 ring-inset ring-blue-300/80 dark:bg-blue-400/25 dark:ring-blue-300/35" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} />}
                         {targetPosition !== null && <span className="absolute -top-1 h-4 w-0.5 rounded-full bg-slate-700 dark:bg-white" style={{ left: `${targetPosition}%` }} />}
                         <span className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} />
                       </div>
@@ -345,7 +345,6 @@ export default function Target({ refreshKey = 0 }) {
               <p className="mt-0.5 text-[11px] text-gray-400">优先显示需要调整的类别</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-gray-400">共 {rows.length} 项</span>
               <TargetEditButton onClick={() => setShowTargetEditor(true)} disabled={demoMode} />
             </div>
           </div>
