@@ -120,6 +120,8 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   assert.match(page, /<TargetDetailDialog/)
   assert.doesNotMatch(page, /getRangeTrackPositions/)
   assert.match(detailDialog, /配置符合度/)
+  assert.match(detailDialog, /当前细分配置合理/)
+  assert.doesNotMatch(detailDialog, /大类配置符合度/)
   assert.match(detailDialog, /调整细分目标/)
   assert.doesNotMatch(detailDialog, /调整大类目标/)
   assert.match(detailConfigDialog, /saveTargetStrategy/)

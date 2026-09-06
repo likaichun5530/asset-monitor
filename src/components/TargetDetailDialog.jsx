@@ -1,5 +1,4 @@
-import { formatCurrency } from '../utils/format.js'
-import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange, getTargetTrackPositions } from '../utils/targetAllocation.js'
+import { getTargetAllocationStatus, getTargetAllowedRange, getTargetTrackPositions } from '../utils/targetAllocation.js'
 import AppDialog from './AppDialog.jsx'
 
 function percent(value, digits = 1) {
@@ -14,27 +13,38 @@ function statusPresentation(currentRatio, targetRatio) {
   return { label: '未设目标', className: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' }
 }
 
-export default function TargetDetailDialog({ open, row, detail, totalMarketValue, onClose, onEdit }) {
+export default function TargetDetailDialog({ open, row, detail, onClose, onEdit }) {
   if (!row) return null
   const allocation = detail?.allocation || null
-  const topStatus = statusPresentation(row.currentRatio, row.targetRatio)
-  const allowedRange = getTargetAllowedRange(row.targetRatio)
-  const difference = Number.isFinite(Number(row.diff)) ? Number(row.diff) : null
-  const adjustment = Math.abs(getTargetAdjustmentAmount(Number(row.marketValue), Number(totalMarketValue), Number(row.targetRatio)) || 0)
+  const detailItems = allocation?.items || []
+  const overItems = detailItems.filter((item) => getTargetAllocationStatus(item.currentRatio, item.targetRatio).status === 'over')
+  const underItems = detailItems.filter((item) => getTargetAllocationStatus(item.currentRatio, item.targetRatio).status === 'under')
+  const balancedItems = detailItems.filter((item) => getTargetAllocationStatus(item.currentRatio, item.targetRatio).status === 'balanced')
+  const unsetItems = detailItems.filter((item) => item.targetRatio === null)
+  const attentionItems = [...overItems, ...underItems, ...unsetItems]
+  const isDetailBalanced = Boolean(allocation) && detailItems.length > 0 && attentionItems.length === 0
 
   return (
     <AppDialog open={open} onClose={onClose} title={`${row.category}配置详情`} description={allocation ? `查看${row.category}内部配置目标与符合度` : `查看${row.category}目标与配置思路`} ariaLabel={`${row.category}配置详情`} maxWidth="sm:max-w-xl">
       <div className="space-y-4">
         <section className="rounded-xl border border-gray-100 p-3.5 dark:border-gray-700">
-          <div className="text-xs text-gray-400">大类配置符合度</div>
-          <div className={`mt-1 flex items-center gap-1.5 text-base font-semibold ${topStatus.className}`}><span className={`h-1.5 w-1.5 rounded-full ${topStatus.dot}`} />{topStatus.label}</div>
-          <div className="mt-3 grid grid-cols-3 border-t border-gray-100 pt-3 text-center dark:border-gray-700">
-            <div className="border-r border-gray-100 dark:border-gray-700"><div className="text-[11px] text-gray-400">当前配置</div><div className="font-num mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{percent(row.currentRatio)}</div></div>
-            <div className="border-r border-gray-100 dark:border-gray-700"><div className="text-[11px] text-gray-400">计划目标</div><div className="font-num mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{percent(row.targetRatio)}</div></div>
-            <div><div className="text-[11px] text-gray-400">目标偏差</div><div className={`font-num mt-1 text-sm font-medium ${topStatus.className}`}>{difference === null ? '—' : `${difference > 0 ? '+' : ''}${(difference * 100).toFixed(1)}%`}</div></div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs text-gray-400">细分配置符合度</div>
+              <div className={`mt-1 text-base font-semibold leading-6 ${isDetailBalanced ? 'text-emerald-600 dark:text-emerald-400' : allocation ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                {!allocation ? '未设置细分目标' : isDetailBalanced ? '当前细分配置合理' : attentionItems.length ? `${attentionItems.map((item) => item.name).join('、')}需要关注` : '暂无细分配置数据'}
+              </div>
+            </div>
+            {allocation && <div className={`flex h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-xl border ${attentionItems.length ? 'border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400' : 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400'}`}><span className="font-num text-lg font-semibold leading-none">{attentionItems.length}</span><span className="mt-0.5 text-[9px] leading-none">需关注</span></div>}
           </div>
-          {allowedRange && <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-700/40 dark:text-gray-300">合理区间：{percent(allowedRange.lower)}～{percent(allowedRange.upper)}</div>}
-          {(topStatus.label === '超出范围' || topStatus.label === '低于范围') && <div className={`mt-2 text-xs ${topStatus.className}`}>{topStatus.label === '超出范围' ? '建议减少' : '建议增加'} {formatCurrency(adjustment, { decimals: 0 })}</div>}
+          {allocation && (
+            <div className="mt-3 grid grid-cols-4 rounded-xl bg-gray-50 py-2.5 text-center dark:bg-gray-700/35">
+              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-red-500">{overItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">超出范围</div></div>
+              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-green-600">{underItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">低于范围</div></div>
+              <div className="border-r border-gray-100 dark:border-gray-700"><div className="font-num text-sm font-semibold text-gray-700 dark:text-gray-200">{balancedItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">范围合理</div></div>
+              <div><div className="font-num text-sm font-semibold text-amber-500">{unsetItems.length}</div><div className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">未设目标</div></div>
+            </div>
+          )}
         </section>
 
         {allocation ? (
@@ -44,7 +54,7 @@ export default function TargetDetailDialog({ open, row, detail, totalMarketValue
               <button type="button" onClick={onEdit} className="h-8 shrink-0 rounded-lg border border-brand-200 bg-brand-50 px-3 text-xs font-medium text-brand-600 transition-transform active:scale-95 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400">调整细分目标</button>
             </div>
             <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
-              {(allocation.items || []).map((item, index) => {
+              {detailItems.map((item, index) => {
                 const itemStatus = statusPresentation(item.currentRatio, item.targetRatio)
                 const itemRange = item.targetRatio !== null ? getTargetAllowedRange(item.targetRatio) : null
                 const track = getTargetTrackPositions(item.currentRatio, item.targetRatio, itemRange, 18)

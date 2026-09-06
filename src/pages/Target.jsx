@@ -432,7 +432,7 @@ export default function Target({ refreshKey = 0 }) {
         </div>
       </div>
       <TargetConfigDialog open={showTargetEditor} targets={targetConfig} onClose={() => setShowTargetEditor(false)} onSaved={handleTargetSaved} />
-      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} totalMarketValue={totalRow?.marketValue} onClose={() => setDetailCategory(null)} onEdit={editDetailFromDetail} />
+      <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} onClose={() => setDetailCategory(null)} onEdit={editDetailFromDetail} />
       <TargetDetailConfigDialog open={Boolean(editDetailRow)} row={editDetailRow} detail={editDetailConfig} onClose={() => setEditDetailCategory(null)} onSaved={handleTargetSaved} />
     </div>
   )
