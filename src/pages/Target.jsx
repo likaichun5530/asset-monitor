@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { assetColors } from '../data/holdings.js'
 import { formatCurrency, formatWan } from '../utils/format.js'
 import { fetchTarget, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
-import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange } from '../utils/targetAllocation.js'
+import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange, getTargetTrackPositions } from '../utils/targetAllocation.js'
 import TargetConfigDialog from '../components/TargetConfigDialog.jsx'
 import TargetDetailDialog from '../components/TargetDetailDialog.jsx'
 
@@ -19,27 +19,6 @@ const colorMap = {
 }
 
 const STATUS_PRIORITY = { over: 0, under: 1, balanced: 2, unset: 3 }
-
-// 目标始终位于中心，合理区间映射到中心两侧的等距位置。
-// 这是“偏离目标”的语义尺，不是各资产绝对占比的横轴。
-function getRangeTrackPositions(currentRatio, targetRatio, allowedRange, rangeHalfWidth = 25) {
-  if (!allowedRange) return null
-  const rangeStart = 50 - rangeHalfWidth
-  const rangeEnd = 50 + rangeHalfWidth
-  const current = Number.isFinite(currentRatio) ? currentRatio : 0
-  const target = Number.isFinite(targetRatio) ? targetRatio : allowedRange.lower
-  const lowerTolerance = Math.max(target - allowedRange.lower, 0.0001)
-  const upperTolerance = Math.max(allowedRange.upper - target, 0.0001)
-  const relativePosition = current <= target
-    ? 50 - ((target - current) / lowerTolerance) * rangeHalfWidth
-    : 50 + ((current - target) / upperTolerance) * rangeHalfWidth
-  return {
-    rangeStart,
-    rangeEnd,
-    currentPosition: Math.min(98.5, Math.max(1.5, relativePosition)),
-    targetPosition: 50,
-  }
-}
 
 function getRangeRuleLabel(targetRatio) {
   if (!Number.isFinite(targetRatio)) return ''
@@ -368,7 +347,7 @@ export default function Target({ refreshKey = 0 }) {
             const isOver = status === 'over'
             const isUnder = status === 'under'
             const allowedRange = hasTarget ? getTargetAllowedRange(r.targetRatio) : null
-            const track = getRangeTrackPositions(r.currentRatio, r.targetRatio, allowedRange, 18)
+            const track = getTargetTrackPositions(r.currentRatio, r.targetRatio, allowedRange, 18)
             const currentPosition = track?.currentPosition ?? 0
             const targetPosition = track?.targetPosition ?? null
             const rangeStart = track?.rangeStart ?? null

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { formatCurrency } from '../utils/format.js'
 import { saveTargetDetailTargets, saveTargetStrategy } from '../utils/dataStore.js'
-import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange } from '../utils/targetAllocation.js'
+import { getTargetAdjustmentAmount, getTargetAllocationStatus, getTargetAllowedRange, getTargetTrackPositions } from '../utils/targetAllocation.js'
 import AppDialog from './AppDialog.jsx'
 
 function percent(value, digits = 1) {
@@ -139,6 +139,9 @@ export default function TargetDetailDialog({ open, row, detail, totalMarketValue
             <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
               {(allocation.items || []).map((item, index) => {
                 const itemStatus = statusPresentation(item.currentRatio, item.targetRatio)
+                const itemRange = item.targetRatio !== null ? getTargetAllowedRange(item.targetRatio) : null
+                const track = getTargetTrackPositions(item.currentRatio, item.targetRatio, itemRange, 18)
+                const trackColor = itemStatus.label === '超出范围' ? '#ef4444' : itemStatus.label === '低于范围' ? '#10b981' : '#3b82f6'
                 return (
                   <div key={item.name} className={`px-3.5 py-3 ${index ? 'border-t border-gray-100 dark:border-gray-700' : ''}`}>
                     <div className="flex items-center justify-between gap-3">
@@ -154,11 +157,27 @@ export default function TargetDetailDialog({ open, row, detail, totalMarketValue
                         </label>
                       ) : <span className="shrink-0 text-xs text-gray-400">请先在 target 表添加</span>}
                     </div>
-                    <div className="mt-2 grid grid-cols-3 rounded-lg bg-gray-50 px-2 py-2 text-center dark:bg-gray-700/35">
-                      <div><div className="text-[10px] text-gray-400">当前</div><div className="font-num mt-0.5 text-xs font-medium text-gray-700 dark:text-gray-200">{percent(item.currentRatio)}</div></div>
-                      <div><div className="text-[10px] text-gray-400">目标</div><div className="font-num mt-0.5 text-xs font-medium text-gray-700 dark:text-gray-200">{percent(item.targetRatio)}</div></div>
-                      <div><div className="text-[10px] text-gray-400">偏差</div><div className={`font-num mt-0.5 text-xs font-medium ${itemStatus.className}`}>{item.diff === null ? '—' : `${item.diff > 0 ? '+' : ''}${(item.diff * 100).toFixed(1)}%`}</div></div>
-                    </div>
+                    {track ? (
+                      <div className="mt-2.5 px-0.5">
+                        <div className="relative h-[68px]" aria-label={`${item.name}偏离目标范围尺：当前 ${percent(item.currentRatio)}，目标 ${percent(item.targetRatio)}，合理区间 ${percent(itemRange.lower)} 至 ${percent(itemRange.upper)}`}>
+                          <span className="absolute left-0 top-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">低配</span>
+                          <span className="absolute left-1/2 top-0 -translate-x-1/2 text-[10px] font-semibold text-gray-700 dark:text-gray-200">目标</span>
+                          <span className="absolute right-0 top-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">超配</span>
+                          <div className="absolute inset-x-0 top-[30px] h-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+                          <div className="absolute top-[23px] h-[15px] rounded-md bg-emerald-50 ring-1 ring-inset ring-emerald-100/70 dark:bg-emerald-500/10 dark:ring-emerald-400/10" style={{ left: `${track.rangeStart}%`, width: `${Math.max(track.rangeEnd - track.rangeStart, 1)}%` }} aria-label="合理区间" />
+                          <div className="absolute top-[17px] h-7 w-px -translate-x-1/2 bg-gray-800 dark:bg-gray-100" style={{ left: `${track.targetPosition}%` }} aria-label="目标中心位置" />
+                          <div className="absolute top-[30px] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-sm dark:border-gray-800" style={{ left: `${track.currentPosition}%`, backgroundColor: trackColor }} aria-label={`当前配置 ${percent(item.currentRatio)}`} />
+                          <span className="absolute top-[44px] -translate-x-1/2 whitespace-nowrap text-[9px] font-medium" style={{ left: `${Math.min(96, Math.max(4, track.currentPosition))}%`, color: trackColor }}>当前</span>
+                        </div>
+                        <div className="grid grid-cols-3 border-t border-gray-100 pt-2 text-center dark:border-gray-700/80">
+                          <div><div className="text-[10px] text-gray-400">当前</div><div className={`font-num mt-0.5 text-sm font-medium ${itemStatus.className}`}>{percent(item.currentRatio)}</div></div>
+                          <div><div className="text-[10px] text-gray-400">目标</div><div className="font-num mt-0.5 text-sm font-medium text-gray-700 dark:text-gray-200">{percent(item.targetRatio)}</div></div>
+                          <div><div className="text-[10px] text-gray-400">偏差</div><div className={`font-num mt-0.5 text-sm font-medium ${itemStatus.className}`}>{`${item.diff > 0 ? '+' : ''}${(item.diff * 100).toFixed(1)}%`}</div></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-2 rounded-lg bg-gray-50 px-2 py-2 text-center text-xs text-gray-400 dark:bg-gray-700/35">当前占该类资产 {percent(item.currentRatio)}，尚未设置细分目标</div>
+                    )}
                   </div>
                 )
               })}
