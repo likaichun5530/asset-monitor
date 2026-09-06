@@ -15,6 +15,8 @@ test('目标配置仅接受完整九类且合计为 100%', () => {
   assert.equal(result.reduce((sum, item) => sum + item.targetRatio, 0), 1)
   assert.throws(() => validateTargetConfig(VALID_TARGETS.slice(0, -1)), /缺少目标类别/)
   assert.throws(() => validateTargetConfig(VALID_TARGETS.map((item, index) => index === 0 ? { ...item, targetPercent: 26 } : item)), /合计必须为 100%/)
+  const zeroTarget = VALID_TARGETS.map((item, index) => index === 0 ? { ...item, targetPercent: 0 } : index === 1 ? { ...item, targetPercent: 40 } : item)
+  assert.equal(validateTargetConfig(zeroTarget)[0].targetRatio, 0)
 })
 
 test('目标配置拒绝未知类别、重复类别和超过两位小数', () => {
@@ -76,6 +78,7 @@ test('target 横向列组分别解析大类目标和各市场内部目标', () =
   assert.equal(validated.totalPercent, 60)
   assert.equal(validated.items.at(-1).name, 'MSFT')
   assert.throws(() => validateTargetGroup('美股', [{ name: 'VOO', targetPercent: 90 }, { name: 'NVDA', targetPercent: 20 }], sheet), /不能超过 100%/)
+  assert.equal(validateTargetGroup('美股', [{ name: '其他', targetPercent: 0 }], sheet).items[0].targetRatio, 0)
 })
 
 test('细分目标按所属资产内部市值计算并同时匹配代码和名称', () => {
@@ -126,6 +129,9 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   assert.doesNotMatch(page, /getRangeTrackPositions/)
   assert.match(detailDialog, /配置符合度/)
   assert.match(detailDialog, /当前细分配置合理/)
+  assert.match(detailDialog, /\{hasConfiguredDetailTargets && <section/)
+  assert.match(detailDialog, /STATUS_PRIORITY/)
+  assert.match(detailDialog, /isIgnoredOtherOver/)
   assert.doesNotMatch(detailDialog, /大类配置符合度/)
   assert.match(detailDialog, /调整目标/)
   assert.match(detailDialog, /TargetAllocationScale/)
@@ -134,6 +140,8 @@ test('目标页面提供统一弹窗编辑入口并通过现有 target 接口保
   assert.match(detailConfigDialog, /saveTargetStrategy/)
   assert.match(detailConfigDialog, /saveTargetDetailTargets/)
   assert.match(detailConfigDialog, /新增行/)
+  assert.match(page, /onClose=\{returnToDetail\}/)
+  assert.match(page, /onSaved=\{handleDetailTargetSaved\}/)
   assert.match(api, /\['GET', 'PUT'\]/)
   assert.match(api, /invalidateAiDataCache\('target'\)/)
 })

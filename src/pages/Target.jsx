@@ -112,6 +112,17 @@ export default function Target({ refreshKey = 0 }) {
     window.setTimeout(() => setEditDetailCategory(category), 120)
   }
 
+  function returnToDetail() {
+    const category = editDetailCategory
+    setEditDetailCategory(null)
+    if (category) window.setTimeout(() => setDetailCategory(category), 120)
+  }
+
+  function handleDetailTargetSaved(result) {
+    handleTargetSaved(result)
+    returnToDetail()
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-gray-400">
@@ -390,7 +401,7 @@ export default function Target({ refreshKey = 0 }) {
       </div>
       <TargetConfigDialog open={showTargetEditor} targets={targetConfig} onClose={() => setShowTargetEditor(false)} onSaved={handleTargetSaved} />
       <TargetDetailDialog open={Boolean(detailRow)} row={detailRow} detail={detailConfig} onClose={() => setDetailCategory(null)} onEdit={editDetailFromDetail} editDisabled={demoMode} />
-      <TargetDetailConfigDialog open={Boolean(editDetailRow)} row={editDetailRow} detail={editDetailConfig} onClose={() => setEditDetailCategory(null)} onSaved={handleTargetSaved} />
+      <TargetDetailConfigDialog open={Boolean(editDetailRow)} row={editDetailRow} detail={editDetailConfig} onClose={returnToDetail} onSaved={handleDetailTargetSaved} />
     </div>
   )
 }

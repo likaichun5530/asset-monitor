@@ -9,7 +9,7 @@ function getRangeRuleLabel(targetRatio) {
 }
 
 export default function TargetAllocationScale({ currentRatio, targetRatio, diff, status, color = '#3b82f6', label = '配置' }) {
-  const hasTarget = Number.isFinite(Number(targetRatio))
+  const hasTarget = targetRatio !== null && targetRatio !== undefined && Number.isFinite(Number(targetRatio))
   if (!hasTarget) {
     return <div className="mt-3 rounded-lg border border-dashed border-amber-200 bg-amber-50/50 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">设置计划目标后，这里会显示合理区间。</div>
   }
