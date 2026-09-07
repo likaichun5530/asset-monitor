@@ -60,6 +60,7 @@ test('今日盈亏入口驱动收益日历打开今日明细', () => {
   assert.match(heroSource, /font-num flex flex-col items-end/)
   assert.match(heroSource, /今日盈亏[\s\S]*font-medium/)
   assert.match(heroSource, /'查看今日盈亏明细'/)
+  assert.doesNotMatch(heroSource, /hover:opacity-75/)
   assert.match(homeSource, /openTodayRequest=\{todayDetailRequest\}/)
   assert.match(homeSource, /setTodayDetailRequest\(\(value\) => value \+ 1\)/)
 })

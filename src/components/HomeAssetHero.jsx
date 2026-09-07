@@ -32,7 +32,7 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
         </div>
 
         <div className="flex shrink-0 flex-col items-end justify-center text-right">
-          <button type="button" onClick={onOpenTodayDetail} disabled={valuesHidden} aria-label={valuesHidden ? '资产金额已隐藏' : '查看今日盈亏明细'} className="font-num flex flex-col items-end rounded-lg bg-transparent text-right transition-opacity hover:opacity-75 disabled:cursor-default disabled:hover:opacity-100">
+          <button type="button" onClick={onOpenTodayDetail} disabled={valuesHidden} aria-label={valuesHidden ? '资产金额已隐藏' : '查看今日盈亏明细'} className="font-num flex flex-col items-end rounded-lg bg-transparent text-right transition-transform active:scale-[0.99] disabled:cursor-default disabled:active:scale-100">
             <span className="text-xs font-medium text-gray-400">今日盈亏</span>
             <span className={`mt-1 text-base font-medium leading-none ${changeColor}`}>
               {valuesHidden ? '******' : todayChange === null || todayChange === undefined ? '--' : formatChange(todayChange)}

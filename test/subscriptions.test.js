@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { fetchTodaySubscriptions, getShanghaiDate, normalizeSubscription } from '../api/_subscription-data.js'
+import { fetchTodaySubscriptions, getShanghaiDate, isShanghaiOrShenzhenSubscription, normalizeSubscription } from '../api/_subscription-data.js'
 
 test('申购日历按上海时区判断当天', () => {
   assert.equal(getShanghaiDate(new Date('2026-09-04T16:30:00.000Z')), '2026-09-05')
@@ -42,6 +42,15 @@ test('新债使用网上申购代码并保持统一结构', () => {
     maxApply: null,
     market: 'CNSESH',
   })
+})
+
+test('申购提醒只保留上交所和深交所项目', () => {
+  assert.equal(isShanghaiOrShenzhenSubscription({ type: 'stock', market: '科创板', code: '688001' }), true)
+  assert.equal(isShanghaiOrShenzhenSubscription({ type: 'stock', market: '创业板', code: '301001' }), true)
+  assert.equal(isShanghaiOrShenzhenSubscription({ type: 'bond', market: 'CNSESH', code: '113001' }), true)
+  assert.equal(isShanghaiOrShenzhenSubscription({ type: 'bond', market: 'CNSESZ', code: '123001' }), true)
+  assert.equal(isShanghaiOrShenzhenSubscription({ type: 'stock', market: '北交所', code: '920001' }), false)
+  assert.equal(isShanghaiOrShenzhenSubscription({ type: 'stock', market: '北京证券交易所', code: '832001' }), false)
 })
 
 test('无申购日的数据源空结果是正常空列表而不是接口故障', async () => {

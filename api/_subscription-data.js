@@ -66,6 +66,17 @@ export function normalizeSubscription(row, type) {
   }
 }
 
+export function isShanghaiOrShenzhenSubscription(item) {
+  if (!item) return false
+  const market = cleanText(item.market).toUpperCase()
+  if (/北交所|北京证券交易所|BJSE|CNSEBJ/.test(market)) return false
+  if (/上交所|上海证券交易所|沪市|科创板|SSE|CNSESH/.test(market)) return true
+  if (/深交所|深圳证券交易所|深市|创业板|SZSE|CNSESZ/.test(market)) return true
+
+  const code = cleanText(item.code)
+  return /^(?:60[0135]|68[89]|00[0-3]|30[01])\d{3}$/.test(code)
+}
+
 function buildRequestUrl(report, date) {
   const url = new URL(EASTMONEY_ENDPOINT)
   url.searchParams.set('reportName', report.reportName)
@@ -96,7 +107,7 @@ async function fetchReport(report, date, fetchImpl) {
   if (!payload?.success || !payload?.result) throw new Error('申购日历返回异常')
   return (payload.result.data || [])
     .map((row) => normalizeSubscription(row, report.type))
-    .filter(Boolean)
+    .filter(isShanghaiOrShenzhenSubscription)
 }
 
 export async function fetchTodaySubscriptions({ now = new Date(), fetchImpl = fetch } = {}) {
