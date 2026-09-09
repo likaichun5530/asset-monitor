@@ -21,6 +21,20 @@ const KEYS = {
 
 export const TARGET_UPDATED_EVENT = 'youshu-target-updated'
 
+export function getCachedTargetResult() {
+  const cached = readLocal('asset-monitor:target', null)
+  if (!cached?.target?.length) return null
+  const target = normalizeTarget(cached.target)
+  const targetConfig = cached.targetConfig || targetConfigFromRows(target)
+  return {
+    target,
+    targetConfig,
+    targetDetails: cached.targetDetails || targetDetailsFromConfig(targetConfig),
+    source: 'cache',
+    syncedAt: cached.syncedAt,
+  }
+}
+
 function publishTargetResult(result) {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(TARGET_UPDATED_EVENT, { detail: result.target || [] }))
   return result
@@ -287,12 +301,8 @@ export async function fetchTarget({ forceRefresh = false } = {}) {
   }
 
   // 优先读缓存
-  const cachedTarget = readLocal('asset-monitor:target', null)
-  if (cachedTarget?.target?.length) {
-    const target = normalizeTarget(cachedTarget.target)
-    const targetConfig = cachedTarget.targetConfig || targetConfigFromRows(target)
-    return publishTargetResult({ target, targetConfig, targetDetails: cachedTarget.targetDetails || targetDetailsFromConfig(targetConfig), source: 'cache', syncedAt: cachedTarget.syncedAt })
-  }
+  const cachedTarget = getCachedTargetResult()
+  if (cachedTarget) return publishTargetResult(cachedTarget)
 
   // 回退：从已加载的 holdings 本地计算
   try {

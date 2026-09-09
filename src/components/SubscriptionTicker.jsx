@@ -2,6 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getApiJson } from '../utils/api.js'
 
 const SUBSCRIPTION_CACHE_MS = 5 * 60 * 1000
+const SUBSCRIPTION_HIDDEN_DATE_KEY = 'youshu-subscription-hidden-date'
+const LONG_PRESS_MS = 650
+
+function readHiddenDate() {
+  try { return localStorage.getItem(SUBSCRIPTION_HIDDEN_DATE_KEY) || '' } catch { return '' }
+}
 
 function formatPrice(value) {
   const number = Number(value)
@@ -22,7 +28,12 @@ function formatItem(item) {
 
 export default function SubscriptionTicker({ refreshKey = 0 }) {
   const [items, setItems] = useState([])
+  const [date, setDate] = useState('')
+  const [hiddenDate, setHiddenDate] = useState(readHiddenDate)
+  const [menuOpen, setMenuOpen] = useState(false)
   const mountedRef = useRef(false)
+  const longPressTimerRef = useRef(null)
+  const longPressStartRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -33,7 +44,10 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
       cacheTtlMs: SUBSCRIPTION_CACHE_MS,
       forceRefresh,
     }).then((data) => {
-      if (active) setItems(Array.isArray(data?.items) ? data.items : [])
+      if (active) {
+        setDate(data?.date || '')
+        setItems(Array.isArray(data?.items) ? data.items : [])
+      }
     }).catch(() => {
       // 行情源异常时隐藏旧提醒，避免跨日继续提示昨天的申购信息。
       if (active) setItems([])
@@ -41,13 +55,56 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
     return () => { active = false }
   }, [refreshKey])
 
+  useEffect(() => () => window.clearTimeout(longPressTimerRef.current), [])
+
+  function cancelLongPress() {
+    window.clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = null
+    longPressStartRef.current = null
+  }
+
+  function startLongPress(event) {
+    if (event.button !== undefined && event.button !== 0) return
+    cancelLongPress()
+    longPressStartRef.current = { x: event.clientX, y: event.clientY }
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTimerRef.current = null
+      longPressStartRef.current = null
+      setMenuOpen(true)
+      navigator.vibrate?.(20)
+    }, LONG_PRESS_MS)
+  }
+
+  function moveLongPress(event) {
+    if (!longPressTimerRef.current || !longPressStartRef.current) return
+    if (Math.hypot(event.clientX - longPressStartRef.current.x, event.clientY - longPressStartRef.current.y) > 8) cancelLongPress()
+  }
+
+  function hideForToday() {
+    if (!date) return
+    try { localStorage.setItem(SUBSCRIPTION_HIDDEN_DATE_KEY, date) } catch { /* ignore */ }
+    setHiddenDate(date)
+    setMenuOpen(false)
+  }
+
   const messages = useMemo(() => items.map(formatItem), [items])
-  if (!messages.length) return null
+  if (!messages.length || (date && hiddenDate === date)) return null
 
   const duration = Math.min(50, Math.max(18, messages.join('').length * 0.32))
 
   return (
-    <aside className="card subscription-ticker flex h-11 items-center overflow-hidden px-3" aria-label="今日新股新债申购提醒">
+    <>
+    <aside
+      className="card subscription-ticker flex h-11 select-none items-center overflow-hidden px-3"
+      aria-label="今日新股新债申购提醒，长按可隐藏"
+      data-home-long-press-ignore="true"
+      onPointerDown={startLongPress}
+      onPointerMove={moveLongPress}
+      onPointerUp={cancelLongPress}
+      onPointerCancel={cancelLongPress}
+      onPointerLeave={cancelLongPress}
+      onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); setMenuOpen(true) }}
+    >
       <div className="relative z-10 mr-3 flex shrink-0 items-center gap-1.5 bg-white pr-1 text-xs font-semibold text-orange-600 dark:bg-gray-800 dark:text-orange-400">
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M12 3a6 6 0 0 0-6 6v3l-2 3h16l-2-3V9a6 6 0 0 0-6-6Z" />
@@ -92,5 +149,17 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
         }
       `}</style>
     </aside>
+    {menuOpen && (
+      <div className="fixed inset-0 z-[86] flex items-end justify-center px-3 pb-[calc(12px+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] sm:items-center" data-pull-refresh-ignore="true">
+        <button type="button" className="absolute inset-0 bg-black/35" onClick={() => setMenuOpen(false)} aria-label="关闭打新提醒菜单" />
+        <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+          <div className="border-b border-gray-100 px-4 py-3 text-center text-xs text-gray-400 dark:border-gray-700">打新提醒</div>
+          <button type="button" onClick={hideForToday} className="flex h-12 w-full items-center justify-center text-sm font-medium text-gray-800 active:bg-gray-100 dark:text-gray-100 dark:active:bg-gray-700">今天内不显示</button>
+          <div className="h-2 bg-gray-100 dark:bg-gray-900" />
+          <button type="button" onClick={() => setMenuOpen(false)} className="flex h-12 w-full items-center justify-center text-sm text-gray-500 active:bg-gray-100 dark:text-gray-300 dark:active:bg-gray-700">取消</button>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

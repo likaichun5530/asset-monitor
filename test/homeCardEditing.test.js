@@ -65,6 +65,12 @@ test('今日盈亏入口驱动收益日历打开今日明细', () => {
   assert.match(homeSource, /setTodayDetailRequest\(\(value\) => value \+ 1\)/)
 })
 
+test('账户健康度优先展示目标缓存，再延后刷新最新目标', () => {
+  assert.match(overviewSource, /getCachedTargetResult\(\)\?\.target \|\| \[\]/)
+  assert.match(overviewSource, /cached && !forceRefresh \? 1000 : 0/)
+  assert.match(overviewSource, /TARGET_UPDATED_EVENT/)
+})
+
 test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
   assert.match(layoutSource, /src="\/icon\.png" alt="有数 App Logo"/)
   assert.match(layoutSource, /border-slate-200\/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/)

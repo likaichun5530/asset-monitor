@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchTarget } from '../utils/dataStore.js'
+import { fetchTarget, getCachedTargetResult, TARGET_UPDATED_EVENT } from '../utils/dataStore.js'
 import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
@@ -129,12 +129,24 @@ function marginRiskMarkerPosition(rate) {
 }
 
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
-  const [targetData, setTargetData] = useState([])
+  const [targetData, setTargetData] = useState(() => getCachedTargetResult()?.target || [])
   const previousTargetRefreshKeyRef = useRef(targetRefreshKey)
+
+  useEffect(() => {
+    const handleTargetUpdated = (event) => setTargetData(event.detail || [])
+    window.addEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
+    return () => window.removeEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
+  }, [])
+
   useEffect(() => {
     const forceRefresh = previousTargetRefreshKeyRef.current !== targetRefreshKey
     previousTargetRefreshKeyRef.current = targetRefreshKey
-    fetchTarget({ forceRefresh }).then((data) => setTargetData(data.target || [])).catch(() => {})
+    const cached = getCachedTargetResult()
+    if (cached?.target?.length) setTargetData(cached.target)
+    const timer = window.setTimeout(() => {
+      fetchTarget({ forceRefresh }).then((data) => setTargetData(data.target || [])).catch(() => {})
+    }, cached && !forceRefresh ? 1000 : 0)
+    return () => window.clearTimeout(timer)
   }, [targetRefreshKey])
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
 

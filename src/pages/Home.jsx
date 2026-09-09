@@ -82,7 +82,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
   const pendingCount = useMemo(() => getPendingCount(), [refreshKey])
   const startLongPress = useCallback((e) => {
-    if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input')) return
+    if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input, [data-home-long-press-ignore]')) return
     const point = e.touches?.[0] || e
     longPressStart.current = { x: point.clientX, y: point.clientY }
     clearTimeout(longPressTimer.current)
