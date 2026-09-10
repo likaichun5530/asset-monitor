@@ -74,5 +74,8 @@ test('首页提醒位于总资产卡片之后且当天无数据时组件不占�
   assert.match(ticker, /今天内不显示/)
   assert.match(ticker, /youshu-subscription-hidden-date/)
   assert.match(ticker, /LONG_PRESS_MS = 650/)
+  assert.match(ticker, /createPortal/)
+  assert.match(ticker, /SYNTHETIC_CLICK_GUARD_MS/)
+  assert.match(ticker, /z-\[100\]/)
   assert.match(ticker, /prefers-reduced-motion: reduce/)
 })

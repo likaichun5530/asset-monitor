@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { getApiJson } from '../utils/api.js'
 
 const SUBSCRIPTION_CACHE_MS = 5 * 60 * 1000
 const SUBSCRIPTION_HIDDEN_DATE_KEY = 'youshu-subscription-hidden-date'
 const LONG_PRESS_MS = 650
+const SYNTHETIC_CLICK_GUARD_MS = 450
 
 function readHiddenDate() {
   try { return localStorage.getItem(SUBSCRIPTION_HIDDEN_DATE_KEY) || '' } catch { return '' }
@@ -34,6 +36,8 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
   const mountedRef = useRef(false)
   const longPressTimerRef = useRef(null)
   const longPressStartRef = useRef(null)
+  const menuOpenedAtRef = useRef(0)
+  const menuOpenRef = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -70,9 +74,30 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
     longPressTimerRef.current = window.setTimeout(() => {
       longPressTimerRef.current = null
       longPressStartRef.current = null
-      setMenuOpen(true)
+      openMenu()
       navigator.vibrate?.(20)
     }, LONG_PRESS_MS)
+  }
+
+  function openMenu() {
+    menuOpenedAtRef.current = Date.now()
+    menuOpenRef.current = true
+    setMenuOpen(true)
+  }
+
+  function finishLongPress() {
+    cancelLongPress()
+    if (menuOpenRef.current) menuOpenedAtRef.current = Date.now()
+  }
+
+  function closeMenu() {
+    menuOpenRef.current = false
+    setMenuOpen(false)
+  }
+
+  function closeFromBackdrop() {
+    if (Date.now() - menuOpenedAtRef.current < SYNTHETIC_CLICK_GUARD_MS) return
+    closeMenu()
   }
 
   function moveLongPress(event) {
@@ -84,7 +109,7 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
     if (!date) return
     try { localStorage.setItem(SUBSCRIPTION_HIDDEN_DATE_KEY, date) } catch { /* ignore */ }
     setHiddenDate(date)
-    setMenuOpen(false)
+    closeMenu()
   }
 
   const messages = useMemo(() => items.map(formatItem), [items])
@@ -100,10 +125,10 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
       data-home-long-press-ignore="true"
       onPointerDown={startLongPress}
       onPointerMove={moveLongPress}
-      onPointerUp={cancelLongPress}
-      onPointerCancel={cancelLongPress}
+      onPointerUp={finishLongPress}
+      onPointerCancel={finishLongPress}
       onPointerLeave={cancelLongPress}
-      onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); setMenuOpen(true) }}
+      onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); openMenu() }}
     >
       <div className="relative z-10 mr-3 flex shrink-0 items-center gap-1.5 bg-white pr-1 text-xs font-semibold text-orange-600 dark:bg-gray-800 dark:text-orange-400">
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -149,16 +174,17 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
         }
       `}</style>
     </aside>
-    {menuOpen && (
-      <div className="fixed inset-0 z-[86] flex items-end justify-center px-3 pb-[calc(12px+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] sm:items-center" data-pull-refresh-ignore="true">
-        <button type="button" className="absolute inset-0 bg-black/35" onClick={() => setMenuOpen(false)} aria-label="关闭打新提醒菜单" />
-        <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+    {menuOpen && createPortal(
+      <div className="fixed inset-0 z-[100] flex items-end justify-center px-3 sm:items-center sm:pb-0" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }} data-pull-refresh-ignore="true">
+        <button type="button" className="absolute inset-0 z-0 bg-black/35" onClick={closeFromBackdrop} aria-label="关闭打新提醒菜单" />
+        <div className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800" onPointerDown={(event) => event.stopPropagation()}>
           <div className="border-b border-gray-100 px-4 py-3 text-center text-xs text-gray-400 dark:border-gray-700">打新提醒</div>
           <button type="button" onClick={hideForToday} className="flex h-12 w-full items-center justify-center text-sm font-medium text-gray-800 active:bg-gray-100 dark:text-gray-100 dark:active:bg-gray-700">今天内不显示</button>
           <div className="h-2 bg-gray-100 dark:bg-gray-900" />
-          <button type="button" onClick={() => setMenuOpen(false)} className="flex h-12 w-full items-center justify-center text-sm text-gray-500 active:bg-gray-100 dark:text-gray-300 dark:active:bg-gray-700">取消</button>
+          <button type="button" onClick={closeMenu} className="flex h-12 w-full items-center justify-center text-sm text-gray-500 active:bg-gray-100 dark:text-gray-300 dark:active:bg-gray-700">取消</button>
         </div>
-      </div>
+      </div>,
+      document.body,
     )}
     </>
   )
