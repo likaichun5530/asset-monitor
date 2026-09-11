@@ -198,25 +198,32 @@ export function changeYtd() {
   }
 }
 
+const DRAWDOWN_NOISE_TOLERANCE = 0.05
+
+function roundCurrency(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100
+}
+
 export function drawdownFromPeak() {
-  const current = totalMarketValue()
+  // History 按分保存；当前持仓也先统一到分，避免两种精度产生 0.01～0.02 元伪回撤。
+  const current = roundCurrency(totalMarketValue())
   const peak = getCurrentPeak()
-  if (current >= peak.value) {
+  const peakValue = roundCurrency(peak.value)
+  const change = roundCurrency(current - peakValue)
+  if (change >= -DRAWDOWN_NOISE_TOLERANCE) {
     return {
       change: 0,
       changePct: 0,
-      peakValue: peak.value,
+      peakValue,
       peakDate: peak.date,
       currentValue: current,
     }
   }
-  const rawChange = current - peak.value
-  const change = Math.round(rawChange * 100) / 100
-  const changePct = peak.value ? (change / peak.value) * 100 : 0
+  const changePct = peakValue ? (change / peakValue) * 100 : 0
   return {
     change,
     changePct,
-    peakValue: peak.value,
+    peakValue,
     peakDate: peak.date,
     currentValue: current,
   }
