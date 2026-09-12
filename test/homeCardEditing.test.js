@@ -66,7 +66,8 @@ test('今日盈亏入口驱动收益日历打开今日明细', () => {
 })
 
 test('账户健康度优先展示目标缓存，再延后刷新最新目标', () => {
-  assert.match(overviewSource, /getCachedTargetResult\(\)\?\.target \|\| \[\]/)
+  assert.match(overviewSource, /const cached = getCachedTargetResult\(\)/)
+  assert.match(overviewSource, /targetDetails: cached\?\.targetDetails \|\| \[\]/)
   assert.match(overviewSource, /cached && !forceRefresh \? 1000 : 0/)
   assert.match(overviewSource, /TARGET_UPDATED_EVENT/)
 })

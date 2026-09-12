@@ -3,6 +3,7 @@ import { fetchTarget, getCachedTargetResult, TARGET_UPDATED_EVENT } from '../uti
 import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
+import { calculateHealthScore, healthScoreColor } from '../utils/healthScore.js'
 
 function polarPoint(radius, angle) {
   const radians = (angle * Math.PI) / 180
@@ -129,11 +130,14 @@ function marginRiskMarkerPosition(rate) {
 }
 
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
-  const [targetData, setTargetData] = useState(() => getCachedTargetResult()?.target || [])
+  const [targetState, setTargetState] = useState(() => {
+    const cached = getCachedTargetResult()
+    return { target: cached?.target || [], targetDetails: cached?.targetDetails || [] }
+  })
   const previousTargetRefreshKeyRef = useRef(targetRefreshKey)
 
   useEffect(() => {
-    const handleTargetUpdated = (event) => setTargetData(event.detail || [])
+    const handleTargetUpdated = (event) => setTargetState((current) => ({ ...current, target: event.detail || [] }))
     window.addEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
     return () => window.removeEventListener(TARGET_UPDATED_EVENT, handleTargetUpdated)
   }, [])
@@ -142,39 +146,52 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     const forceRefresh = previousTargetRefreshKeyRef.current !== targetRefreshKey
     previousTargetRefreshKeyRef.current = targetRefreshKey
     const cached = getCachedTargetResult()
-    if (cached?.target?.length) setTargetData(cached.target)
+    if (cached?.target?.length) setTargetState({ target: cached.target, targetDetails: cached.targetDetails || [] })
     const timer = window.setTimeout(() => {
-      fetchTarget({ forceRefresh }).then((data) => setTargetData(data.target || [])).catch(() => {})
+      fetchTarget({ forceRefresh }).then((data) => setTargetState({ target: data.target || [], targetDetails: data.targetDetails || [] })).catch(() => {})
     }, cached && !forceRefresh ? 1000 : 0)
     return () => window.clearTimeout(timer)
   }, [targetRefreshKey])
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
 
-  const { overCategories, underCategories, futureUsageRate } = useMemo(() => {
+  const { overCategories, underCategories, futureUsageRate, icFutureUsageRate } = useMemo(() => {
     const over = []
     const under = []
-    for (const row of targetData) {
+    for (const row of targetState.target) {
       if (row.isTotal || row.targetRatio === null || row.diff === null) continue
       const { status } = getTargetAllocationStatus(row.currentRatio, row.targetRatio)
       if (status === 'over') over.push(row.category)
       if (status === 'under') under.push(row.category)
     }
     let maxUsage = 0
+    let maxIcUsage = 0
     for (const holding of holdings.filter((item) => item.assetType === '期货')) {
       const margin = holdingMarketValue(holding)
-      const contractValue = (holding.price || 0) * (holding.quantity || 0) * futuresMultiplier(holding.symbol)
+      const contractValue = Math.abs((holding.price || 0) * (holding.quantity || 0) * futuresMultiplier(holding.symbol))
       const usageRate = margin ? (contractValue * 0.14 / margin) * 100 : 0
       if (usageRate > maxUsage) maxUsage = usageRate
+      if (String(holding.symbol || '').toUpperCase().startsWith('IC') && usageRate > maxIcUsage) maxIcUsage = usageRate
     }
-    return { overCategories: over, underCategories: under, futureUsageRate: maxUsage }
-  }, [holdings, targetData])
+    return { overCategories: over, underCategories: under, futureUsageRate: maxUsage, icFutureUsageRate: maxIcUsage }
+  }, [holdings, targetState.target])
+
+  const healthScore = useMemo(() => calculateHealthScore({
+    targetRows: targetState.target,
+    targetDetails: targetState.targetDetails,
+    icMarginUsageRate: icFutureUsageRate,
+  }), [icFutureUsageRate, targetState])
 
   const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
   const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
-      <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
+        <div className={`font-num flex shrink-0 items-baseline ${healthScoreColor(healthScore.score)}`} title={`大类异常 ${healthScore.majorIssueCount} 项，细分异常 ${healthScore.detailIssueCount} 项，保证金扣分 ${healthScore.marginDeduction}`} aria-label={`账户健康度 ${healthScore.score} 分`}>
+          <span className="text-xl font-semibold leading-none">{healthScore.score}</span><span className="ml-0.5 text-[10px] font-medium">分</span>
+        </div>
+      </div>
       <div className="mt-3 flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
         <div className="mb-1.5">建议：</div>
         <div className="leading-4"><span>减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
