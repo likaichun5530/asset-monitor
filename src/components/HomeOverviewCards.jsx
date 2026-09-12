@@ -4,6 +4,7 @@ import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
 import { calculateHealthScore, healthScoreColor } from '../utils/healthScore.js'
+import AppDialog from './AppDialog.jsx'
 
 function polarPoint(radius, angle) {
   const radians = (angle * Math.PI) / 180
@@ -130,6 +131,7 @@ function marginRiskMarkerPosition(rate) {
 }
 
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
+  const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
   const [targetState, setTargetState] = useState(() => {
     const cached = getCachedTargetResult()
     return { target: cached?.target || [], targetDetails: cached?.targetDetails || [] }
@@ -183,14 +185,16 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
 
   const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
+  const icUsageText = icFutureUsageRate > 75 ? '危险' : icFutureUsageRate > 70 ? '警戒' : '安全'
   const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
+    <>
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
-        <div className={`font-num flex shrink-0 items-baseline ${healthScoreColor(healthScore.score)}`} title={`大类异常 ${healthScore.majorIssueCount} 项，细分异常 ${healthScore.detailIssueCount} 项，保证金扣分 ${healthScore.marginDeduction}`} aria-label={`账户健康度 ${healthScore.score} 分`}>
-          <span className="text-xl font-semibold leading-none">{healthScore.score}</span><span className="ml-0.5 text-[10px] font-medium">分</span>
-        </div>
+        <button type="button" onClick={() => setScoreDialogOpen(true)} className={`font-num flex shrink-0 items-baseline rounded-lg px-1 py-0.5 transition-colors hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700 dark:active:bg-gray-700 ${healthScoreColor(healthScore.score)}`} title="查看账户健康度扣分细则" aria-label={`账户健康度 ${healthScore.score} 分，点击查看扣分细则`}>
+          <span className="text-2xl font-semibold leading-none">{healthScore.score}</span><span className="ml-0.5 text-[11px] font-medium">分</span>
+        </button>
       </div>
       <div className="mt-3 flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
         <div className="mb-1.5">建议：</div>
@@ -216,5 +220,30 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
         </div>
       </div>
     </div>
+    <AppDialog open={scoreDialogOpen} onClose={() => setScoreDialogOpen(false)} title="账户健康度评分" description="满分 100 分，最低 5 分" ariaLabel="账户健康度扣分细则" maxWidth="sm:max-w-md">
+      <div className="space-y-3">
+        <div className="flex items-end justify-between rounded-xl bg-gray-50 px-4 py-4 dark:bg-gray-700/35">
+          <div><div className="text-xs text-gray-400">当前评分</div><div className="mt-1 text-sm text-gray-600 dark:text-gray-300">共扣 {100 - healthScore.score} 分</div></div>
+          <div className={`font-num flex items-baseline ${healthScoreColor(healthScore.score)}`}><span className="text-4xl font-semibold leading-none">{healthScore.score}</span><span className="ml-1 text-sm font-medium">分</span></div>
+        </div>
+
+        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 每项扣 6 分 · 最多扣 50 分`} items={healthScore.majorIssues} />
+        <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 每项扣 2 分 · 最多扣 30 分`} items={healthScore.detailIssues} />
+        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate.toFixed(1)}% · ${icUsageText} · 警戒扣 12 分，危险扣 30 分`} />
+
+        <p className="px-1 text-xs leading-5 text-gray-400">各项扣分独立累计；累计结果低于 5 分时，最终评分按 5 分显示。</p>
+      </div>
+    </AppDialog>
+    </>
+  )
+}
+
+function ScoreDetailRow({ title, deduction, description, items = [] }) {
+  return (
+    <section className="rounded-xl border border-gray-100 px-4 py-3.5 dark:border-gray-700">
+      <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</h4><span className={`font-num text-base font-semibold ${deduction ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>{deduction ? `-${deduction} 分` : '不扣分'}</span></div>
+      <p className="mt-1 text-xs leading-5 text-gray-400">{description}</p>
+      {items.length > 0 && <p className="mt-2 text-xs leading-5 text-gray-600 dark:text-gray-300">涉及：{items.join('、')}</p>}
+    </section>
   )
 }

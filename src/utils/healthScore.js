@@ -16,27 +16,29 @@ function hasTarget(value) {
 }
 
 export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0 } = {}) {
-  const majorIssueCount = targetRows.filter((row) => (
+  const majorIssues = targetRows.filter((row) => (
     !row.isTotal
     && hasTarget(row.targetRatio)
     && isOutOfRange(Number(row.currentRatio), Number(row.targetRatio))
-  )).length
+  )).map((row) => row.category || row.name || '未命名分类')
 
-  const detailIssueCount = targetDetails.reduce((count, detail) => {
-    const issues = (detail?.allocation?.items || []).filter((item) => (
+  const detailIssues = targetDetails.flatMap((detail) => (
+    (detail?.allocation?.items || []).filter((item) => (
       !isOtherItem(item)
       && hasTarget(item.targetRatio)
       && isOutOfRange(Number(item.currentRatio), Number(item.targetRatio))
-    )).length
-    return count + issues
-  }, 0)
+    )).map((item) => `${detail.category ? `${detail.category} · ` : ''}${item.name}`)
+  ))
+
+  const majorIssueCount = majorIssues.length
+  const detailIssueCount = detailIssues.length
 
   const majorDeduction = Math.min(majorIssueCount * 6, 50)
   const detailDeduction = Math.min(detailIssueCount * 2, 30)
   const marginDeduction = icMarginUsageRate > 75 ? 30 : icMarginUsageRate > 70 ? 12 : 0
   const score = Math.max(MIN_SCORE, Math.min(100, 100 - majorDeduction - detailDeduction - marginDeduction))
 
-  return { score, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction }
+  return { score, majorIssues, detailIssues, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction }
 }
 
 export function healthScoreColor(score) {

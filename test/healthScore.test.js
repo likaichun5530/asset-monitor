@@ -13,6 +13,8 @@ test('账户健康度按大类、细分配置和 IC 保证金规则扣分', () =
   })
   assert.deepEqual(result, {
     score: 72,
+    majorIssues: ['美股', '现金'],
+    detailIssues: ['VOO', 'QQQ'],
     majorIssueCount: 2,
     detailIssueCount: 2,
     majorDeduction: 12,

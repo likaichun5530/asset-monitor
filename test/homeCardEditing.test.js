@@ -70,6 +70,9 @@ test('账户健康度优先展示目标缓存，再延后刷新最新目标', ()
   assert.match(overviewSource, /targetDetails: cached\?\.targetDetails \|\| \[\]/)
   assert.match(overviewSource, /cached && !forceRefresh \? 1000 : 0/)
   assert.match(overviewSource, /TARGET_UPDATED_EVENT/)
+  assert.match(overviewSource, /账户健康度扣分细则/)
+  assert.match(overviewSource, /<ScoreDetailRow title="大类资产配置"/)
+  assert.match(overviewSource, /text-2xl font-semibold/)
 })
 
 test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
