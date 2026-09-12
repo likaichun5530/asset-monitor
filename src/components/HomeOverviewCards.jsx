@@ -193,7 +193,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
       <div className="flex items-start justify-between gap-3">
         <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
         <button type="button" onClick={() => setScoreDialogOpen(true)} className={`font-num flex shrink-0 items-baseline rounded-lg px-1 py-0.5 transition-colors hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700 dark:active:bg-gray-700 ${healthScoreColor(healthScore.score)}`} title="查看账户健康度扣分细则" aria-label={`账户健康度 ${healthScore.score} 分，点击查看扣分细则`}>
-          <span className="text-2xl font-semibold leading-none">{healthScore.score}</span><span className="ml-0.5 text-[11px] font-medium">分</span>
+          <span className="text-[40px] font-semibold leading-none">{healthScore.score}</span><span className="ml-0.5 text-[11px] font-medium">分</span>
         </button>
       </div>
       <div className="mt-3 flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
