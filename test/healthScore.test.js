@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { calculateHealthScore, healthScoreColor } from '../src/utils/healthScore.js'
+import { calculateHealthScore } from '../src/utils/healthScore.js'
 
 const issue = (name = '项目') => ({ name, currentRatio: 0.5, targetRatio: 0.2 })
 const balanced = (name = '项目') => ({ name, currentRatio: 0.2, targetRatio: 0.2 })
@@ -12,13 +12,13 @@ test('账户健康度按大类、细分配置和 IC 保证金规则扣分', () =
     icMarginUsageRate: 72,
   })
   assert.deepEqual(result, {
-    score: 72,
-    majorIssues: ['美股', '现金'],
-    detailIssues: ['VOO', 'QQQ'],
+    score: 62,
+    majorIssues: ['美股（严重，-9）', '现金（严重，-9）'],
+    detailIssues: ['VOO（严重，-4）', 'QQQ（严重，-4）'],
     majorIssueCount: 2,
     detailIssueCount: 2,
-    majorDeduction: 12,
-    detailDeduction: 4,
+    majorDeduction: 18,
+    detailDeduction: 8,
     marginDeduction: 12,
   })
 })
@@ -33,11 +33,4 @@ test('账户健康度扣分封顶、最低 5 分，并正确处理危险保证�
   assert.equal(result.detailDeduction, 30)
   assert.equal(result.marginDeduction, 30)
   assert.equal(result.score, 5)
-})
-
-test('账户健康度颜色按分数区间显示', () => {
-  assert.equal(healthScoreColor(59), 'text-red-500')
-  assert.equal(healthScoreColor(60), 'text-amber-500')
-  assert.equal(healthScoreColor(79), 'text-amber-500')
-  assert.match(healthScoreColor(80), /text-emerald-600/)
 })

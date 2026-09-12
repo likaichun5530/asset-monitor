@@ -196,7 +196,7 @@ export default function TrendChart({ refreshKey = 0 }) {
               }}
             />
             <Area
-              type="linear"
+              type="monotone"
               dataKey="total"
               stroke="#3b82f6"
               strokeWidth={2}

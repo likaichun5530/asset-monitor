@@ -73,6 +73,9 @@ test('账户健康度优先展示目标缓存，再延后刷新最新目标', ()
   assert.match(overviewSource, /账户健康度扣分细则/)
   assert.match(overviewSource, /<ScoreDetailRow title="大类资产配置"/)
   assert.match(overviewSource, /text-\[40px\] font-semibold/)
+  assert.match(overviewSource, /useAnimatedScore/)
+  assert.match(overviewSource, /prefers-reduced-motion: reduce/)
+  assert.match(overviewSource, /text-gray-900.*dark:text-gray-100/)
 })
 
 test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {

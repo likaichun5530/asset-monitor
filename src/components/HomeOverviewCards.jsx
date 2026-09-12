@@ -3,7 +3,7 @@ import { fetchTarget, getCachedTargetResult, TARGET_UPDATED_EVENT } from '../uti
 import { formatChange, formatPercent } from '../utils/format.js'
 import { getActiveHoldings, holdingMarketValue } from '../utils/asset.js'
 import { getTargetAllocationStatus } from '../utils/targetAllocation.js'
-import { calculateHealthScore, healthScoreColor } from '../utils/healthScore.js'
+import { calculateHealthScore } from '../utils/healthScore.js'
 import AppDialog from './AppDialog.jsx'
 
 function polarPoint(radius, angle) {
@@ -130,6 +130,39 @@ function marginRiskMarkerPosition(rate) {
   return 100
 }
 
+function useAnimatedScore(targetScore) {
+  const [displayScore, setDisplayScore] = useState(null)
+  const currentRef = useRef(null)
+
+  useEffect(() => {
+    if (targetScore === null) {
+      currentRef.current = null
+      setDisplayScore(null)
+      return undefined
+    }
+    const start = currentRef.current === null ? 100 : currentRef.current
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || start === targetScore) {
+      currentRef.current = targetScore
+      setDisplayScore(targetScore)
+      return undefined
+    }
+    const startedAt = performance.now()
+    let frame = 0
+    const animate = (now) => {
+      const progress = Math.min(1, (now - startedAt) / 850)
+      const eased = 1 - ((1 - progress) ** 3)
+      const next = Math.round(start + (targetScore - start) * eased)
+      currentRef.current = next
+      setDisplayScore(next)
+      if (progress < 1) frame = requestAnimationFrame(animate)
+    }
+    frame = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(frame)
+  }, [targetScore])
+
+  return displayScore
+}
+
 export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
   const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
   const [targetState, setTargetState] = useState(() => {
@@ -182,22 +215,23 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     targetDetails: targetState.targetDetails,
     icMarginUsageRate: icFutureUsageRate,
   }), [icFutureUsageRate, targetState])
+  const scoreReady = targetState.target.length > 0
+  const displayScore = useAnimatedScore(scoreReady ? healthScore.score : null)
 
   const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
   const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
-  const icUsageText = icFutureUsageRate > 75 ? '危险' : icFutureUsageRate > 70 ? '警戒' : '安全'
+  const icUsageText = icFutureUsageRate > 85 ? '严重危险' : icFutureUsageRate > 75 ? '危险' : icFutureUsageRate > 70 ? '警戒' : '安全'
   const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
     <>
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
-        <button type="button" onClick={() => setScoreDialogOpen(true)} className={`font-num flex shrink-0 items-baseline rounded-lg px-1 py-0.5 transition-colors hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700 dark:active:bg-gray-700 ${healthScoreColor(healthScore.score)}`} title="查看账户健康度扣分细则" aria-label={`账户健康度 ${healthScore.score} 分，点击查看扣分细则`}>
-          <span className="text-[40px] font-semibold leading-none">{healthScore.score}</span><span className="ml-0.5 text-[11px] font-medium">分</span>
+        <button type="button" onClick={() => setScoreDialogOpen(true)} disabled={!scoreReady} className="font-num flex shrink-0 items-baseline rounded-lg bg-transparent px-1 py-0.5 text-gray-900 [-webkit-tap-highlight-color:transparent] disabled:cursor-default dark:text-gray-100" title="查看账户健康度扣分细则" aria-label={scoreReady ? `账户健康度 ${healthScore.score} 分，点击查看扣分细则` : '账户健康度加载中'}>
+          <span className="text-[36px] font-medium leading-none">{displayScore ?? '--'}</span>{scoreReady && <span className="ml-0.5 text-[11px] font-medium">分</span>}
         </button>
       </div>
-      <div className="mt-3 flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
-        <div className="mb-1.5">建议：</div>
+      <div className="mt-[14px] flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
         <div className="leading-4"><span>减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="leading-4"><span>加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="my-4 border-t border-gray-100" />
@@ -224,12 +258,12 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
       <div className="space-y-3">
         <div className="flex items-end justify-between rounded-xl bg-gray-50 px-4 py-4 dark:bg-gray-700/35">
           <div><div className="text-xs text-gray-400">当前评分</div><div className="mt-1 text-sm text-gray-600 dark:text-gray-300">共扣 {100 - healthScore.score} 分</div></div>
-          <div className={`font-num flex items-baseline ${healthScoreColor(healthScore.score)}`}><span className="text-4xl font-semibold leading-none">{healthScore.score}</span><span className="ml-1 text-sm font-medium">分</span></div>
+          <div className="font-num flex items-baseline text-gray-900 dark:text-gray-100"><span className="text-4xl font-semibold leading-none">{healthScore.score}</span><span className="ml-1 text-sm font-medium">分</span></div>
         </div>
 
-        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 每项扣 6 分 · 最多扣 50 分`} items={healthScore.majorIssues} />
-        <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 每项扣 2 分 · 最多扣 30 分`} items={healthScore.detailIssues} />
-        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate.toFixed(1)}% · ${icUsageText} · 警戒扣 12 分，危险扣 30 分`} />
+        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 轻微/明显/严重分别扣 4/6/9 分 · 最多扣 50 分`} items={healthScore.majorIssues} />
+        <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 轻微/明显/严重分别扣 1/2/4 分 · 最多扣 30 分`} items={healthScore.detailIssues} />
+        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate.toFixed(1)}% · ${icUsageText} · 警戒/危险/严重危险分别扣 12/20/30 分`} />
 
         <p className="px-1 text-xs leading-5 text-gray-400">各项扣分独立累计；累计结果低于 5 分时，最终评分按 5 分显示。</p>
       </div>
