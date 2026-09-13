@@ -17,12 +17,20 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
         <div className="flex min-w-0 flex-1 flex-col justify-center">
           <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
             <span>总资产（人民币）</span>
-            <button type="button" onClick={onToggleValuesHidden} aria-label={valuesHidden ? '显示资产金额' : '隐藏资产金额'} aria-pressed={valuesHidden} className="no-sort inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95 dark:hover:bg-gray-700 dark:hover:text-gray-200">
-              {valuesHidden ? (
-                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 3 18 18" /><path d="M10.6 10.7a2 2 0 0 0 2.7 2.7" /><path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c5.5 0 9 5 9 5a15.8 15.8 0 0 1-2.1 2.7" /><path d="M6.6 6.6C4.4 8 3 10 3 10s3.5 5 9 5c1 0 1.9-.2 2.7-.4" /></svg>
-              ) : (
-                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
-              )}
+            <button type="button" onClick={onToggleValuesHidden} aria-label={valuesHidden ? '显示资产金额' : '隐藏资产金额'} aria-pressed={valuesHidden} className="no-sort inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition duration-200 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 active:scale-90 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-gray-500 dark:focus-visible:ring-offset-gray-800">
+              <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                {valuesHidden ? (
+                  <>
+                    <path d="M3.5 10.5c1.8 3.2 4.6 5 8.5 5s6.7-1.8 8.5-5" />
+                    <path d="m5.5 13-1.5 2M9.5 15.2 9 17.5m5.5-2.3.5 2.3m3.5-4.5 1.5 2" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M3.2 10.7C5.2 7.6 8.2 6 12 6s6.8 1.6 8.8 4.7a2.4 2.4 0 0 1 0 2.6C18.8 16.4 15.8 18 12 18s-6.8-1.6-8.8-4.7a2.4 2.4 0 0 1 0-2.6Z" />
+                    <circle cx="12" cy="12" r="2.8" />
+                  </>
+                )}
+              </svg>
             </button>
           </div>
           <div className="font-num mt-1 whitespace-nowrap text-[28px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3">
