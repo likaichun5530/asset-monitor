@@ -44,3 +44,10 @@ test('普通细分未配置目标仍提醒', () => {
   const result=calculateHealthScore({targetRows:[row(1,1)],targetDetails:[{category:'美股',allocation:{items:[{name:'VOO',targetRatio:null,currentRatio:1}]}}]})
   assert.ok(result.dataWarnings.some((warning)=>warning.includes('VOO')))
 })
+
+test('黄金无需细分目标但大类偏离仍扣分', () => {
+  const result = calculateHealthScore({targetRows:[row(.1,.2,'黄金')],targetDetails:[{category:'黄金',allocation:null}]})
+  assert.deepEqual(result.dataWarnings, [])
+  assert.equal(result.detailDeduction, 0)
+  close(result.majorDeduction, 20)
+})

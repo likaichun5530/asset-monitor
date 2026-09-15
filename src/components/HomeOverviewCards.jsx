@@ -269,7 +269,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
         <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 类内超额偏离百分点 × 大类目标与实际占比的较大值 × 1.5 · 最多扣 30 分`} items={healthScore.detailIssues} />
         <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate === null ? '数据不完整' : `${icFutureUsageRate.toFixed(1)}% · ${icUsageText}`} · 14% 保证金率估算 · ≤70% 不扣分；70%～75%、75%～80%、80%～85%、85% 以上每个百分点分别扣 1/2/3/3 分，分段累加，最多扣 60 分`} />
 
-        <p className="px-1 text-xs leading-5 text-gray-400">现金、期货不计细分评分；其他未设目标时不扣分、不提示缺失。容忍幅度为目标占比的 40%，最低 0.5、最高 2 个百分点；区间内不扣分，超出部分连续扣分。各项按计算精度累计后四舍五入，总分为 5～100 的整数。</p>
+        <p className="px-1 text-xs leading-5 text-gray-400">现金、期货、黄金不计细分评分；其他未设目标时不扣分、不提示缺失。容忍幅度为目标占比的 40%，最低 0.5、最高 2 个百分点；区间内不扣分，超出部分连续扣分。各项按计算精度累计后四舍五入，总分为 5～100 的整数。</p>
       </div>
     </AppDialog>
     </>

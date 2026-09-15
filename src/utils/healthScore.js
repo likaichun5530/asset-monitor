@@ -1,7 +1,7 @@
 import { getTargetTolerance } from '../../shared/allocation.js'
 
 const valid = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
-const noDetailTarget = (category) => ['现金', '期货'].includes(category)
+const noDetailTarget = (category) => ['现金', '期货', '黄金'].includes(category)
 const optionalOther = (item) => /^(其他|其它|other|others)$/i.test(String(item?.name || '').trim()) && !valid(item.targetRatio)
 const points = (value) => Number(value.toFixed(2))
 
