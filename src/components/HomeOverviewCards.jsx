@@ -151,7 +151,7 @@ function useAnimatedScore(targetScore) {
     const animate = (now) => {
       const progress = Math.min(1, (now - startedAt) / 850)
       const eased = 1 - ((1 - progress) ** 3)
-      const next = Math.round(start + (targetScore - start) * eased)
+      const next = progress === 1 ? targetScore : Math.round(start + (targetScore - start) * eased)
       currentRef.current = next
       setDisplayScore(next)
       if (progress < 1) frame = requestAnimationFrame(animate)
@@ -163,7 +163,7 @@ function useAnimatedScore(targetScore) {
   return displayScore
 }
 
-export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
+export function HealthCard({ refreshKey = 0, targetRefreshKey = 0, todayChange = null }) {
   const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
   const [targetState, setTargetState] = useState(() => {
     const cached = getCachedTargetResult()
@@ -214,7 +214,8 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     targetRows: targetState.target,
     targetDetails: targetState.targetDetails,
     icMarginUsageRate: icFutureUsageRate,
-  }), [icFutureUsageRate, targetState])
+    todayChange,
+  }), [icFutureUsageRate, targetState, todayChange])
   const scoreReady = targetState.target.length > 0
   const displayScore = useAnimatedScore(scoreReady ? healthScore.score : null)
 
@@ -257,15 +258,16 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     <AppDialog open={scoreDialogOpen} onClose={() => setScoreDialogOpen(false)} title="账户健康度评分" description="满分 100 分，最低 5 分" ariaLabel="账户健康度扣分细则" maxWidth="sm:max-w-md">
       <div className="space-y-3">
         <div className="flex items-end justify-between rounded-xl bg-gray-50 px-4 py-4 dark:bg-gray-700/35">
-          <div><div className="text-xs text-gray-400">当前评分</div><div className="mt-1 text-sm text-gray-600 dark:text-gray-300">共扣 {100 - healthScore.score} 分</div></div>
+          <div><div className="text-xs text-gray-400">当前评分</div><div className="mt-1 text-sm text-gray-600 dark:text-gray-300">净扣 {Math.round((100 - healthScore.score) * 100) / 100} 分</div></div>
           <div className="font-num flex items-baseline text-gray-900 dark:text-gray-100"><span className="text-4xl font-semibold leading-none">{healthScore.score}</span><span className="ml-1 text-sm font-medium">分</span></div>
         </div>
 
         <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 轻微/明显/严重分别扣 4/6/9 分 · 最多扣 50 分`} items={healthScore.majorIssues} />
         <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 轻微/明显/严重分别扣 1/2/4 分 · 最多扣 30 分`} items={healthScore.detailIssues} />
-        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate.toFixed(1)}% · ${icUsageText} · 警戒/危险/严重危险分别扣 12/20/30 分`} />
+        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate.toFixed(1)}% · ${icUsageText} · ≤70% 不扣分；70%～75%、75%～80%、80%～85%、85% 以上每个百分点分别扣 1/2/3/1 分，分段累加`} />
 
-        <p className="px-1 text-xs leading-5 text-gray-400">各项扣分独立累计；累计结果低于 5 分时，最终评分按 5 分显示。</p>
+        <ScoreDetailRow title="今日账户涨跌" deduction={-healthScore.dailyAdjustment} description="沿用首页今日盈亏口径：相对前一日上涨加 5 分，下跌扣 2 分；持平或无对比数据不调整。" />
+        <p className="px-1 text-xs leading-5 text-gray-400">保证金不足一个百分点按比例扣分；各项加减分累计后，最终评分限制在 5～100 分。</p>
       </div>
     </AppDialog>
     </>
@@ -275,7 +277,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
 function ScoreDetailRow({ title, deduction, description, items = [] }) {
   return (
     <section className="rounded-xl border border-gray-100 px-4 py-3.5 dark:border-gray-700">
-      <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</h4><span className={`font-num text-base font-semibold ${deduction ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>{deduction ? `-${deduction} 分` : '不扣分'}</span></div>
+      <div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</h4><span className={`font-num text-base font-semibold ${deduction > 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>{deduction > 0 ? `-${deduction} 分` : deduction < 0 ? `+${-deduction} 分` : '不扣分'}</span></div>
       <p className="mt-1 text-xs leading-5 text-gray-400">{description}</p>
       {items.length > 0 && <p className="mt-2 text-xs leading-5 text-gray-600 dark:text-gray-300">涉及：{items.join('、')}</p>}
     </section>

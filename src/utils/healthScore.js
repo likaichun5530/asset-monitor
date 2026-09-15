@@ -32,7 +32,7 @@ function issueDeduction(severity, kind) {
   return { minor: 1, moderate: 2, severe: 4 }[severity.level]
 }
 
-export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0 } = {}) {
+export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0, todayChange = null } = {}) {
   const majorIssueDetails = targetRows.filter((row) => (
     !row.isTotal
     && hasTarget(row.targetRatio)
@@ -60,8 +60,16 @@ export function calculateHealthScore({ targetRows = [], targetDetails = [], icMa
 
   const majorDeduction = Math.min(majorIssueDetails.reduce((sum, item) => sum + item.deduction, 0), 50)
   const detailDeduction = Math.min(detailIssueDetails.reduce((sum, item) => sum + item.deduction, 0), 30)
-  const marginDeduction = icMarginUsageRate > 85 ? 30 : icMarginUsageRate > 75 ? 20 : icMarginUsageRate > 70 ? 12 : 0
-  const score = Math.max(MIN_SCORE, Math.min(100, 100 - majorDeduction - detailDeduction - marginDeduction))
+  const usage = Math.max(0, Number(icMarginUsageRate) || 0)
+  const marginDeduction = Math.round((
+    Math.min(Math.max(usage - 70, 0), 5)
+    + Math.min(Math.max(usage - 75, 0), 5) * 2
+    + Math.min(Math.max(usage - 80, 0), 5) * 3
+    + Math.max(usage - 85, 0)
+  ) * 100) / 100
+  const change = Number(todayChange)
+  const dailyAdjustment = Number.isFinite(change) ? (change > 0 ? 5 : change < 0 ? -2 : 0) : 0
+  const score = Math.round(Math.max(MIN_SCORE, Math.min(100, 100 - majorDeduction - detailDeduction - marginDeduction + dailyAdjustment)) * 100) / 100
 
-  return { score, majorIssues, detailIssues, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction }
+  return { score, majorIssues, detailIssues, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction, dailyAdjustment }
 }
