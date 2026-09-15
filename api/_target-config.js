@@ -56,7 +56,6 @@ export function validateTargetStrategy(categoryValue, strategyValue) {
 
 export function normalizeTargetGroupCategory(value) {
   const label = String(value ?? '').trim()
-  if (label === '基金') return '债基'
   return normalizeTargetCategory(label)
 }
 

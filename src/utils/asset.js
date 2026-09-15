@@ -19,8 +19,8 @@ function getCachedHoldings() {
     if (raw) {
       const parsed = JSON.parse(raw)
       if (parsed?.holdings?.length) {
-        return parsed.holdings.map((holding) => holding.assetType === '债券'
-          ? { ...holding, assetType: '债基' }
+        return parsed.holdings.map((holding) => ['债券', '债基', 'Bond', 'bond'].includes(holding.assetType)
+          ? { ...holding, assetType: '基金' }
           : holding)
       }
     }

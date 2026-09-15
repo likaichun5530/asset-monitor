@@ -19,7 +19,7 @@ export const demoHoldings = [
   { assetType: '虚拟币', market: 'GLOBAL', account: 'Binance', symbol: 'USDT', name: 'USDT', currency: 'USD', quantity: 1155, price: 0.0998765, marketValue: 1153.573, marketValueCNY: 7813.443 },
   { assetType: '黄金', market: 'GLOBAL', account: 'Snowball', symbol: '518850', name: '黄金ETF华夏', currency: 'CNY', quantity: 2300, price: 0.8399, marketValue: 19317.7, marketValueCNY: 19317.7 },
   { assetType: '期货', market: 'CN', account: 'Hithink', symbol: 'IC2612', name: '中证500股指期货', currency: 'CNY', quantity: 0.1, price: 712.48, marketValue: 21468, marketValueCNY: 21468 },
-  { assetType: '债基', market: 'CN', account: 'Snowball', symbol: '-', name: '债基', currency: 'CNY', quantity: null, price: null, marketValue: 46496.3, marketValueCNY: 46496.3 },
+  { assetType: '基金', market: 'CN', account: 'Snowball', symbol: '-', name: '基金', currency: 'CNY', quantity: null, price: null, marketValue: 46496.3, marketValueCNY: 46496.3 },
   { assetType: '现金', market: 'CN', account: 'Card', symbol: '-', name: '人民币现金', currency: 'CNY', quantity: null, price: null, marketValue: 145.4, marketValueCNY: 145.4 },
   { assetType: '现金', market: 'CN', account: 'Wechat', symbol: '-', name: '人民币现金', currency: 'CNY', quantity: null, price: null, marketValue: 10, marketValueCNY: 10 },
   { assetType: '现金', market: 'CN', account: 'Alipay', symbol: '-', name: '人民币现金', currency: 'CNY', quantity: null, price: null, marketValue: 805.9, marketValueCNY: 805.9 },
@@ -54,7 +54,7 @@ export const demoPeakDate = '2025-12-15'
 
 // 演示模式配置目标（固定，与实盘逻辑一致）
 export const demoTarget = [
-  { category: '债基', marketValue: 46496.3, currentRatio: 0.1352, targetRatio: 0.15, diff: -0.0148, isTotal: false },
+  { category: '基金', marketValue: 46496.3, currentRatio: 0.1352, targetRatio: 0.15, diff: -0.0148, isTotal: false },
   { category: '现金', marketValue: 74259.43, currentRatio: 0.2159, targetRatio: 0.05, diff: 0.1659, isTotal: false },
   { category: '美股', marketValue: 93032.42, currentRatio: 0.2704, targetRatio: 0.25, diff: 0.0204, isTotal: false },
   { category: 'A股', marketValue: 23448.7, currentRatio: 0.0682, targetRatio: 0.10, diff: -0.0318, isTotal: false },

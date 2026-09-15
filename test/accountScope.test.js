@@ -8,7 +8,7 @@ test('证券账户详情按 Stock + Market 归属，不按名称判断现金', (
   assert.equal(isUsAccountHolding({ assetType: '股票', market: 'US', name: '美元现金', symbol: '-' }), true)
   assert.equal(isUsAccountHolding({ assetType: '现金', market: 'US' }), false)
   assert.equal(isUsAccountHolding({ assetType: '现金', market: 'CN' }), false)
-  assert.equal(isUsAccountHolding({ assetType: '债基', market: 'US' }), false)
+  assert.equal(isUsAccountHolding({ assetType: '基金', market: 'US' }), false)
 })
 
 test('快照严格按 AssetType 归类，同一笔资金只进入一类', () => {

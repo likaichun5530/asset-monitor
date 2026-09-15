@@ -10,17 +10,17 @@ const CATEGORIES = [
   { value: 'A股', label: 'A股' },
   { value: '港股', label: '港股' },
   { value: '日股', label: '日股' },
-  { value: '债基', label: '债基' },
+  { value: '基金', label: '基金' },
   { value: '现金', label: '现金' },
   { value: '黄金', label: '黄金' },
   { value: '虚拟币', label: '虚拟币' },
   { value: '期货', label: '期货' },
 ]
 const ACCOUNT_CASH_CATEGORIES = new Set(['美股', 'A股', '港股', '日股'])
-const FORM_CATEGORIES = new Set([...ACCOUNT_CASH_CATEGORIES, '债基'])
+const FORM_CATEGORIES = new Set([...ACCOUNT_CASH_CATEGORIES, '基金'])
 const STOCK_MARKETS = { 美股: 'US', A股: 'CN', 港股: 'HK', 日股: 'JP' }
 const CATEGORY_DEFAULTS = {
-  债基: { market: 'CN', currency: 'CNY' },
+  基金: { market: 'CN', currency: 'CNY' },
   黄金: { market: 'GLOBAL', currency: 'CNY' },
   虚拟币: { market: 'GLOBAL', currency: 'USD' },
   美股: { market: 'US', currency: 'USD' },
@@ -45,7 +45,7 @@ function initialForm(holding) {
     || (category === '期货' ? 'formula' : holding?.symbol && holding.symbol !== '-' ? 'tracked' : 'amount')
   const holdingForm = ACCOUNT_CASH_CATEGORIES.has(category)
     ? valuationMode === 'amount' ? 'accountCash' : 'security'
-    : category === '债基'
+    : category === '基金'
       ? valuationMode === 'amount' ? 'amount' : 'tracked'
       : ''
   const name = holdingForm === 'accountCash' ? getMarketCashName(category) : holding?.name || ''
@@ -113,7 +113,7 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
   const needsHoldingForm = FORM_CATEGORIES.has(form.category)
   const isAccountCash = ACCOUNT_CASH_CATEGORIES.has(form.category) && form.holdingForm === 'accountCash'
   const accountCashName = isAccountCash ? getMarketCashName(form.category) : ''
-  const isAmount = form.category === '现金' || isAccountCash || (form.category === '债基' && form.holdingForm === 'amount')
+  const isAmount = form.category === '现金' || isAccountCash || (form.category === '基金' && form.holdingForm === 'amount')
   const isFuture = form.category === '期货'
   const allowsCashFormula = form.category === '现金' || isAccountCash
   const marketValueIsFormula = (isFuture || allowsCashFormula) && String(form.marketValueInput).trim().startsWith('=')
@@ -281,8 +281,8 @@ export default function HoldingEditor({ open, holding, total, onClose, onSaved }
             </Field>
           )}
 
-          {form.category === '债基' && (
-            <Field label="估值方式" required hint="两者都归属债基，不计入可用现金">
+          {form.category === '基金' && (
+            <Field label="估值方式" required hint="两者都归属基金，不计入可用现金">
               <select value={form.holdingForm} onChange={(e) => changeHoldingForm(e.target.value)} className="input-style" required>
                 <option value="">请选择估值方式</option>
                 <option value="tracked">按代码和数量计算</option>

@@ -7,7 +7,7 @@ const balanced = (name = '项目') => ({ name, currentRatio: 0.2, targetRatio: 0
 
 test('账户健康度按大类、细分配置和 IC 保证金规则扣分', () => {
   const result = calculateHealthScore({
-    targetRows: [issue('美股'), issue('现金'), balanced('债基'), { isTotal: true }],
+    targetRows: [issue('美股'), issue('现金'), balanced('基金'), { isTotal: true }],
     targetDetails: [{ allocation: { items: [issue('VOO'), issue('QQQ'), issue('其他')] } }],
     icMarginUsageRate: 72,
   })

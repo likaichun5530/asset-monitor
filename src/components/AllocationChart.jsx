@@ -13,7 +13,7 @@ const colorMap = {
   虚拟币: assetColors.虚拟币,
   黄金: assetColors.黄金,
   现金: assetColors.现金,
-  债基: assetColors.债基,
+  基金: assetColors.基金,
   期货: assetColors.期货,
   其他: '#14b8a6',
 }
@@ -27,7 +27,7 @@ const categoryRoutes = {
   虚拟币: '/crypto',
   黄金: '/gold',
   现金: '/cash',
-  债基: '/bond',
+  基金: '/bond',
   期货: '/future',
 }
 

@@ -1,7 +1,7 @@
 export const HISTORY_CATEGORY_META = [
   { key: 'us', label: '美股', color: '#3b82f6' },
   { key: 'crypto', label: '虚拟币', color: '#f97316' },
-  { key: 'bond', label: '债基', color: '#10b981' },
+  { key: 'bond', label: '基金', color: '#10b981' },
   { key: 'future', label: '期货', color: '#06b6d4' },
   { key: 'cn', label: 'A股', color: '#ef4444' },
   { key: 'gold', label: '黄金', color: '#d4a017' },

@@ -43,7 +43,7 @@ function publishTargetResult(result) {
 function targetConfigFromRows(rows = []) {
   return rows
     .filter((row) => !row.isTotal && Number.isFinite(Number(row.targetRatio)))
-    .map((row) => ({ category: row.category === '债券' ? '债基' : row.category, targetPercent: Number(row.targetRatio) * 100 }))
+    .map((row) => ({ category: ['债券', '债基'].includes(row.category) ? '基金' : row.category, targetPercent: Number(row.targetRatio) * 100 }))
 }
 
 function targetDetailsFromConfig(targetConfig = []) {
@@ -111,7 +111,7 @@ function normalizeHoldings(arr) {
   return arr.map((r, idx) => {
     let t = r.assetType || r.AssetType || '其他'
     const map = { Stock: '股票', stock: '股票', Crypto: '虚拟币', crypto: '虚拟币', 虚拟币: '虚拟币', 数字货币: '虚拟币',
-      Gold: '黄金', gold: '黄金', Cash: '现金', cash: '现金', Bond: '债基', bond: '债基', 债券: '债基',
+      Gold: '黄金', gold: '黄金', Cash: '现金', cash: '现金', Bond: '基金', bond: '基金', 债券: '基金', 债基: '基金',
       Future: '期货', future: '期货' }
     return {
       assetType: map[t] || t,
@@ -361,7 +361,7 @@ export async function saveTargetDetailTargets(category, targets) {
 }
 
 function normalizeTarget(rows) {
-  return rows.map((row) => row.category === '债券' ? { ...row, category: '债基' } : row)
+  return rows.map((row) => ['债券', '债基'].includes(row.category) ? { ...row, category: '基金' } : row)
 }
 
 function computeTargetLocal(holdings) {

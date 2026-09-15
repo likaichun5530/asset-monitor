@@ -1,7 +1,7 @@
 import { toNumber } from './_google.js'
 
 export const CATEGORY_CONFIG = {
-  债基: { assetType: 'Bond' },
+  基金: { assetType: 'Bond' },
   黄金: { assetType: 'Gold' },
   虚拟币: { assetType: 'Crypto' },
   美股: { assetType: 'Stock', market: 'US' },
@@ -43,7 +43,7 @@ export function mapAssetType(type) {
   if (value === 'crypto' || value === '虚拟币' || value === '数字货币') return '虚拟币'
   if (value === 'gold' || value === '黄金') return '黄金'
   if (value === 'cash' || value === '现金') return '现金'
-  if (value === 'bond' || value === '债券' || value === '债基') return '债基'
+  if (value === 'bond' || value === '债基' || value === '债券' || value === '基金') return '基金'
   if (value === 'future' || value === '期货') return '期货'
   return type || '其他'
 }
@@ -137,7 +137,7 @@ export function parseInput(body, rows) {
   const valuationMode = isCash ? 'amount' : isFuture ? 'formula' : requestedMode || (String(body.symbol || '').trim() ? 'tracked' : 'amount')
   if (!['tracked', 'amount', 'formula'].includes(valuationMode)) throw httpError(400, '不支持该估值方式')
   if (valuationMode === 'formula' && !isFuture) throw httpError(400, '只有期货可使用公式估值')
-  if (valuationMode === 'amount' && !['现金', '债基', '美股', 'A股', '港股', '日股'].includes(category)) {
+  if (valuationMode === 'amount' && !['现金', '基金', '美股', 'A股', '港股', '日股'].includes(category)) {
     throw httpError(400, '该资产类别不支持直接填写市值')
   }
   const symbol = valuationMode === 'amount' ? '-' : cleanText(body.symbol, '代码', { max: 40 }).toUpperCase()

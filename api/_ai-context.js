@@ -4,7 +4,7 @@ import { readCachedAiData } from './_ai-data-cache.js'
 
 const HISTORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
 const CATEGORY_LABELS = {
-  us: '美股', crypto: '虚拟币', bond: '债基', future: '期货', cn: 'A股',
+  us: '美股', crypto: '虚拟币', bond: '基金', future: '期货', cn: 'A股',
   gold: '黄金', jp: '日股', hk: '港股', cash: '现金',
 }
 

@@ -49,7 +49,7 @@ test('target 表英文类别兼容为 APP 使用的中文资产类别', () => {
     ],
   }
   const targets = parseTargetMap(sheet)
-  assert.equal(targets.get('债基'), 0.15)
+  assert.equal(targets.get('基金'), 0.15)
   assert.equal(targets.get('黄金'), 0.1)
   assert.equal(targets.get('期货'), 0.05)
   assert.equal(targets.get('现金'), 0.1)
@@ -61,19 +61,19 @@ test('target 横向列组分别解析大类目标和各市场内部目标', () =
   const sheet = {
     headers: ['类型', '目标', '', '美股', '目标', '', 'A股', '目标', '', '虚拟币', '目标', '', '基金', '目标'],
     rawRows: [
-      ['美股', '25%', '', 'VOO', '30%', '', '美的集团', '30%', '', 'BTC', '30%', '', '债基一号', '60%'],
+      ['美股', '25%', '', 'VOO', '30%', '', '美的集团', '30%', '', 'BTC', '30%', '', '基金一号', '60%'],
       ['A股', '8%', '', 'NVDA', '12%', '', '招商银行', '30%'],
-      ['债基', '27%', '', '合计', '100%'],
+      ['基金', '27%', '', '合计', '100%'],
     ],
   }
   const targets = parseTargetMap(sheet)
   assert.equal(targets.get('美股'), 0.25)
   assert.equal(targets.get('A股'), 0.08)
-  assert.equal(targets.get('债基'), 0.27)
+  assert.equal(targets.get('基金'), 0.27)
   const groups = parseTargetGroups(sheet)
-  assert.deepEqual(groups.map((group) => group.category), ['美股', 'A股', '虚拟币', '债基'])
+  assert.deepEqual(groups.map((group) => group.category), ['美股', 'A股', '虚拟币', '基金'])
   assert.deepEqual(groups[0].items.map((item) => [item.name, item.targetRatio]), [['VOO', 0.3], ['NVDA', 0.12]])
-  assert.equal(groups[3].items[0].name, '债基一号')
+  assert.equal(groups[3].items[0].name, '基金一号')
   const validated = validateTargetGroup('美股', [{ name: 'VOO', targetPercent: 35 }, { name: 'NVDA', targetPercent: 15 }, { name: 'MSFT', targetPercent: 10 }], sheet)
   assert.equal(validated.totalPercent, 60)
   assert.equal(validated.items.at(-1).name, 'MSFT')

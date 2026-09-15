@@ -7,7 +7,7 @@ import { clearHoldingEditorDraft, readHoldingEditorDraft, writeHoldingEditorDraf
 import { getHoldingCategory } from '../../shared/allocation.js'
 
 // 筛选标签（股票按市场拆分）
-const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '债基', '期货']
+const FILTERS = ['全部', '美股', 'A股', '港股', '日股', '虚拟币', '黄金', '现金', '基金', '期货']
 
 const colorMap = {
   美股: assetColors.美股,
@@ -16,7 +16,7 @@ const colorMap = {
   日股: assetColors.日股,
   虚拟币: assetColors.虚拟币,
   黄金: assetColors.黄金,
-  债基: assetColors.债基,
+  基金: assetColors.基金,
   期货: assetColors.期货,
   现金: assetColors.现金,
 }

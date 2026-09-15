@@ -157,7 +157,7 @@ export default async function handler(req, res) {
         const strategyColumn = sheetColumnName(strategyColumnIndex)
         const matchingRows = (tResult.rawRows || [])
           .map((row, index) => ({ category: String(row?.[0] || '').trim(), rowNumber: index + 2 }))
-          .find((row) => row.category === category || (category === '债基' && ['债券', 'Bond'].includes(row.category)))
+          .find((row) => row.category === category || (category === '基金' && ['债券', '债基', 'Bond', 'bond'].includes(row.category)))
         if (!matchingRows) return json(res, 409, { error: `target 表 A 列中找不到${category}` })
         await updateRows('target', `${strategyColumn}${matchingRows.rowNumber}`, [[strategy]], { valueInputOption: 'RAW' })
       } else if (body.action === 'detail-targets') {
@@ -178,7 +178,7 @@ export default async function handler(req, res) {
 
         for (let index = 0; index < (tResult.rawRows || []).length; index += 1) {
           const rawCategory = String(tResult.rawRows[index]?.[0] || '').trim()
-          const category = rawCategory === '债券' || rawCategory === 'Bond' ? '债基' : rawCategory
+          const category = ['债券', '债基', 'Bond', 'bond'].includes(rawCategory) ? '基金' : rawCategory
           const item = configMap.get(category)
           if (!item) continue
           updates.push({ range: `B${index + 2}`, values: [[`${item.targetPercent}%`]] })

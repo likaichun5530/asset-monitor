@@ -7,7 +7,7 @@ const FEATURES = [
   },
   {
     title: '持仓管理',
-    description: '统一管理股票、债基、黄金、数字货币、现金和期货等多类资产。',
+    description: '统一管理股票、基金、黄金、数字货币、现金和期货等多类资产。',
     tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300',
     icon: <><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 10h18" /><path d="M8 15h4" /></>,
   },

@@ -4,7 +4,7 @@ import { saveTargetConfig } from '../utils/dataStore.js'
 import AppDialog from './AppDialog.jsx'
 
 function initialFields(targets = []) {
-  const values = new Map(targets.map((item) => [item.category === '债券' ? '债基' : item.category, item.targetPercent]))
+  const values = new Map(targets.map((item) => [['债券', '债基'].includes(item.category) ? '基金' : item.category, item.targetPercent]))
   return Object.fromEntries(TARGET_CATEGORIES.map((category) => [category, String(values.get(category) ?? 0)]))
 }
 
@@ -29,7 +29,7 @@ function displayPercent(value) {
 }
 
 function sortedCategories(targets = []) {
-  const values = new Map(targets.map((item) => [item.category === '债券' ? '债基' : item.category, Number(item.targetPercent) || 0]))
+  const values = new Map(targets.map((item) => [['债券', '债基'].includes(item.category) ? '基金' : item.category, Number(item.targetPercent) || 0]))
   return [...TARGET_CATEGORIES].sort((a, b) => (values.get(b) || 0) - (values.get(a) || 0) || TARGET_CATEGORIES.indexOf(a) - TARGET_CATEGORIES.indexOf(b))
 }
 

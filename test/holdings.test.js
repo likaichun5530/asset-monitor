@@ -113,9 +113,9 @@ test('日股账户现金保持 Stock + JP 归属', () => {
   assert.ok(row[9].includes('Market!$C$6'))
 })
 
-test('直接填金额的债基保持 Bond 归属', () => {
+test('直接填金额的基金保持 Bond 归属', () => {
   const input = parseInput({
-    category: '债基', valuationMode: 'amount', name: '港币现金', market: 'HK',
+    category: '基金', valuationMode: 'amount', name: '港币现金', market: 'HK',
     account: '汇丰', currency: 'HKD', marketValueInput: '10000',
   }, market)
   const row = buildRow(headers, 13, input)
@@ -142,7 +142,7 @@ test('期货保留合法公式并拒绝外部数据公式', () => {
 
 test('没有 Market 行情时禁止新增普通资产', () => {
   assert.throws(() => parseInput({
-    category: '债基', name: '债基', symbol: 'BOND', market: 'CN',
+    category: '基金', name: '基金', symbol: 'BOND', market: 'CN',
     account: '账户', currency: 'CNY', quantity: 1,
   }, market), /Market 表中找不到/)
 })
@@ -154,8 +154,8 @@ test('黄金等跟踪型资产不允许绕过行情直接填市值', () => {
   }, market), /不支持直接填写/)
 })
 
-test('债券旧名称归一为债基，行版本只随输入或公式变化', () => {
-  assert.equal(mapAssetType('债券'), '债基')
+test('债券旧名称归一为基金，行版本只随输入或公式变化', () => {
+  assert.equal(mapAssetType('债券'), '基金')
   assert.equal(rowVersion(['Bond']), rowVersion(['Bond']))
   assert.notEqual(rowVersion(['Bond']), rowVersion(['Cash']))
 })
