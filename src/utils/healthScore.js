@@ -1,6 +1,8 @@
 import { getTargetTolerance } from '../../shared/allocation.js'
 
 const valid = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
+const noDetailTarget = (category) => ['现金', '期货'].includes(category)
+const optionalOther = (item) => /^(其他|其它|other|others)$/i.test(String(item?.name || '').trim()) && !valid(item.targetRatio)
 const points = (value) => Number(value.toFixed(2))
 
 export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0, holdingsAvailable = true } = {}) {
@@ -22,8 +24,9 @@ export function calculateHealthScore({ targetRows = [], targetDetails = [], icMa
     return { deduction, text: `${name}：实际 ${points(current * 100)}%，目标 ${points(target * 100)}%，容忍 ${points(tolerance * 100)} 个百分点，超额 ${points(excess * 100)} 个百分点，扣 ${points(deduction)} 分` }
   }
   const major = rows.map((row) => evaluate(row, row.category || row.name || '未命名分类', 2.5)).filter(Boolean)
-  if (rows.length && !targetDetails.length) dataWarnings.push('细分配置数据不可用')
+  if (rows.some((row) => !noDetailTarget(row.category || row.name)) && !targetDetails.length) dataWarnings.push('细分配置数据不可用')
   const details = targetDetails.flatMap((detail) => {
+    if (noDetailTarget(detail.category)) return []
     if (!detail?.allocation?.items?.length) {
       dataWarnings.push(`${detail.category}：细分目标未配置`)
       return []
@@ -34,7 +37,7 @@ export function calculateHealthScore({ targetRows = [], targetDetails = [], icMa
       return []
     }
     const weight = Math.max(0, Number(parent.targetRatio), Number(parent.currentRatio))
-    return (detail?.allocation?.items || []).map((item) => evaluate(item, `${detail.category} · ${item.name}`, weight * 1.5)).filter(Boolean)
+    return (detail?.allocation?.items || []).filter((item) => !optionalOther(item)).map((item) => evaluate(item, `${detail.category} · ${item.name}`, weight * 1.5)).filter(Boolean)
   })
   const majorDeduction = Math.min(50, major.reduce((sum, item) => sum + item.deduction, 0))
   const detailDeduction = Math.min(30, details.reduce((sum, item) => sum + item.deduction, 0))

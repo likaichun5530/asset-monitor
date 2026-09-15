@@ -27,3 +27,20 @@ test('缺失保证金和目标会明确提示', () => {
   assert.ok(result.dataWarnings.includes('IC 保证金数据不完整'))
   assert.ok(result.dataWarnings.includes('持仓数据不可用'))
 })
+
+test('其他无目标及现金期货无细分属于正常配置', () => {
+  const result = calculateHealthScore({
+    targetRows: [row(.4,.4),row(.3,.3,'现金'),row(.3,.3,'期货')],
+    targetDetails: [
+      {category:'美股',allocation:{items:[{name:'VOO',targetRatio:.5,currentRatio:.5},{name:'其他',targetRatio:null,currentRatio:.5}]}},
+      {category:'现金',allocation:null}, {category:'期货',allocation:null},
+    ],
+  })
+  assert.deepEqual(result.dataWarnings, [])
+  assert.equal(result.detailDeduction, 0)
+  assert.deepEqual(calculateHealthScore({targetRows:[row(.5,.5,'现金'),row(.5,.5,'期货')]}).dataWarnings, [])
+})
+test('普通细分未配置目标仍提醒', () => {
+  const result=calculateHealthScore({targetRows:[row(1,1)],targetDetails:[{category:'美股',allocation:{items:[{name:'VOO',targetRatio:null,currentRatio:1}]}}]})
+  assert.ok(result.dataWarnings.some((warning)=>warning.includes('VOO')))
+})
