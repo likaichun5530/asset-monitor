@@ -43,32 +43,26 @@ export function aggregateHoldingsByCategory(rows = []) {
   return { categoryTotals, total }
 }
 
+export function getTargetTolerance(targetRatio) {
+  return Math.min(TARGET_ABSOLUTE_DEVIATION, Math.max(0.005, Math.max(0, targetRatio) * TARGET_RELATIVE_DEVIATION))
+}
+
 export function getTargetDeviation(currentRatio, targetRatio) {
   if (!Number.isFinite(currentRatio) || !Number.isFinite(targetRatio)) {
     return { status: 'unset', difference: null, relativeDifference: null, triggeredBy: null }
   }
   const difference = currentRatio - targetRatio
   const relativeDifference = targetRatio > 0 ? difference / targetRatio : null
-  const absoluteOver = difference >= TARGET_ABSOLUTE_DEVIATION - COMPARISON_EPSILON
-  const absoluteUnder = difference <= -TARGET_ABSOLUTE_DEVIATION + COMPARISON_EPSILON
-  const relativeOver = relativeDifference !== null && relativeDifference >= TARGET_RELATIVE_DEVIATION - COMPARISON_EPSILON
-  const relativeUnder = relativeDifference !== null && relativeDifference <= -TARGET_RELATIVE_DEVIATION + COMPARISON_EPSILON
-  const status = absoluteOver || relativeOver ? 'over' : absoluteUnder || relativeUnder ? 'under' : 'balanced'
-  const absoluteTriggered = absoluteOver || absoluteUnder
-  const relativeTriggered = relativeOver || relativeUnder
-  const triggeredBy = absoluteTriggered && relativeTriggered ? 'both' : absoluteTriggered ? 'absolute' : relativeTriggered ? 'relative' : null
-  return { status, difference, relativeDifference, triggeredBy }
+  const tolerance = getTargetTolerance(targetRatio)
+  const outside = Math.abs(difference) > tolerance + COMPARISON_EPSILON
+  return { status: outside ? (difference > 0 ? 'over' : 'under') : 'balanced', difference, relativeDifference, triggeredBy: outside ? 'tolerance' : null }
 }
 
 export function getTargetAllowedRange(targetRatio) {
   if (!Number.isFinite(targetRatio)) return null
   const target = Math.max(0, Math.min(1, targetRatio))
-  const relativeLower = target > 0 ? target * (1 - TARGET_RELATIVE_DEVIATION) : 0
-  const relativeUpper = target > 0 ? target * (1 + TARGET_RELATIVE_DEVIATION) : 1
-  return {
-    lower: Math.max(0, target - TARGET_ABSOLUTE_DEVIATION, relativeLower),
-    upper: Math.min(1, target + TARGET_ABSOLUTE_DEVIATION, relativeUpper),
-  }
+  const tolerance = getTargetTolerance(target)
+  return { lower: Math.max(0, target - tolerance), upper: Math.min(1, target + tolerance) }
 }
 
 export function getTargetAdjustmentAmount(marketValue, totalMarketValue, targetRatio) {

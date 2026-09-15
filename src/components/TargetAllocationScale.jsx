@@ -5,7 +5,7 @@ function percent(value) {
 }
 
 function getRangeRuleLabel(targetRatio) {
-  return targetRatio > 0 && targetRatio * 0.4 < 0.02 ? '目标比例 ±40%' : '±2 个百分点'
+  return targetRatio * 0.4 < 0.005 ? '±0.5 个百分点' : targetRatio * 0.4 < 0.02 ? '目标比例 ±40%' : '±2 个百分点'
 }
 
 export function getTargetCardTone(status) {

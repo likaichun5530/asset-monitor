@@ -200,33 +200,36 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     }
     let maxUsage = 0
     let maxIcUsage = 0
+    let icDataMissing = false
     for (const holding of holdings.filter((item) => item.assetType === '期货')) {
       const margin = holdingMarketValue(holding)
       const contractValue = Math.abs((holding.price || 0) * (holding.quantity || 0) * futuresMultiplier(holding.symbol))
+      if (String(holding.symbol || '').toUpperCase().startsWith('IC') && (!(margin > 0) || !(Number(holding.price) > 0) || holding.quantity === null || holding.quantity === undefined || !Number.isFinite(Number(holding.quantity)))) icDataMissing = true
       const usageRate = margin ? (contractValue * 0.14 / margin) * 100 : 0
       if (usageRate > maxUsage) maxUsage = usageRate
       if (String(holding.symbol || '').toUpperCase().startsWith('IC') && usageRate > maxIcUsage) maxIcUsage = usageRate
     }
-    return { overCategories: over, underCategories: under, futureUsageRate: maxUsage, icFutureUsageRate: maxIcUsage }
+    return { overCategories: over, underCategories: under, futureUsageRate: maxUsage, icFutureUsageRate: icDataMissing ? null : maxIcUsage }
   }, [holdings, targetState.target])
 
   const healthScore = useMemo(() => calculateHealthScore({
     targetRows: targetState.target,
     targetDetails: targetState.targetDetails,
     icMarginUsageRate: icFutureUsageRate,
-  }), [icFutureUsageRate, targetState])
+    holdingsAvailable: holdings.length > 0,
+  }), [icFutureUsageRate, targetState, holdings])
   const scoreReady = targetState.target.length > 0
   const displayScore = useAnimatedScore(scoreReady ? healthScore.score : null)
 
-  const usageColor = futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
-  const usageText = futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
+  const usageColor = icFutureUsageRate === null ? '#d97706' : futureUsageRate > 75 ? '#ef4444' : futureUsageRate > 70 ? '#eab308' : '#10b981'
+  const usageText = icFutureUsageRate === null ? '数据不完整' : futureUsageRate > 75 ? '危险' : futureUsageRate > 70 ? '警戒' : '安全'
   const icUsageText = icFutureUsageRate > 85 ? '严重危险' : icFutureUsageRate > 75 ? '危险' : icFutureUsageRate > 70 ? '警戒' : '安全'
   const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
     <>
     <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>
+        <div><div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>{healthScore.dataWarnings.length > 0 && <div className="text-[10px] text-amber-600">评分数据不完整</div>}</div>
         <button type="button" onClick={() => setScoreDialogOpen(true)} disabled={!scoreReady} className="font-num flex shrink-0 items-baseline rounded-lg bg-transparent px-1 py-0.5 text-gray-900 [-webkit-tap-highlight-color:transparent] disabled:cursor-default dark:text-gray-100" title="查看账户健康度扣分细则" aria-label={scoreReady ? `账户健康度 ${healthScore.score} 分，点击查看扣分细则` : '账户健康度加载中'}>
           <span className="text-[36px] font-medium leading-none">{displayScore ?? '--'}</span>{scoreReady && <span className="ml-0.5 text-[11px] font-medium">分</span>}
         </button>
@@ -237,7 +240,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
         <div className="my-4 border-t border-gray-100" />
         <div className="flex -translate-y-1.5 items-center justify-between">
           <span>期货保证金</span>
-          <span className="font-medium" style={{ color: usageColor }}>{futureUsageRate.toFixed(1)}% · {usageText}</span>
+          <span className="font-medium" style={{ color: usageColor }}>{icFutureUsageRate === null ? '--' : `${futureUsageRate.toFixed(1)}%`} · {usageText}</span>
         </div>
         <div className="relative pt-2" aria-label={`保证金风险：${usageText}，使用率 ${futureUsageRate.toFixed(1)}%`}>
           <span className="absolute top-0 h-2 w-2 -translate-x-1/2 rotate-45 rounded-[1px]" style={{ left: `${markerPosition}%`, backgroundColor: usageColor }} aria-hidden="true" />
@@ -256,16 +259,17 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     </div>
     <AppDialog open={scoreDialogOpen} onClose={() => setScoreDialogOpen(false)} title="账户健康度评分" description="满分 100 分，最低 5 分" ariaLabel="账户健康度扣分细则" maxWidth="sm:max-w-md">
       <div className="space-y-3">
+        {healthScore.dataWarnings.length > 0 && <p className="text-xs text-amber-600">评分数据不完整，当前分数仅供参考：{healthScore.dataWarnings.join("；")}</p>}
         <div className="flex items-end justify-between rounded-xl bg-gray-50 px-4 py-4 dark:bg-gray-700/35">
           <div><div className="text-xs text-gray-400">当前评分</div><div className="mt-1 text-sm text-gray-600 dark:text-gray-300">净扣 {100 - healthScore.score} 分</div></div>
           <div className="font-num flex items-baseline text-gray-900 dark:text-gray-100"><span className="text-4xl font-semibold leading-none">{healthScore.score}</span><span className="ml-1 text-sm font-medium">分</span></div>
         </div>
 
-        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 50 × 大类目标占比 × 偏离系数 · 最多扣 50 分`} items={healthScore.majorIssues} />
-        <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 30 × 大类目标占比 × 类内项目目标占比 × 偏离系数 · 最多扣 30 分`} items={healthScore.detailIssues} />
-        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate.toFixed(1)}% · ${icUsageText} · ≤70% 不扣分；70%～75%、75%～80%、80%～85%、85% 以上每个百分点分别扣 1/2/3/1 分，分段累加`} />
+        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 超额偏离百分点合计 × 2.5 · 最多扣 50 分`} items={healthScore.majorIssues} />
+        <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 类内超额偏离百分点 × 大类目标与实际占比的较大值 × 1.5 · 最多扣 30 分`} items={healthScore.detailIssues} />
+        <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate === null ? '数据不完整' : `${icFutureUsageRate.toFixed(1)}% · ${icUsageText}`} · 14% 保证金率估算 · ≤70% 不扣分；70%～75%、75%～80%、80%～85%、85% 以上每个百分点分别扣 1/2/3/3 分，分段累加，最多扣 60 分`} />
 
-        <p className="px-1 text-xs leading-5 text-gray-400">轻微、明显、严重的偏离系数分别为 0.3、0.6、1；目标为零时按实际占比计权。保证金不足一个百分点按比例扣分。明细最多显示两位小数，各项按计算精度累计后四舍五入，最终评分为 5～100 的整数。</p>
+        <p className="px-1 text-xs leading-5 text-gray-400">容忍幅度为目标占比的 40%，最低 0.5、最高 2 个百分点；区间内不扣分，超出部分连续扣分。各项按计算精度累计后四舍五入，总分为 5～100 的整数。</p>
       </div>
     </AppDialog>
     </>

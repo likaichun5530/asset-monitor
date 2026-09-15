@@ -1,82 +1,47 @@
-import { getTargetAllocationStatus, getTargetAllowedRange } from './targetAllocation.js'
+import { getTargetTolerance } from '../../shared/allocation.js'
 
-const MIN_SCORE = 5
+const valid = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
+const points = (value) => Number(value.toFixed(2))
 
-function isOtherItem(item) {
-  return /^(其他|其它|other|others)$/i.test(String(item?.name || '').trim())
-}
-
-function isOutOfRange(currentRatio, targetRatio) {
-  const status = getTargetAllocationStatus(currentRatio, targetRatio).status
-  return status === 'over' || status === 'under'
-}
-
-function hasTarget(value) {
-  return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
-}
-
-function issueSeverity(currentRatio, targetRatio) {
-  const current = Number(currentRatio)
-  const target = Number(targetRatio)
-  const range = getTargetAllowedRange(target)
-  if (!range) return { level: 'severe', label: '严重' }
-  const allowedDistance = current < target ? target - range.lower : range.upper - target
-  const multiple = allowedDistance > 0 ? Math.abs(current - target) / allowedDistance : Infinity
-  if (multiple <= 1.5) return { level: 'minor', label: '轻微' }
-  if (multiple <= 2.5) return { level: 'moderate', label: '明显' }
-  return { level: 'severe', label: '严重' }
-}
-
-function allocationWeight(row) {
-  if (!row || !hasTarget(row.targetRatio)) return 0
-  const target = Number(row.targetRatio)
-  return Math.max(0, Math.min(1, target > 0 ? target : Number(row.currentRatio) || 0))
-}
-
-function issueDeduction(severity, budget, weight) {
-  return budget * weight * { minor: 0.3, moderate: 0.6, severe: 1 }[severity.level]
-}
-
-function displayPoints(value) {
-  return Number(value.toFixed(2))
-}
-
-export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0 } = {}) {
-  const majorIssueDetails = targetRows.filter((row) => (
-    !row.isTotal
-    && hasTarget(row.targetRatio)
-    && isOutOfRange(Number(row.currentRatio), Number(row.targetRatio))
-  )).map((row) => {
-    const severity = issueSeverity(row.currentRatio, row.targetRatio)
-    return { name: row.category || row.name || '未命名分类', severity: severity.label, deduction: issueDeduction(severity, 50, allocationWeight(row)) }
+export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0, holdingsAvailable = true } = {}) {
+  const dataWarnings = []
+  const rows = targetRows.filter((row) => !row.isTotal)
+  if (!holdingsAvailable) dataWarnings.push('持仓数据不可用')
+  if (!rows.length) dataWarnings.push('配置目标数据不可用')
+  function evaluate(row, name, multiplier) {
+    if (!valid(row.targetRatio) || !valid(row.currentRatio)) {
+      dataWarnings.push(`${name}：目标或实际占比未配置`)
+      return null
+    }
+    const target = Number(row.targetRatio)
+    const current = Number(row.currentRatio)
+    const tolerance = getTargetTolerance(target)
+    const excess = Math.max(0, Math.abs(current - target) - tolerance)
+    if (excess < 1e-12) return null
+    const deduction = excess * 100 * multiplier
+    return { deduction, text: `${name}：实际 ${points(current * 100)}%，目标 ${points(target * 100)}%，容忍 ${points(tolerance * 100)} 个百分点，超额 ${points(excess * 100)} 个百分点，扣 ${points(deduction)} 分` }
+  }
+  const major = rows.map((row) => evaluate(row, row.category || row.name || '未命名分类', 2.5)).filter(Boolean)
+  if (rows.length && !targetDetails.length) dataWarnings.push('细分配置数据不可用')
+  const details = targetDetails.flatMap((detail) => {
+    if (!detail?.allocation?.items?.length) {
+      dataWarnings.push(`${detail.category}：细分目标未配置`)
+      return []
+    }
+    const parent = rows.find((row) => (row.category || row.name) === detail.category)
+    if (!parent || !valid(parent.targetRatio) || !valid(parent.currentRatio)) {
+      dataWarnings.push(`${detail.category}：大类权重数据不可用`)
+      return []
+    }
+    const weight = Math.max(0, Number(parent.targetRatio), Number(parent.currentRatio))
+    return (detail?.allocation?.items || []).map((item) => evaluate(item, `${detail.category} · ${item.name}`, weight * 1.5)).filter(Boolean)
   })
-
-  const detailIssueDetails = targetDetails.flatMap((detail) => (
-    (detail?.allocation?.items || []).filter((item) => (
-      !isOtherItem(item)
-      && hasTarget(item.targetRatio)
-      && isOutOfRange(Number(item.currentRatio), Number(item.targetRatio))
-    )).map((item) => {
-      const severity = issueSeverity(item.currentRatio, item.targetRatio)
-      return { name: `${detail.category ? `${detail.category} · ` : ''}${item.name}`, severity: severity.label, deduction: issueDeduction(severity, 30, allocationWeight(targetRows.find((row) => !row.isTotal && (row.category || row.name) === detail.category)) * allocationWeight(item)) }
-    })
-  ))
-
-  const majorIssues = majorIssueDetails.map((item) => `${item.name}（${item.severity}，-${displayPoints(item.deduction)}）`)
-  const detailIssues = detailIssueDetails.map((item) => `${item.name}（${item.severity}，-${displayPoints(item.deduction)}）`)
-  const majorIssueCount = majorIssueDetails.length
-  const detailIssueCount = detailIssueDetails.length
-
-  const majorDeduction = Math.min(majorIssueDetails.reduce((sum, item) => sum + item.deduction, 0), 50)
-  const detailDeduction = Math.min(detailIssueDetails.reduce((sum, item) => sum + item.deduction, 0), 30)
-  const usage = Math.max(0, Number(icMarginUsageRate) || 0)
-  const marginDeduction = Math.round((
-    Math.min(Math.max(usage - 70, 0), 5)
-    + Math.min(Math.max(usage - 75, 0), 5) * 2
-    + Math.min(Math.max(usage - 80, 0), 5) * 3
-    + Math.max(usage - 85, 0)
-  ) * 100) / 100
-  const score = Math.round(Math.max(MIN_SCORE, Math.min(100, 100 - majorDeduction - detailDeduction - marginDeduction)))
-
-  return { score, majorIssues, detailIssues, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction }
+  const majorDeduction = Math.min(50, major.reduce((sum, item) => sum + item.deduction, 0))
+  const detailDeduction = Math.min(30, details.reduce((sum, item) => sum + item.deduction, 0))
+  const marginAvailable = valid(icMarginUsageRate) && Number(icMarginUsageRate) >= 0
+  if (!marginAvailable) dataWarnings.push('IC 保证金数据不完整')
+  const usage = marginAvailable ? Number(icMarginUsageRate) : 0
+  const marginDeduction = Math.min(60, Math.min(Math.max(usage - 70, 0), 5) + Math.min(Math.max(usage - 75, 0), 5) * 2 + Math.max(usage - 80, 0) * 3)
+  const score = Math.round(Math.max(5, 100 - majorDeduction - detailDeduction - marginDeduction))
+  return { score, majorDeduction, detailDeduction, marginDeduction, majorIssues: major.map((item) => item.text), detailIssues: details.map((item) => item.text), majorIssueCount: major.length, detailIssueCount: details.length, dataWarnings: [...new Set(dataWarnings)] }
 }

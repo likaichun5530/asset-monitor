@@ -1,36 +1,29 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { calculateHealthScore } from '../src/utils/healthScore.js'
-
-const issue = (name = '项目') => ({ name, currentRatio: 0.5, targetRatio: 0.2 })
-const balanced = (name = '项目') => ({ name, currentRatio: 0.2, targetRatio: 0.2 })
-
-test('账户健康度按大类、细分配置和 IC 保证金规则扣分', () => {
-  const result = calculateHealthScore({
-    targetRows: [issue('美股'), issue('现金'), balanced('基金'), { isTotal: true }],
-    targetDetails: [{ category: '美股', allocation: { items: [issue('VOO'), issue('QQQ'), issue('其他')] } }],
-    icMarginUsageRate: 72,
-  })
-  assert.deepEqual({ ...result, detailDeduction: Number(result.detailDeduction.toFixed(2)) }, {
-    score: 76,
-    majorIssues: ['美股（严重，-10）', '现金（严重，-10）'],
-    detailIssues: ['美股 · VOO（严重，-1.2）', '美股 · QQQ（严重，-1.2）'],
-    majorIssueCount: 2,
-    detailIssueCount: 2,
-    majorDeduction: 20,
-    detailDeduction: 2.4,
-    marginDeduction: 2,
-  })
+import { getTargetDeviation } from '../shared/allocation.js'
+const row = (targetRatio, currentRatio, category = '美股') => ({ category, targetRatio, currentRatio })
+const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`)
+test('连续大类扣分与零目标边界', () => {
+  for (const [target, current, expected] of [[.4,.42,0],[.4,.43,2.5],[.01,.2,46.25],[0,.2,48.75]]) {
+    close(calculateHealthScore({ targetRows: [row(target,current)] }).majorDeduction, expected)
+  }
+  assert.equal(getTargetDeviation(.42,.4).status, 'balanced')
+  assert.equal(getTargetDeviation(.4201,.4).status, 'over')
 })
-
-test('账户健康度扣分封顶、最低 5 分，并正确处理危险保证金', () => {
-  const result = calculateHealthScore({
-    targetRows: Array.from({ length: 10 }, (_, index) => issue(`大类${index}`)),
-    targetDetails: [{ category: '大类0', allocation: { items: Array.from({ length: 30 }, (_, index) => issue(`细分${index}`)) } }],
-    icMarginUsageRate: 80,
-  })
-  assert.equal(result.majorDeduction, 50)
-  assert.equal(result.detailDeduction, 30)
-  assert.equal(result.marginDeduction, 15)
-  assert.equal(result.score, 5)
+test('细分使用类内偏离和较大权重，其他有目标也参与', () => {
+  const result = calculateHealthScore({targetRows:[row(.4,.45)],targetDetails:[{category:'美股',allocation:{items:[{name:'其他',targetRatio:.5,currentRatio:.62}]}}]})
+  close(result.detailDeduction,6.75)
+})
+test('IC分段、封顶与整数总分', () => {
+  for(const [usage,expected] of [[70,0],[75,5],[80,15],[85,30],[86.5,34.5],[90,45],[95,60],[120,60]]) {
+    const result=calculateHealthScore({icMarginUsageRate:usage})
+    close(result.marginDeduction,expected)
+    assert.ok(Number.isInteger(result.score))
+  }
+})
+test('缺失保证金和目标会明确提示', () => {
+  const result=calculateHealthScore({icMarginUsageRate:null,holdingsAvailable:false})
+  assert.ok(result.dataWarnings.includes('IC 保证金数据不完整'))
+  assert.ok(result.dataWarnings.includes('持仓数据不可用'))
 })

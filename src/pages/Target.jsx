@@ -390,7 +390,7 @@ export default function Target({ refreshKey = 0 }) {
         <div className="target-reminder mt-3 border-t border-gray-100 pt-3 text-sm text-gray-400 dark:border-gray-700 sm:mt-0 sm:bg-slate-50/60 sm:px-6 sm:py-4 dark:sm:bg-gray-900/30">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400" aria-hidden="true">i</span>
-            <div><span className="font-medium text-gray-600 dark:text-gray-300">范围说明</span><p className="mt-0.5 text-xs leading-5 text-gray-400">目标比例 ±40% 与 ±2 个百分点取更严格的范围。</p></div>
+            <div><span className="font-medium text-gray-600 dark:text-gray-300">范围说明</span><p className="mt-0.5 text-xs leading-5 text-gray-400">容忍幅度为目标比例的 40%，最低 0.5、最高 2 个百分点；超出范围时提醒。</p></div>
           </div>
         </div>
       </div>
