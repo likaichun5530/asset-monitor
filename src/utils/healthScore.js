@@ -27,19 +27,28 @@ function issueSeverity(currentRatio, targetRatio) {
   return { level: 'severe', label: '严重' }
 }
 
-function issueDeduction(severity, kind) {
-  if (kind === 'major') return { minor: 4, moderate: 6, severe: 9 }[severity.level]
-  return { minor: 1, moderate: 2, severe: 4 }[severity.level]
+function allocationWeight(row) {
+  if (!row || !hasTarget(row.targetRatio)) return 0
+  const target = Number(row.targetRatio)
+  return Math.max(0, Math.min(1, target > 0 ? target : Number(row.currentRatio) || 0))
 }
 
-export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0, todayChange = null } = {}) {
+function issueDeduction(severity, budget, weight) {
+  return budget * weight * { minor: 0.3, moderate: 0.6, severe: 1 }[severity.level]
+}
+
+function displayPoints(value) {
+  return Number(value.toFixed(2))
+}
+
+export function calculateHealthScore({ targetRows = [], targetDetails = [], icMarginUsageRate = 0 } = {}) {
   const majorIssueDetails = targetRows.filter((row) => (
     !row.isTotal
     && hasTarget(row.targetRatio)
     && isOutOfRange(Number(row.currentRatio), Number(row.targetRatio))
   )).map((row) => {
     const severity = issueSeverity(row.currentRatio, row.targetRatio)
-    return { name: row.category || row.name || '未命名分类', severity: severity.label, deduction: issueDeduction(severity, 'major') }
+    return { name: row.category || row.name || '未命名分类', severity: severity.label, deduction: issueDeduction(severity, 50, allocationWeight(row)) }
   })
 
   const detailIssueDetails = targetDetails.flatMap((detail) => (
@@ -49,12 +58,12 @@ export function calculateHealthScore({ targetRows = [], targetDetails = [], icMa
       && isOutOfRange(Number(item.currentRatio), Number(item.targetRatio))
     )).map((item) => {
       const severity = issueSeverity(item.currentRatio, item.targetRatio)
-      return { name: `${detail.category ? `${detail.category} · ` : ''}${item.name}`, severity: severity.label, deduction: issueDeduction(severity, 'detail') }
+      return { name: `${detail.category ? `${detail.category} · ` : ''}${item.name}`, severity: severity.label, deduction: issueDeduction(severity, 30, allocationWeight(targetRows.find((row) => !row.isTotal && (row.category || row.name) === detail.category)) * allocationWeight(item)) }
     })
   ))
 
-  const majorIssues = majorIssueDetails.map((item) => `${item.name}（${item.severity}，-${item.deduction}）`)
-  const detailIssues = detailIssueDetails.map((item) => `${item.name}（${item.severity}，-${item.deduction}）`)
+  const majorIssues = majorIssueDetails.map((item) => `${item.name}（${item.severity}，-${displayPoints(item.deduction)}）`)
+  const detailIssues = detailIssueDetails.map((item) => `${item.name}（${item.severity}，-${displayPoints(item.deduction)}）`)
   const majorIssueCount = majorIssueDetails.length
   const detailIssueCount = detailIssueDetails.length
 
@@ -67,9 +76,7 @@ export function calculateHealthScore({ targetRows = [], targetDetails = [], icMa
     + Math.min(Math.max(usage - 80, 0), 5) * 3
     + Math.max(usage - 85, 0)
   ) * 100) / 100
-  const change = Number(todayChange)
-  const dailyAdjustment = Number.isFinite(change) ? (change > 0 ? 5 : change < 0 ? -2 : 0) : 0
-  const score = Math.round(Math.max(MIN_SCORE, Math.min(100, 100 - majorDeduction - detailDeduction - marginDeduction + dailyAdjustment)) * 100) / 100
+  const score = Math.round(Math.max(MIN_SCORE, Math.min(100, 100 - majorDeduction - detailDeduction - marginDeduction)))
 
-  return { score, majorIssues, detailIssues, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction, dailyAdjustment }
+  return { score, majorIssues, detailIssues, majorIssueCount, detailIssueCount, majorDeduction, detailDeduction, marginDeduction }
 }

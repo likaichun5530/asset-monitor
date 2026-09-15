@@ -244,7 +244,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
 
   function renderCard(key) {
     if (key === 'currency') return <CurrencyCard refreshKey={refreshKey} />
-    if (key === 'health') return <HealthCard refreshKey={refreshKey} targetRefreshKey={targetRefreshKey} todayChange={today.change} />
+    if (key === 'health') return <HealthCard refreshKey={refreshKey} targetRefreshKey={targetRefreshKey} />
     switch (key) {
       case 'trend': return <TrendChart refreshKey={refreshKey} />
       case 'allocation': return <AllocationChart refreshKey={refreshKey} />
