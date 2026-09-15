@@ -5,7 +5,7 @@ import { getTargetDeviation } from '../shared/allocation.js'
 const row = (targetRatio, currentRatio, category = '美股') => ({ category, targetRatio, currentRatio })
 const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`)
 test('连续大类扣分与零目标边界', () => {
-  for (const [target, current, expected] of [[.4,.42,0],[.4,.43,2.5],[.01,.2,46.25],[0,.2,48.75]]) {
+  for (const [target, current, expected] of [[.4,.42,0],[.4,.43,2],[.01,.2,37],[0,.2,39]]) {
     close(calculateHealthScore({ targetRows: [row(target,current)] }).majorDeduction, expected)
   }
   assert.equal(getTargetDeviation(.42,.4).status, 'balanced')
@@ -49,5 +49,5 @@ test('黄金无需细分目标但大类偏离仍扣分', () => {
   const result = calculateHealthScore({targetRows:[row(.1,.2,'黄金')],targetDetails:[{category:'黄金',allocation:null}]})
   assert.deepEqual(result.dataWarnings, [])
   assert.equal(result.detailDeduction, 0)
-  close(result.majorDeduction, 20)
+  close(result.majorDeduction, 16)
 })

@@ -265,7 +265,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
           <div className="font-num flex items-baseline text-gray-900 dark:text-gray-100"><span className="text-4xl font-semibold leading-none">{healthScore.score}</span><span className="ml-1 text-sm font-medium">分</span></div>
         </div>
 
-        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 超额偏离百分点合计 × 2.5 · 最多扣 50 分`} items={healthScore.majorIssues} />
+        <ScoreDetailRow title="大类资产配置" deduction={healthScore.majorDeduction} description={`${healthScore.majorIssueCount} 项超配或低配 · 超额偏离百分点合计 × 2 · 最多扣 50 分`} items={healthScore.majorIssues} />
         <ScoreDetailRow title="小类资产配置" deduction={healthScore.detailDeduction} description={`${healthScore.detailIssueCount} 项超配或低配 · 类内超额偏离百分点 × 大类目标与实际占比的较大值 × 1.5 · 最多扣 30 分`} items={healthScore.detailIssues} />
         <ScoreDetailRow title="IC 期货保证金" deduction={healthScore.marginDeduction} description={`${icFutureUsageRate === null ? '数据不完整' : `${icFutureUsageRate.toFixed(1)}% · ${icUsageText}`} · 14% 保证金率估算 · ≤70% 不扣分；70%～75%、75%～80%、80%～85%、85% 以上每个百分点分别扣 1/2/3/3 分，分段累加，最多扣 60 分`} />
 

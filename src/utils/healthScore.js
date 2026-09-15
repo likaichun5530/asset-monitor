@@ -23,7 +23,7 @@ export function calculateHealthScore({ targetRows = [], targetDetails = [], icMa
     const deduction = excess * 100 * multiplier
     return { deduction, text: `${name}：实际 ${points(current * 100)}%，目标 ${points(target * 100)}%，容忍 ${points(tolerance * 100)} 个百分点，超额 ${points(excess * 100)} 个百分点，扣 ${points(deduction)} 分` }
   }
-  const major = rows.map((row) => evaluate(row, row.category || row.name || '未命名分类', 2.5)).filter(Boolean)
+  const major = rows.map((row) => evaluate(row, row.category || row.name || '未命名分类', 2)).filter(Boolean)
   if (rows.some((row) => !noDetailTarget(row.category || row.name)) && !targetDetails.length) dataWarnings.push('细分配置数据不可用')
   const details = targetDetails.flatMap((detail) => {
     if (noDetailTarget(detail.category)) return []
