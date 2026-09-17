@@ -11,6 +11,11 @@
   "plugins": {
     "SystemBars": {
       "insetsHandling": "css"
+    },
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "DEFAULT",
+      "backgroundColor": "#111827"
     }
   }
 }

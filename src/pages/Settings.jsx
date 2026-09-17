@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Capacitor, SystemBars, SystemBarsStyle, SystemBarType } from '@capacitor/core'
+import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar'
 import { requestApiJson } from '../utils/api.js'
 import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
 import packageJson from '../../package.json'
@@ -55,12 +57,27 @@ function SettingsLineIcon({ type, className = 'h-5 w-5' }) {
   return <svg {...common}><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M8 22h8M12 18v4" /></svg>
 }
 
+function syncNativeStatusBar(isDark) {
+  if (!Capacitor.isNativePlatform()) return
+  const color = isDark ? '#111827' : '#ffffff'
+  const systemStyle = isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light
+  const statusStyle = isDark ? StatusBarStyle.Dark : StatusBarStyle.Light
+  Promise.allSettled([
+    StatusBar.setOverlaysWebView({ overlay: false }),
+    StatusBar.setBackgroundColor({ color }),
+    StatusBar.setStyle({ style: statusStyle }),
+    SystemBars.setStyle({ style: systemStyle, bar: SystemBarType.StatusBar }),
+  ])
+}
+
 function applyTheme(t) {
   const root = document.documentElement
   const metaTheme = document.querySelector('meta[name="theme-color"]')
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.classList.toggle('dark', isDark)
+  root.style.backgroundColor = isDark ? '#111827' : '#f9fafb'
   if (metaTheme) metaTheme.content = isDark ? '#111827' : '#ffffff'
+  syncNativeStatusBar(isDark)
 }
 
 export function initTheme() {

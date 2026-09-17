@@ -6,6 +6,24 @@ const SUBSCRIPTION_CACHE_MS = 5 * 60 * 1000
 const SUBSCRIPTION_HIDDEN_DATE_KEY = 'youshu-subscription-hidden-date'
 const LONG_PRESS_MS = 650
 const SYNTHETIC_CLICK_GUARD_MS = 450
+let lastSubscriptionData = null
+
+function getShanghaiDate() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${values.year}-${values.month}-${values.day}`
+}
+
+function readCurrentSubscriptionData() {
+  return lastSubscriptionData?.date === getShanghaiDate()
+    ? lastSubscriptionData
+    : { date: '', items: [] }
+}
 
 function readHiddenDate() {
   try { return localStorage.getItem(SUBSCRIPTION_HIDDEN_DATE_KEY) || '' } catch { return '' }
@@ -29,8 +47,9 @@ function formatItem(item) {
 }
 
 export default function SubscriptionTicker({ refreshKey = 0 }) {
-  const [items, setItems] = useState([])
-  const [date, setDate] = useState('')
+  const initialData = useMemo(readCurrentSubscriptionData, [])
+  const [items, setItems] = useState(() => initialData.items)
+  const [date, setDate] = useState(() => initialData.date)
   const [hiddenDate, setHiddenDate] = useState(readHiddenDate)
   const [menuOpen, setMenuOpen] = useState(false)
   const mountedRef = useRef(false)
@@ -49,12 +68,17 @@ export default function SubscriptionTicker({ refreshKey = 0 }) {
       forceRefresh,
     }).then((data) => {
       if (active) {
-        setDate(data?.date || '')
-        setItems(Array.isArray(data?.items) ? data.items : [])
+        const next = { date: data?.date || '', items: Array.isArray(data?.items) ? data.items : [] }
+        lastSubscriptionData = next.date === getShanghaiDate() ? next : null
+        setDate(next.date)
+        setItems(next.items)
       }
     }).catch(() => {
       // 行情源异常时隐藏旧提醒，避免跨日继续提示昨天的申购信息。
-      if (active) setItems([])
+      if (active) {
+        lastSubscriptionData = null
+        setItems([])
+      }
     })
     return () => { active = false }
   }, [refreshKey])
