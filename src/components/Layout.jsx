@@ -249,7 +249,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
       {/* 主内容区 */}
       <div className="desktop-workspace flex min-w-0 flex-1 flex-col bg-gray-50 sm:bg-[#f5f7fa] dark:bg-gray-900">
         {/* 移动端顶部栏 */}
-        <header className="sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
+        <header className="mobile-topbar sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           {settingsSectionTitle ? (
             <div className="relative flex h-12 items-center justify-center px-4">
               <NavLink to="/settings" replace className="absolute left-2 flex items-center rounded-lg p-2 text-gray-900 dark:text-gray-100" aria-label="返回设置一级菜单">

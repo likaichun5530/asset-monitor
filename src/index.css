@@ -491,6 +491,10 @@ html.dark .bg-white { background-color: #1e293b; }
 html.dark .bg-gray-50 { background-color: #111827; }
 html.dark .bg-gray-100 { background-color: #1e293b; }
 
+/* 顶部栏使用半透明色时，明确覆盖暗夜背景，避免 WebView/PWA 合成出白底。 */
+html.dark .mobile-topbar { background-color: rgb(31 41 55 / 0.94); }
+html.dark .desktop-topbar { background-color: rgb(17 24 39 / 0.94); }
+
 /* 暗夜下 hover 背景 */
 html.dark .hover\:bg-gray-50:hover { background-color: #1e293b; }
 
