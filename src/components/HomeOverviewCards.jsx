@@ -131,25 +131,16 @@ function marginRiskMarkerPosition(rate) {
 }
 
 function useAnimatedScore(targetScore) {
-  const [displayScore, setDisplayScore] = useState(targetScore)
-  const currentRef = useRef(targetScore)
-  const hasDisplayedScoreRef = useRef(targetScore !== null)
+  const [displayScore, setDisplayScore] = useState(null)
+  const currentRef = useRef(null)
 
   useEffect(() => {
     if (targetScore === null) {
-      if (!hasDisplayedScoreRef.current) {
-        currentRef.current = null
-        setDisplayScore(null)
-      }
+      currentRef.current = null
+      setDisplayScore(null)
       return undefined
     }
-    if (!hasDisplayedScoreRef.current || currentRef.current === null) {
-      hasDisplayedScoreRef.current = true
-      currentRef.current = targetScore
-      setDisplayScore(targetScore)
-      return undefined
-    }
-    const start = currentRef.current
+    const start = currentRef.current === null ? 100 : currentRef.current
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || start === targetScore) {
       currentRef.current = targetScore
       setDisplayScore(targetScore)
@@ -172,8 +163,9 @@ function useAnimatedScore(targetScore) {
   return displayScore
 }
 
-export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
+export function HealthCard({ refreshKey = 0, targetRefreshKey = 0, isRefreshing = false }) {
   const [scoreDialogOpen, setScoreDialogOpen] = useState(false)
+  const [targetRefreshing, setTargetRefreshing] = useState(false)
   const [targetState, setTargetState] = useState(() => {
     const cached = getCachedTargetResult()
     return { target: cached?.target || [], targetDetails: cached?.targetDetails || [] }
@@ -187,18 +179,23 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
     const forceRefresh = previousTargetRefreshKeyRef.current !== targetRefreshKey
     previousTargetRefreshKeyRef.current = targetRefreshKey
     const cached = getCachedTargetResult()
     if (cached?.target?.length) setTargetState({ target: cached.target, targetDetails: cached.targetDetails || [] })
+    setTargetRefreshing(true)
     const timer = window.setTimeout(() => {
-      fetchTarget({ forceRefresh }).then((data) => setTargetState({ target: data.target || [], targetDetails: data.targetDetails || [] })).catch(() => {})
+      fetchTarget({ forceRefresh })
+        .then((data) => { if (!cancelled) setTargetState({ target: data.target || [], targetDetails: data.targetDetails || [] }) })
+        .catch(() => {})
+        .finally(() => { if (!cancelled) setTargetRefreshing(false) })
     }, cached && !forceRefresh ? 1000 : 0)
-    return () => window.clearTimeout(timer)
+    return () => { cancelled = true; window.clearTimeout(timer) }
   }, [targetRefreshKey])
   const holdings = useMemo(() => getActiveHoldings(), [refreshKey])
 
-  const { overCategories, underCategories, futureUsageRate, icFutureUsageRate } = useMemo(() => {
+  const liveMetrics = useMemo(() => {
     const over = []
     const under = []
     for (const row of targetState.target) {
@@ -220,13 +217,18 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0 }) {
     }
     return { overCategories: over, underCategories: under, futureUsageRate: maxUsage, icFutureUsageRate: icDataMissing ? null : maxIcUsage }
   }, [holdings, targetState.target])
+  const [displayMetrics, setDisplayMetrics] = useState(liveMetrics)
+  useEffect(() => {
+    if (!isRefreshing && !targetRefreshing) setDisplayMetrics(liveMetrics)
+  }, [isRefreshing, liveMetrics, targetRefreshing])
+  const { overCategories, underCategories, futureUsageRate, icFutureUsageRate } = displayMetrics
 
   const healthScore = useMemo(() => calculateHealthScore({
     targetRows: targetState.target,
     targetDetails: targetState.targetDetails,
-    icMarginUsageRate: icFutureUsageRate,
+    icMarginUsageRate: liveMetrics.icFutureUsageRate,
     holdingsAvailable: holdings.length > 0,
-  }), [icFutureUsageRate, targetState, holdings])
+  }), [liveMetrics.icFutureUsageRate, targetState, holdings])
   const scoreReady = targetState.target.length > 0
   const displayScore = useAnimatedScore(scoreReady ? healthScore.score : null)
 
