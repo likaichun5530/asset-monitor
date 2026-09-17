@@ -25,7 +25,7 @@ export default function App() {
   const isAuthenticated = auth.isLoggedIn || demoMode
   const needsHoldings = HOLDINGS_PAGES.has(location.pathname)
   const needsHistory = HISTORY_PAGES.has(location.pathname)
-  const { source, syncedAt, error, refreshHoldings, refreshHistory, refreshKey } = useAssetData({
+  const { source, syncedAt, error, isRefreshing, refreshHoldings, refreshHistory, refreshKey } = useAssetData({
     enabled: isAuthenticated,
     loadHoldings: needsHoldings,
     loadHistory: needsHistory,
@@ -67,7 +67,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={isAuthenticated ? <Layout source={source} syncedAt={syncedAt} error={error} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
-        <Route index element={<Home refreshKey={refreshKey} />} />
+        <Route index element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
         <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
         <Route path="target" element={<Target />} />
         <Route path="settings" element={<Settings auth={auth} />} />
@@ -82,7 +82,7 @@ export default function App() {
         <Route path="future" element={<Future refreshKey={refreshKey} />} />
         <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
         <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
-        <Route path="*" element={<Home refreshKey={refreshKey} />} />
+        <Route path="*" element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
       </Route>
     </Routes>
   )

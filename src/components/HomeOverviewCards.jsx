@@ -131,16 +131,25 @@ function marginRiskMarkerPosition(rate) {
 }
 
 function useAnimatedScore(targetScore) {
-  const [displayScore, setDisplayScore] = useState(null)
-  const currentRef = useRef(null)
+  const [displayScore, setDisplayScore] = useState(targetScore)
+  const currentRef = useRef(targetScore)
+  const hasDisplayedScoreRef = useRef(targetScore !== null)
 
   useEffect(() => {
     if (targetScore === null) {
-      currentRef.current = null
-      setDisplayScore(null)
+      if (!hasDisplayedScoreRef.current) {
+        currentRef.current = null
+        setDisplayScore(null)
+      }
       return undefined
     }
-    const start = currentRef.current === null ? 100 : currentRef.current
+    if (!hasDisplayedScoreRef.current || currentRef.current === null) {
+      hasDisplayedScoreRef.current = true
+      currentRef.current = targetScore
+      setDisplayScore(targetScore)
+      return undefined
+    }
+    const start = currentRef.current
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || start === targetScore) {
       currentRef.current = targetScore
       setDisplayScore(targetScore)

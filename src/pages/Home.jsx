@@ -61,7 +61,7 @@ const CARD_LABELS = {
   trend: '资产趋势图', allocation: '资产配置', holdings: '持仓概况', calendar: '收益日历',
 }
 
-export default function Home({ refreshKey, targetRefreshKey = 0 }) {
+export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = false }) {
   const [cardConfig, setCardConfig] = useState(readCardConfig)
   const [cardOrder, setCardOrder] = useState(readCardOrder)
   const [editMode, setEditMode] = useState(false)
@@ -79,8 +79,13 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   const c30 = useMemo(() => change30d(), [refreshKey])
   const ytd = useMemo(() => changeYtd(), [refreshKey])
   const dd = useMemo(() => drawdownFromPeak(), [refreshKey])
+  const [settledDrawdown, setSettledDrawdown] = useState(dd)
   const updateDate = useMemo(() => lastUpdateDate(), [refreshKey])
   const pendingCount = useMemo(() => getPendingCount(), [refreshKey])
+
+  useEffect(() => {
+    if (!isRefreshing) setSettledDrawdown(dd)
+  }, [dd, isRefreshing])
   const startLongPress = useCallback((e) => {
     if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input, [data-home-long-press-ignore]')) return
     const point = e.touches?.[0] || e
@@ -239,7 +244,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0 }) {
   }, [editMode])
 
   function getStat(key) {
-    switch (key) { case 'change7d': return c7; case 'change30d': return c30; case 'changeYtd': return ytd; case 'drawdown': return dd; default: return null }
+    switch (key) { case 'change7d': return c7; case 'change30d': return c30; case 'changeYtd': return ytd; case 'drawdown': return settledDrawdown; default: return null }
   }
 
   function renderCard(key) {

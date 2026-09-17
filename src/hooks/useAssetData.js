@@ -17,8 +17,10 @@ export function useAssetData({
   const [source, setSource] = useState(initialStatus.current.source)
   const [syncedAt, setSyncedAt] = useState(initialStatus.current.syncedAt)
   const [error, setError] = useState(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const mountedRef = useRef(true)
+  const activeRefreshesRef = useRef(0)
   const holdingsLoadedRef = useRef(false)
   const historyLoadedRef = useRef(false)
   const holdingsInFlightRef = useRef(null)
@@ -38,6 +40,16 @@ export function useAssetData({
     setSyncedAt(result.syncedAt)
   }, [])
 
+  const beginRefresh = useCallback(() => {
+    activeRefreshesRef.current += 1
+    if (mountedRef.current) setIsRefreshing(true)
+  }, [])
+
+  const endRefresh = useCallback(() => {
+    activeRefreshesRef.current = Math.max(0, activeRefreshesRef.current - 1)
+    if (mountedRef.current && activeRefreshesRef.current === 0) setIsRefreshing(false)
+  }, [])
+
   const refreshHoldings = useCallback(async (force = false) => {
     const visible = typeof document === 'undefined' || document.visibilityState !== 'hidden'
     if (!enabled || (!force && !shouldAutoRefresh({
@@ -48,6 +60,7 @@ export function useAssetData({
     }))) return false
     if (holdingsInFlightRef.current) return holdingsInFlightRef.current
     setError(null)
+    beginRefresh()
     const request = (async () => {
       try {
         const result = await loadHoldingsData({ forceRefresh: force })
@@ -64,8 +77,9 @@ export function useAssetData({
     holdingsInFlightRef.current = request
     try { return await request } finally {
       if (holdingsInFlightRef.current === request) holdingsInFlightRef.current = null
+      endRefresh()
     }
-  }, [applyHoldingsStatus, enabled])
+  }, [applyHoldingsStatus, beginRefresh, enabled, endRefresh])
 
   const refreshHistory = useCallback(async (force = false) => {
     const visible = typeof document === 'undefined' || document.visibilityState !== 'hidden'
@@ -77,6 +91,7 @@ export function useAssetData({
     }))) return false
     if (historyInFlightRef.current) return historyInFlightRef.current
     setError(null)
+    beginRefresh()
     const request = (async () => {
       try {
         const result = await loadHistoryData({ forceRefresh: force })
@@ -93,8 +108,9 @@ export function useAssetData({
     historyInFlightRef.current = request
     try { return await request } finally {
       if (historyInFlightRef.current === request) historyInFlightRef.current = null
+      endRefresh()
     }
-  }, [enabled])
+  }, [beginRefresh, enabled, endRefresh])
 
   const bumpRefreshKey = useCallback(() => setRefreshKey((key) => key + 1), [])
 
@@ -136,5 +152,5 @@ export function useAssetData({
     }
   }, [autoRefreshHistory, enabled, refreshHistory])
 
-  return { source, syncedAt, error, refreshHoldings, refreshHistory, refreshKey, bumpRefreshKey }
+  return { source, syncedAt, error, isRefreshing, refreshHoldings, refreshHistory, refreshKey, bumpRefreshKey }
 }
