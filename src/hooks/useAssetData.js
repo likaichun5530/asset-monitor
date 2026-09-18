@@ -3,8 +3,8 @@ import { loadHistoryData, loadHoldingsData, retryPendingSync } from '../utils/as
 import { getInitialAssetStatus } from '../utils/assetDataStatus.js'
 import { shouldAutoRefresh } from '../utils/refreshPolicy.js'
 
-const HOLDINGS_REFRESH_MS = 5 * 60 * 1000
-const HISTORY_REFRESH_MS = 5 * 60 * 1000
+const HOLDINGS_REFRESH_MS = 60 * 1000
+const HISTORY_REFRESH_MS = 60 * 1000
 
 export function useAssetData({
   enabled = true,
@@ -61,12 +61,13 @@ export function useAssetData({
     if (holdingsInFlightRef.current) return holdingsInFlightRef.current
     setError(null)
     beginRefresh()
+    const startedAt = Date.now()
     const request = (async () => {
       try {
         const result = await loadHoldingsData({ forceRefresh: force })
         applyHoldingsStatus(result)
         holdingsLoadedRef.current = true
-        lastHoldingsRefreshRef.current = Date.now()
+        lastHoldingsRefreshRef.current = startedAt
         if (mountedRef.current) setRefreshKey((key) => key + 1)
         return true
       } catch (loadError) {
@@ -92,12 +93,13 @@ export function useAssetData({
     if (historyInFlightRef.current) return historyInFlightRef.current
     setError(null)
     beginRefresh()
+    const startedAt = Date.now()
     const request = (async () => {
       try {
         const result = await loadHistoryData({ forceRefresh: force })
         historyLoadedRef.current = true
         const requestSucceeded = result?.source === 'online' || result?.source === 'demo'
-        if (requestSucceeded) lastHistoryRefreshRef.current = Date.now()
+        if (requestSucceeded) lastHistoryRefreshRef.current = startedAt
         if (mountedRef.current) setRefreshKey((key) => key + 1)
         return requestSucceeded
       } catch (loadError) {

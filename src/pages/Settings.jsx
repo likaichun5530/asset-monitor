@@ -81,8 +81,23 @@ function applyTheme(t) {
 }
 
 export function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY) || 'system'
-  applyTheme(saved)
+  const syncTheme = () => {
+    const saved = localStorage.getItem(THEME_KEY) || 'system'
+    applyTheme(saved)
+  }
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') syncTheme()
+  }
+  const media = window.matchMedia('(prefers-color-scheme: dark)')
+  syncTheme()
+  media.addEventListener('change', syncTheme)
+  window.addEventListener('pageshow', syncTheme)
+  document.addEventListener('visibilitychange', onVisible)
+  return () => {
+    media.removeEventListener('change', syncTheme)
+    window.removeEventListener('pageshow', syncTheme)
+    document.removeEventListener('visibilitychange', onVisible)
+  }
 }
 
 export default function Settings({ auth } = {}) {

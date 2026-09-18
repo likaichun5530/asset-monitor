@@ -60,7 +60,7 @@ export default function App() {
 
   const canRefreshCurrentPage = !(location.pathname === '/settings' || location.pathname.startsWith('/settings/'))
 
-  useEffect(() => { initTheme() }, [])
+  useEffect(() => initTheme(), [])
 
   // 未登录且不是演示模式，重定向到全屏登录页
   return (
