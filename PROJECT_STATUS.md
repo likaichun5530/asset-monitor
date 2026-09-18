@@ -1,0 +1,49 @@
+# 项目现状与审查记录
+
+更新日期：2026-09-19。此次为代码、文档和发布流程审查，不是全量功能或安全审计；未连接用户 Google Sheets 或执行写入。
+
+## 版本与环境
+
+| 项目 | 当前状态 |
+| --- | --- |
+| 应用 | 有数 / Asset Monitor |
+| 生产地址 | https://asset.kenny5530.asia |
+| Git | https://github.com/likaichun5530/asset-monitor.git ，main |
+| 本地版本 | 2.5.15，已部署；源码及发布记录随本批次提交 |
+| 最近已确认生产版本 | 2.5.15 |
+| 最近已确认部署 | dpl_AMZbvgZaEvDZdsCmy16AkVQTanpN，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.5.15 发布提交；前一版本提交 8172e4b |
+| 用户使用方式 | Android Chrome 添加到主屏幕的 PWA |
+| Android 原生 | Capacitor 8；本地 versionName 2.5.15 / versionCode 133；本批次未构建 APK |
+| 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立历史版本，不是应用显示版本 |
+
+## 当前业务规则
+
+- 评分为 5～100 的整数；不包含每日涨跌和目标合理性评价。
+- 容忍偏差为目标比例的 40%，最低 0.5、最高 2 个百分点。只对超过容忍范围的部分扣分。
+- 大类每超出 1 个百分点扣 2 分，合计封顶 50；细分每超出 1 个百分点扣 1.5 × 大类权重，权重取大类实际占比和目标占比较大值，合计封顶 30。
+- 现金、期货、黄金无需细分目标；未配置目标的“其他”不参与细分评分。
+- IC 保证金比例 ≤70% 不扣分；70%～75% 每个百分点扣 1 分，75%～80% 扣 2 分，80% 以上扣 3 分，分段累计封顶 60。按 14% 保证金率估算，用户已确认账户权益分母与该比例适用。
+- 持仓和历史在相关页面可见时每 60 秒轮询；行情/期货行情独立轮询默认仍为 5 分钟。前台手动刷新及 refreshKey 变化另行触发刷新。
+- 状态栏目标色：暗夜 #1f2937，与普通卡片一致；明亮 #ffffff。页面暗夜底色仍为 #111827。iOS black-translucent 使用浅色系统图标，因此主屏幕应用顶部安全区保持深色背景。
+
+## 审查发现与待办
+
+### 优先处理
+
+1. **白天状态栏待验证。** 用户最新反馈已确认 Android 暗夜状态栏与卡片同色，但白天仍呈深色。2.5.15 将原先固定深色的 manifest 改为同一应用标识的明暗两份配置，启动和切换主题时同步选择，并同步 color-scheme；已部署，未在用户手机验证白天修正，iPhone 也未真机验证。配置位置：public/manifest.webmanifest、public/manifest-dark.webmanifest、index.html、src/pages/Settings.jsx、src/index.css。浏览器已安装的启动配置可能延迟更新，不能承诺运行时立即更新安装元数据。
+2. **刷新周期未完全统一。** src/hooks/useAssetData.js 为 60 秒，src/hooks/useVisiblePolling.js 为 5 分钟，Market 和 Future 使用后者。“所有自动刷新每分钟一次”的意图尚未完全落实，应统一策略后核对各页面，而不是只改 README。
+3. **共享期货账户口径不一致。** src/components/HomeOverviewCards.jsx 取单条 IC 使用率最大值；src/pages/Future.jsx 将各条保证金及市值分别求和。多份合约重复存储同一账户权益时，可能低估整体风险。后续需按账户合计保证金，并只计一次账户权益；本次不修改评分政策或数据结构。
+
+### 其他待办
+
+4. **打新提醒请求失败仍可能闪动。** src/components/SubscriptionTicker.jsx 的 catch 会清除同日已展示提醒，之后成功请求再显示；可考虑仅跨日清空，同日失败保留上次成功结果。
+5. **已有测试包含过时外观断言。** test/homeCardEditing.test.js 仍要求健康度 `text-[40px] font-semibold`，现有实现为 `text-[36px] font-medium`。本次未运行全量测试，不报告全量通过或固定失败数量；后续将断言改为稳定行为验证。
+6. **发布与 Git 曾脱节。** 颜色修改部署时未递增 2.5.14，也未提交。现已补充 AGENTS.md、CHANGELOG.md 和版本脚本；2.5.15 已部署，本批次提交补齐源码和发布记录。项目状态文档仍需每次发布人工更新，脚本不自动证明线上版本。
+
+## 本次验证边界
+
+- 已通过 npm version 生命周期将本地版本同步为 2.5.15，Android versionCode 由 132 增至 133。
+- npm run version:check、构建产物核对与 git diff --check 通过；Vercel 生产构建成功并返回 READY。未运行全量测试或真机测试。
+- 本批次包含版本同步机制、文档整理及状态栏明暗配置修正，不新增评分或刷新行为变更。
+- 不将之前的构建成功等同于本次全量测试通过；不将 Vercel 发布等同于 APK 更新。

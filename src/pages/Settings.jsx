@@ -59,7 +59,7 @@ function SettingsLineIcon({ type, className = 'h-5 w-5' }) {
 
 function syncNativeStatusBar(isDark) {
   if (!Capacitor.isNativePlatform()) return
-  const color = isDark ? '#111827' : '#ffffff'
+  const color = isDark ? '#1f2937' : '#ffffff'
   const systemStyle = isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light
   const statusStyle = isDark ? StatusBarStyle.Dark : StatusBarStyle.Light
   Promise.allSettled([
@@ -76,7 +76,13 @@ function applyTheme(t) {
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.classList.toggle('dark', isDark)
   root.style.backgroundColor = isDark ? '#111827' : '#f9fafb'
-  if (metaTheme) metaTheme.content = isDark ? '#111827' : '#ffffff'
+  root.style.colorScheme = isDark ? 'dark' : 'light'
+  const schemeMeta = document.querySelector('meta[name="color-scheme"]')
+  if (schemeMeta) schemeMeta.content = isDark ? 'dark' : 'light'
+  if (metaTheme) metaTheme.content = isDark ? '#1f2937' : '#ffffff'
+  const manifest = document.querySelector('link[rel="manifest"]')
+  const manifestPath = isDark ? '/manifest-dark.webmanifest' : '/manifest.webmanifest'
+  if (manifest && manifest.getAttribute('href') !== manifestPath) manifest.setAttribute('href', manifestPath)
   syncNativeStatusBar(isDark)
 }
 

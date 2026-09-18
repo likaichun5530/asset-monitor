@@ -1,5 +1,11 @@
 # 打包指南 · 有数
 
+## 发布版本
+
+每个包含新修改的发布批次都递增版本，未特别指定时执行 `npm version patch --no-git-tag-version`（例如 2.5.10 → 2.5.11）。脚本同步 Android versionName 并递增 versionCode，再执行 `npm run version:check`。更新 CHANGELOG.md 与 PROJECT_STATUS.md；同一批次部署重试不再次升级。
+
+Vercel 发布更新 Web/PWA 及 API，不会替换已安装 APK。当前 Capacitor 使用本地 dist，未配置远程 server.url；原生修改必须重新构建、同步、打包并安装。
+
 ## Mac 应用（历史产物）
 
 `release/` 中可能保留既有 Mac 构建产物，但该目录被 Git 忽略。当前 `package.json` 没有声明 Electron、electron-builder 或 `electron:*` 脚本，因此当前仓库不能直接重新生成这些产物。
@@ -31,6 +37,7 @@
 ### 前置条件
 1. 安装 [Android Studio](https://developer.android.com/studio)
 2. 安装 Android SDK（Android Studio 内自动安装）
+   当前项目 compileSdk/targetSdk 为 36；Gradle 还需要兼容的 Java/JDK，通常可使用 Android Studio 自带环境。此前本机命令行打包因没有可用 Java 运行环境而中止，不能视为 APK 已生成。
 3. 设置环境变量：
    ```bash
    echo 'export ANDROID_HOME=~/Library/Android/sdk' >> ~/.zshrc
@@ -76,10 +83,22 @@ cd android
 2. 菜单 → 安装「有数」
 3. 从启动台打开
 
-### Vivo 手机（Chrome/浏览器）
+### Android 手机（Chrome）
 1. 用浏览器打开应用网址
 2. 菜单 → 添加到主屏幕
 3. 从桌面打开
+
+### iPhone（Safari）
+1. 用 Safari 打开 https://asset.kenny5530.asia
+2. 分享 → 添加到主屏幕
+3. 从主屏幕打开
+
+### 状态栏与更新说明
+
+- Android PWA 使用 HTML theme-color 和 manifest theme_color；暗夜目标为 #1f2937。Capacitor StatusBar 插件不会在 PWA 中运行。
+- iPhone 使用 black-translucent 及顶部安全区域背景，不能依靠 Android 原生插件控制。
+- Service Worker 使用 autoUpdate。已安装 PWA 的网页缓存及安装信息更新与部署完成不是同一个时刻；不应承诺部署后所有手机立即使用新版本。
+- 用户已确认 Android 暗夜状态栏颜色正确；白天颜色修正及 iPhone 尚未真机验证；详见 PROJECT_STATUS.md。不要将配置颜色当作设备实测颜色。
 
 > API 不可用时 PWA 可以读取已有本地缓存，但无法获取最新实盘数据或同步快照。
 
@@ -91,7 +110,7 @@ cd android
 Asset-Monitor/
 ├── electron/main.cjs         # Electron 主进程（历史代码）
 ├── capacitor.config.json     # Capacitor 配置（Android）
-├── vite.config.js            # 构建时生成 PWA manifest / Service Worker
+├── vite.config.js            # 构建时生成 Service Worker（manifest 位于 public/）
 ├── release/                  # Mac 打包输出
 │   ├── 有数-1.0.0-arm64.dmg
 │   └── mac-arm64/有数.app
@@ -106,5 +125,7 @@ Asset-Monitor/
 | `npm run build` | 构建前端 |
 | `npm run dev:server` | 仅启动本地 API |
 | `npm run preview` | 预览生产构建 |
+| `npm version patch --no-git-tag-version` | 升级应用补丁版本并同步 Android |
+| `npm run version:check` | 核对应用、锁文件与 Android 版本一致 |
 | `npx cap sync android` | 同步前端到 Android |
 | `npx cap open android` | 打开 Android Studio |

@@ -23,7 +23,7 @@ html, body, #root { height: 100%; }
 
 /* Cover transparent PWA status bars and keep content below the system icons. */
 :root { --status-bar-background: #ffffff; }
-html.dark { --status-bar-background: #111827; }
+html.dark { --status-bar-background: #1f2937; }
 #root { padding-top: env(safe-area-inset-top, 0px); }
 #root::before {
   content: '';
@@ -39,7 +39,7 @@ header.mobile-topbar { top: env(safe-area-inset-top, 0px); }
 /* iOS black-translucent uses white system icons, including in light mode. */
 @supports (-webkit-touch-callout: none) {
   @media (display-mode: standalone) {
-    :root { --status-bar-background: #111827; }
+    :root { --status-bar-background: #1f2937; }
   }
 }
 

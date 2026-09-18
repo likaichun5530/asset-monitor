@@ -1,6 +1,8 @@
-# Asset Monitor · 个人资产管理
+# 有数 · Asset Monitor
 
 一个响应式的个人资产管理应用，支持 Web、PWA 和 Capacitor Android。前端基于 React + Vite + Tailwind CSS + Recharts，实盘数据来自 Google Sheets。
+
+生产地址：[有数](https://asset.kenny5530.asia)。当前版本、线上部署状态及待办见 [PROJECT_STATUS.md](PROJECT_STATUS.md)，发布记录见 [CHANGELOG.md](CHANGELOG.md)，协作与版本规范见 [AGENTS.md](AGENTS.md)，平台打包见 [PACKAGING.md](PACKAGING.md)。应用显示版本读取根目录 package.json。
 
 ## 功能特性
 
@@ -65,7 +67,7 @@
 - 修改密码会使旧 JWT 失效，并自动退出到登录页；密码不会写入浏览器存储或日志
 
 ### 📱 响应式设计
-- 桌面端：顶部导航 + 宽屏布局
+- 桌面端：侧边导航 + 顶部工具栏 + 宽屏布局
 - 移动端：底部 Tab 导航 + 单列卡片布局
 
 ## 技术栈
@@ -145,7 +147,14 @@ npm i -g vercel
 vercel
 ```
 
-每次提交并部署时递增三段版本号的补丁位（例如 `2.5.2` → `2.5.3`），并同步更新 `package.json`、`package-lock.json` 和 Android 版本信息。
+每次包含新修改的提交并部署，都必须升级三段版本号；没有特别指定时递增第三位，例如 `2.5.10` → `2.5.11`。使用以下命令同步 package.json、package-lock.json、Android versionName 和 versionCode：
+
+```bash
+npm version patch --no-git-tag-version
+npm run version:check
+```
+
+同时更新 CHANGELOG.md 与 PROJECT_STATUS.md，再提交本次改动。一个发布批次只升级一次，失败重试不重复升级；已部署后新增改动必须使用下一版本。生产部署使用 `vercel --prod`，预览部署不能视为上线。
 
 首次使用会提示登录 Vercel 账号，按提示操作即可。部署完成后会得到一个预览 URL（如 `your-app.vercel.app`）。
 
@@ -328,6 +337,7 @@ Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheet
 
 - `auth.username`、`auth.passwordHash`、`auth.passwordSalt`、`auth.tokenVersion`、`auth.updatedAt`
 - `ai.rules`
+- `ai.models`
 - `appsScript.marketCode`
 
 密码使用 Node.js 原生 scrypt 和随机 salt 生成，表中不保存明文密码；`JWT_SECRET` 仍只存在服务端环境变量。旧 `AuthConfig` 和 `AIConfig` 在迁移期只作为读取回退，后续密码修改和 AI 规则保存只写入 `SystemSettings`，不会自动删除旧表。
@@ -351,8 +361,8 @@ Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheet
 ### 同步状态显示
 - 顶部导航栏显示在线、离线缓存或演示状态
 - 首页快照按钮旁显示「N 条待同步」提示
-- Holdings、Market、Futures 按各自周期独立刷新；页面隐藏时暂停，重新可见且缓存过期后再刷新
-- History 首次进入时读取，生成快照、修改历史或手动刷新后才重新读取，不再固定每 5 分钟请求
+- Holdings 和 History 在需要对应数据的页面每 60 秒自动刷新；隐藏时暂停，返回前台且过期后再刷新
+- Market、Futures 的独立行情轮询默认仍为 5 分钟，也响应手动刷新；尚未完全落实全站每分钟刷新，见项目待办
 - 支持手动点击刷新按钮
 
 ### 本地缓存键（localStorage）
@@ -362,6 +372,8 @@ Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheet
 | `asset-monitor:history` | 历史快照缓存 |
 | `asset-monitor:pendingSync` | 待同步到 Google Sheets 的快照队列 |
 | `asset-monitor:lastSyncAt` | 最后成功同步时间 |
+| `youshu-theme` | 当前设备的主题选择：light / dark / system |
+| `youshu-subscription-hidden-date` | 当天已手动隐藏打新提醒的日期 |
 | `youshu-ai-enabled` | 是否在页面显示 AI 助手 |
 | `youshu-ai-consent` | 是否已确认资产数据会发送给所选模型服务商 |
 | `youshu-ai-messages` | 当前浏览器最近的 AI 对话 |
