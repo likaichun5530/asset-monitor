@@ -310,27 +310,27 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
           <table className="min-w-full text-xs whitespace-nowrap">
             <thead>
               <tr className="text-left text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
-                <th className="py-2.5 px-3 font-medium sticky left-0 bg-white dark:bg-gray-800 z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>名称</th>
-                <th className="py-2.5 px-3 font-medium text-right">数量</th>
-                <th className="py-2.5 px-3 font-medium text-right">单价</th>
-                <th className="py-2.5 px-3 font-medium text-right">{showOriginalMode ? '原币市值' : '人民币市值'}</th>
-                <th className="py-2.5 px-3 font-medium text-right">占比</th>
+                <th className="py-2.5 px-2 font-medium sticky left-0 bg-white dark:bg-gray-800 z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>名称</th>
+                <th className="py-2.5 px-2 font-medium text-right">数量</th>
+                <th className="py-2.5 px-2 font-medium text-right">单价</th>
+                <th className="py-2.5 px-2 font-medium text-right">{showOriginalMode ? '原币市值' : '人民币市值'}</th>
+                <th className="py-2.5 px-2 font-medium text-right">占比</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((h, idx) => (
                 <tr key={idx} className="border-b border-gray-50 dark:border-gray-700 last:border-0">
-                  <td className="py-2.5 px-3 text-gray-800 dark:text-gray-200 font-medium sticky left-0 bg-white dark:bg-gray-800 z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>{h.name}</td>
-                  <td className="py-2.5 px-3 text-right text-gray-600 dark:text-gray-300">
+                  <td className="py-2.5 px-2 text-gray-800 dark:text-gray-200 font-medium sticky left-0 bg-white dark:bg-gray-800 z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>{h.name}</td>
+                  <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
                     {h.quantity === null ? '—' : formatNumber(h.quantity, assetKey === 'crypto' ? 4 : 0)}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-gray-600 dark:text-gray-300">
+                  <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
                     {h.price === null ? '—' : formatNumber(h.price, h.price < 1 ? 6 : 2)}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-gray-800 dark:text-gray-200 font-medium">
+                  <td className="py-2.5 px-2 text-right text-gray-800 dark:text-gray-200 font-medium">
                     {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatCurrency(h.marketValueCNY)}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-gray-500 dark:text-gray-400">
+                  <td className="py-2.5 px-2 text-right text-gray-500 dark:text-gray-400">
                     {sumMarketValue ? ((h.marketValueCNY / sumMarketValue) * 100).toFixed(1) : 0}%
                   </td>
                 </tr>

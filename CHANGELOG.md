@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.17 — 2026-09-19 已发布
+
+- 部署：dpl_4gWi1oAzKSAhKCr318Zp8RmSAnM4，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机端资产详情页持仓表格的单元格左右内边距由 12px 缩小为 8px，虚拟币、A 股、港股、美股等共用页面同步生效。
+
 ## 2.5.16 — 2026-09-19 已发布
 
 - 部署：dpl_2msgz2pzMmZc4q24SUHedD5D6faD，READY，已绑定 https://asset.kenny5530.asia 。
