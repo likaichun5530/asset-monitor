@@ -1,416 +1,108 @@
 # 有数 · Asset Monitor
 
-一个响应式的个人资产管理应用，支持 Web、PWA 和 Capacitor Android。前端基于 React + Vite + Tailwind CSS + Recharts，实盘数据来自 Google Sheets。
+个人资产管理应用，支持 Web、PWA 和 Capacitor Android。React + Vite + Tailwind CSS + Recharts 构建前端；实盘数据来自 Google Sheets，生产 API 由 Vercel Functions 提供，本地 Express 直接复用相同处理器。
 
-生产地址：[有数](https://asset.kenny5530.asia)。当前版本、线上部署状态及待办见 [PROJECT_STATUS.md](PROJECT_STATUS.md)，发布记录见 [CHANGELOG.md](CHANGELOG.md)，协作与版本规范见 [AGENTS.md](AGENTS.md)，平台打包见 [PACKAGING.md](PACKAGING.md)。应用显示版本读取根目录 package.json。
+[生产应用](https://asset.kenny5530.asia) · [当前状态与审查记录](PROJECT_STATUS.md) · [发布记录](CHANGELOG.md) · [协作规范](AGENTS.md) · [PWA / Android 打包](PACKAGING.md)
 
-## 功能特性
+应用版本来自根目录 `package.json`；`server/package.json` 的版本独立于应用版本。
 
-### 🏠 首页
-- **总资产卡片**：当前总资产（人民币）、数据更新日期、较高点回撤，并提供「生成快照」按钮
-- **涨跌卡片组**：
-  - 近 7 天资产涨跌金额与涨跌幅
-  - 近 1 个月资产涨跌金额与涨跌幅
-  - 较高点回撤金额与百分比
-- **资产趋势图**：历史资产快照曲线，支持「月 / 季 / 半年 / 年 / 全部」时间范围切换，标注历史高点，hover 显示金额与备注（如「付房款」「我爸给10w」）
-- **资产配置**：合并饼图与金额列表，支持三种维度切换：
-  - 按类别（股票 / 虚拟币 / 黄金 / 现金 / 基金 / 期货）
-  - 按市场（美股 / A股 / 港股 / 日股 / 全球）
-  - 按币种（人民币 / 美元 / 港币）
-- **账户分布**：按账户/平台（IBKR / Snowball / Binance 等）展示资产分布与进度条
-- **收益日历**：展示每日总资产变化；点击日期可查看各类资产相对上一条快照的变化金额，并可将当天备注保存到 History 表最后一列
-- **卡片编辑**：长按首页进入编辑模式，卡片会轻微抖动；按住卡片即可拖动排序，也可隐藏或恢复卡片
+## 功能与数据口径
 
-### 📸 生成快照
-- 点击首页「生成快照」按钮，会以当前持仓汇总的总资产生成一条当日快照
-- 快照会立即追加到趋势图中（本地浏览器保存）
-- **可选**：配置后端后，可同步写入 Google Sheets 的「历史」表
+- **总览**：人民币总资产、金额隐藏、今日盈亏、近 7 日 / 近 1 月 / 今年盈亏、较高点回撤、货币比例和账户健康度。今日盈亏取最新快照减前一自然日快照，缺少前一日数据时显示 `--`；资产差额包含资金流入流出，不等同于剔除现金流后的投资收益。
+- **历史与布局**：趋势范围为近 1 月、近 3 月、近 1 年、今年、全部；收益日历可查看分类变化和编辑备注。手机长按首页进入卡片排序 / 隐藏模式，桌面提供编辑入口。
+- **配置与持仓**：首页资产配置为按类别排列的横向条形图；持仓概况按类别筛选并展示前五大持仓。持仓页支持筛选、排序及在线新增 / 编辑 / 删除，详情页展示对应分类持仓和历史走势。
+- **目标**：九类资产目标、细分目标、配置思路，以及超配 / 低配提醒和建议调整金额。容忍幅度为目标的 40%，最低 0.5、最高 2 个百分点；达到边界仍算范围内。
+- **评分**：账户健康度为 5～100 的整数，扣分来自大类偏差、按大类权重计算的细分偏差和 IC 保证金使用率。每日涨跌不计分；现金、期货、黄金无需细分目标，未设目标的“其他”不参与细分扣分。具体规则见 `src/utils/healthScore.js` 和 [项目状态](PROJECT_STATUS.md)。
+- **行情与期货**：行情读取 Market 表；期货页展示持仓、保证金和 IC 期现贴水。合约交割日期按代码推算每月第三个周五，未接入节假日调整日历。
+- **打新提醒**：首页展示当日新股 / 新债申购，支持隐藏当天提醒；数据由 `/api/market?view=subscriptions` 提供。
+- **AI 助手**：在设置中开启，登录后通过业务页面标题栏用户名左侧的黑白 `AI` 圆环进入；设置页和演示模式不显示入口。支持流式对话、页面快捷问题、Gemini / DeepSeek 模型选择和联网搜索开关。对话、当前模型选择保存在当前浏览器，模型清单和统一回答规则保存到 `SystemSettings`。资产上下文由服务端读取并预先计算，助手不会执行交易或修改持仓。
+- **登录与密码**：私人 API 需要 JWT。首次使用服务端 `AUTH_PASSWORD`；修改后保存 scrypt 密码哈希、随机 salt 和 tokenVersion，旧 JWT 随之失效。修改密码前通过 HIBP k-anonymity 接口检查泄漏，只发送 SHA-1 前 5 位；命中后需明确确认才能继续。密钥及认证配置不发送给模型。
 
-### 📈 行情 / 期货
-- **行情页**：展示汇率 / 虚拟币 / A 股 / 期货等行情（数据来自 Google Sheets「Market」表）
-- **期货页**：中证500期现贴水、到期天数与年化率（合约代码与价格来自 Market 表）
+## 本地开发
 
-### 📋 持仓明细
-- 类别筛选（全部 / 美股 / A股 / 港股 / 日股 / 虚拟币 / 黄金 / 现金 / 基金 / 期货）
-- 桌面端表格：名称、代码、类别、市场、账户、币种、数量、单价、原币市值、人民币市值、占比，支持列排序
-- 移动端卡片式列表
-- 在线实盘模式支持新增、编辑和整行删除持仓，按类别动态显示可填写字段
-- `AssetType` 表示资产归属，`Market` 表示市场，`Account` 表示托管账户；名称中出现“现金”不会改变资产归属
-- A股/美股/港股/日股可选“证券持仓”或“账户现金”；账户现金仍保存为 `Stock + Market`，名称自动使用“人民币现金 / 美元现金 / 港币现金 / 日元现金”，并计入对应证券账户
-- 基金可按代码和数量估值，也可直接填写原币市值；两者都保存为 `Bond`，不计入可用现金
-- “现金”保存为 `Cash`，用于银行卡、微信、支付宝和手头现金；市场、账户和币种均可按实际情况选择
-- 证券、黄金、虚拟币根据 `Market` 表中的代码自动计算单价与市值；直接金额按汇率换算；期货原币市值支持 Google Sheets 公式
-- 合计行汇总
-
-### 🎯 配置目标
-- 对比各类资产的当前占比与目标占比
-- 容忍幅度为目标比例的 40%，最低 0.5、最高 2 个百分点；偏离超出容忍幅度时提醒超配或低配
-- 对已触发提醒的类别，按照当前总资产与目标比例给出建议增加或减少的金额
-- 首页账户健康度与现金加仓建议使用相同的偏差判断口径
-- 可在目标页直接调整九类资产目标比例；点击配置明细可查看该类资产的目标符合度，并将配置思路保存到 `target` 表
-
-### 🤖 AI 资产助手
-- 设置中可独立开启或关闭；开启后仅在登录状态的首页显示机器人入口，拖动松手后自动吸附到距离最近的屏幕左侧或右侧；长按入口可显示关闭按钮
-- Vercel 后端实时读取 Holdings、History 和 target，将应用预先计算好的资产金额、比例、配置偏差和历史变化交给所选模型解释
-- 支持流式多轮对话和当前页面快捷问题，对话仅保存在当前浏览器
-- AI 对话框输入区使用保存在 `SystemSettings` 的模型清单；当前选择仅保存在当前设备
-- 设置页可新增、编辑或删除 Gemini/DeepSeek 模型，清单写入 `ai.models`，API Key 和 Base URL 不会写入表格
-- 设置页使用一个统一编辑框维护全部 AI 回答规则；点击顶部保存按钮后写入 Google Sheets 的 `SystemSettings` 表，保存成功会清空旧对话并在下一次提问生效
-- 规则可统一配置助手身份、收益口径、事实边界、回答风格和分析偏好；登录鉴权和密钥隔离仍由服务端代码强制执行
-- DeepSeek/Gemini API Key、Google 凭据、登录令牌、表格公式和内部行信息不会发送到浏览器或模型
-- AI 分析仅作资产整理与风险提示，不会修改持仓或执行交易
-
-### 🔐 账号安全
-- 登录状态下可在“设置 → 账号安全”修改密码，不修改用户名
-- 首次修改前继续使用服务端 `AUTH_PASSWORD`；修改成功后仅在 Google Sheets `SystemSettings` 保存 scrypt hash、随机 salt 和 tokenVersion
-- 修改前通过 HIBP Pwned Passwords 的 k-anonymity 范围接口检查公开泄漏密码；只发送 SHA-1 前 5 位，不发送密码或完整哈希。命中时默认阻止，用户明确确认风险后可以继续
-- 修改密码会使旧 JWT 失效，并自动退出到登录页；密码不会写入浏览器存储或日志
-
-### 📱 响应式设计
-- 桌面端：侧边导航 + 顶部工具栏 + 宽屏布局
-- 移动端：底部 Tab 导航 + 单列卡片布局
-
-## 技术栈
-
-| 技术 | 说明 |
-| --- | --- |
-| React 18 | UI 框架 |
-| Vite 5 | 构建工具 |
-| React Router 6 | 路由 |
-| Tailwind CSS 3 | 原子化样式 |
-| Recharts 2 | 图表库 |
-| Vercel Functions | 生产 API，读写 Google Sheets |
-| Express | 本地 API 容器，直接复用 Vercel Functions |
-| vite-plugin-pwa / Capacitor | PWA 与 Android 封装 |
-
-## 快速开始
-
-### 前端
+使用支持内置 `fetch`、`node --test` 的现代 Node.js；本次验证使用 Node.js 24。首次安装需要分别安装前后端依赖：
 
 ```bash
-# 安装依赖
-npm install
-
-# 启动开发服务器（默认 http://localhost:5173）
-npm run dev
-
-# 构建生产版本
-npm run build
-```
-
-开发服务器启用了 `--host`，可在局域网内通过手机直接访问（例如 `http://<本机IP>:5173`）。
-
-### 本地 API
-
-本地 Express 服务器：
-
-```bash
+npm ci
+npm ci --prefix server
+cp .env.example .env.local
 cp server/.env.example server/.env
-# 编辑 server/.env，填入 Google Sheets 与登录凭据
-npm install
-cd server && npm install && cd ..
+# 编辑 server/.env，填写服务端凭据
 npm run dev
 ```
 
-在前端项目根目录创建 `.env.local`：
-
-```
-VITE_API_BASE=http://localhost:8787
-```
-
-`npm run dev` 会同时启动前端（5173）和本地 API（8787）。本地 Express 只负责 HTTP 服务，路由处理器直接复用 `api/` 中的 Vercel Functions，避免两套后端行为不一致。
-
-### Vercel Serverless Functions（推荐生产环境）
-
-无需额外运行服务器，API 路由位于 `api/` 目录下，部署到 Vercel 后自动生效。
-
-API 不可用时，应用会读取浏览器中最近一次成功同步的缓存；快照会先写入 localStorage，待 API 恢复后重试同步。
-
-> 所有包含个人资产数据的 API（包括读取接口）都必须携带登录 JWT。健康检查以及仅包含公开行情的 Market、Futures 接口保持公开。前端请求由统一 API 客户端自动附加令牌，并一致处理登录失效。
-
-## 🚀 部署上线（通过域名访问）
-
-### 部署到 Vercel（推荐）
-
-Vercel 原生支持前端静态托管 + Serverless Functions，无需额外配置服务器。
-
-#### 1. 安装 Vercel CLI
+`npm run dev` 同时启动前端（5173）与 API（8787）；前端通过 `.env.local` 中的 `VITE_API_BASE=http://localhost:8787` 访问 API。开发服务监听局域网，手机访问时需将该地址改为开发机的局域网地址。
 
 ```bash
-npm i -g vercel
+npm run dev:server    # 单独启动本地 API
+npm test             # Node 测试，包括计算规则、鉴权和源码回归检查
+npm run version:check
+npm run build        # 生成 dist/ 和 Service Worker
+npm run preview      # 预览已构建前端，不启动 API
 ```
 
-#### 2. 部署
+没有服务端配置时可从登录页进入演示模式。实盘模式请求失败会尝试读取该浏览器的缓存，没有缓存则显示空状态。
 
-```bash
-# 在项目根目录执行
-vercel
-```
+## 服务端配置
 
-每次包含新修改的提交并部署，都必须升级三段版本号；没有特别指定时递增第三位，例如 `2.5.10` → `2.5.11`。使用以下命令同步 package.json、package-lock.json、Android versionName 和 versionCode：
+将 Google 服务账号以编辑权限分享给表格。服务端变量配置在 Vercel 或 `server/.env`，完整示例见 [server/.env.example](server/.env.example)。不要放进 `VITE_*` 变量。
+
+| 变量 | 用途 |
+| --- | --- |
+| `SPREADSHEET_ID` | Google Sheets 文件 ID |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`、`GOOGLE_PRIVATE_KEY` | 服务账号；私钥支持字面量 `\n` 换行 |
+| `AUTH_USERNAME`、`AUTH_PASSWORD` | 登录用户名及尚未设置哈希密码时的初始密码 |
+| `JWT_SECRET` | JWT 签名密钥，缺失时拒绝登录及私人请求 |
+| `CRON_SECRET` | 定时快照鉴权，使用独立随机值 |
+| `GEMINI_API_KEY`、`DEEPSEEK_API_KEY` | 对应模型服务密钥；未配置的服务商不可用 |
+| `DEEPSEEK_BASE_URL`、`DEEPSEEK_MODEL` | 可选服务地址与模型回退值，通常优先使用保存的模型清单 |
+| `GEMINI_MAX_OUTPUT_TOKENS` | 1024～32768，默认 8192 |
+| `GEMINI_THINKING_LEVEL` | `low` / `medium` / `high`，默认 `low` |
+| `AI_ASSISTANT_ENABLED` | 设为 `false` 时关闭服务端 AI |
+| `PORT` | 仅本地 API 使用，默认 8787 |
+
+## Google Sheets 结构
+
+- **Holdings**：表头为 `AssetType, Market, Account, Symbol, Name, Currency, Quantity, Price, MarketValue, MarketValueCNY`。存储类型包括 `Stock / Crypto / Gold / Cash / Bond / Future`，API 转换成中文显示类别；兼容旧基金名称。证券账户现金使用 `Stock + Market`，独立现金使用 `Cash`，基金使用 `Bond`。金额换算、编辑校验和表格公式分别见 `api/_holdings-schema.js`、`api/_holdings-formulas.js`。
+- **History**：A～L 列依次为日期、总额、美股、虚拟币、基金、期货、A股、黄金、日股、港股、现金、备注。快照按 AssetType / Market 分类；证券账户现金归属对应股票市场，Cash 只归入现金，总额累计一次。历史旧行不会自动重算。
+- **target**：A 列类别，B 列大类目标比例，C 列配置思路；从 D 列开始每三列一个细分组，前两列为名称 / 代码和目标比例。首次配置需预建表头和九类资产行：美股、A股、港股、日股、虚拟币、黄金、基金、期货、现金。大类合计必须为 100%，细分合计不能超过 100%。不要使用旧版“金额 / 实际占比 / 目标”初始化模板覆盖此结构。
+- **Market**：A 列名称、B 列代码、C 列价格、F 列类别、G 列显示标识；行情页仅展示 G 列为 `y` 的条目，期货接口按名称和类别识别相关合约。
+- **SystemSettings**：`key | value | updatedAt | description`。保存 `auth.*`、`ai.rules`、`ai.models`；`appsScript.marketCode` 用于存放行情脚本文本，实际运行仍需放入 Google Apps Script 编辑器。旧 `AuthConfig` / `AIConfig` 只作读取回退，迁移后的保存写入新表。
+
+## 快照、缓存与刷新
+
+当前首页没有手动生成快照按钮。服务端保留已鉴权的 `POST /api/snapshot`；Vercel Cron 配置为每天 UTC 15:00（北京时间 23:00）调用 `/api/snapshot-auto`。快照从服务端 Holdings 汇总，同日覆盖时保留备注。自动任务不在总额为零时写入。实际定时执行以平台记录为准。
+
+持仓和历史在需要它们的页面可见时每 60 秒刷新；Market / Futures 独立轮询默认 5 分钟。手动刷新优先当前页面数据，再依次刷新其他数据源。此处如实记录当前实现，尚未完全统一为一分钟。
+
+浏览器保存最近成功的持仓、历史、目标和行情缓存；在线 GET 的内存缓存分别为 Holdings / Target 15 秒、Market / Futures 20 秒、打新提醒 5 分钟，History 无周期 TTL。写入和登录会话切换会失效相关内存缓存。保留旧版本待同步快照队列的重试与合并，不清除用户历史数据。持仓、目标和备注编辑仍要求联网。
+
+## 发布与目录
+
+默认完成修改后部署生产环境、提交并推送 Git，除非用户明确要求不部署。每批新修改递增补丁版本一次：
 
 ```bash
 npm version patch --no-git-tag-version
 npm run version:check
-```
-
-同时更新 CHANGELOG.md 与 PROJECT_STATUS.md，再提交本次改动。一个发布批次只升级一次，失败重试不重复升级；已部署后新增改动必须使用下一版本。生产部署使用 `vercel --prod`，预览部署不能视为上线。
-
-首次使用会提示登录 Vercel 账号，按提示操作即可。部署完成后会得到一个预览 URL（如 `your-app.vercel.app`）。
-
-#### 3. 配置环境变量
-
-在 [Vercel Dashboard](https://vercel.com/dashboard) 进入项目 → Settings → Environment Variables，添加以下变量：
-
-| 变量名 | 说明 | 示例 |
-| --- | --- | --- |
-| `SPREADSHEET_ID` | Google Sheets 文件 ID | `1abc...` |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | 服务账号邮箱 | `xxx@xxx.iam.gserviceaccount.com` |
-| `GOOGLE_PRIVATE_KEY` | 服务账号私钥 | `-----BEGIN PRIVATE KEY-----\n...` |
-| `JWT_SECRET` | JWT 签名密钥（必填；缺失时登录和私人 API 均拒绝工作） | 使用密码管理器生成的长随机字符串 |
-| `AUTH_USERNAME` | 登录用户名 | 自定义 |
-| `AUTH_PASSWORD` | 登录密码 | 自定义 |
-| `CRON_SECRET` | 自动快照 Cron 调用密钥 | 长随机字符串 |
-| `DEEPSEEK_API_KEY` | DeepSeek 开放平台 API Key，仅供服务端调用 | 从 DeepSeek 控制台创建后仅存入服务端环境变量 |
-| `DEEPSEEK_BASE_URL` | DeepSeek OpenAI 兼容接口地址；官方平台可不填 | `https://api.deepseek.com` |
-| `DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-v4-flash` |
-| `GEMINI_API_KEY` | Google Gemini API Key，仅供服务端调用 | 从 Google AI Studio 创建后仅存入服务端环境变量 |
-| `GEMINI_MAX_OUTPUT_TOKENS` | Gemini 单次回答输出上限（1024～32768，无效值回退 8192） | `8192` |
-| `GEMINI_THINKING_LEVEL` | Gemini 3.x 推理级别；默认 low，降低 AI 对话首包延迟 | `low` |
-| `AI_ASSISTANT_ENABLED` | 服务端 AI 总开关；设为 `false` 时禁用接口 | `true` |
-
-配置后重新部署使环境变量生效：
-
-```bash
+npm test
+npm run build
 vercel --prod
 ```
 
-#### 4. 绑定自定义域名
+版本脚本同步根目录锁文件与 Android versionName / versionCode。更新 CHANGELOG 与 PROJECT_STATUS，只有 Vercel 返回 READY 且绑定生产域名才记录已发布；部署失败重试不重复升版本。部署配置见 `vercel.json`。DNS 按 Vercel 项目提供的记录配置。
 
-1. 在 Vercel Dashboard 进入项目 → Settings → Domains
-2. 输入你的域名（如 `your-domain.com`）
-3. 按提示在域名 DNS 服务商处添加记录：
-   - **根域名**：添加 A 记录指向 `76.76.21.21`
-   - **www 子域名**：添加 CNAME 记录指向 `cname.vercel-dns.com`
-4. 等待 DNS 生效（通常几分钟到几小时）
+同域部署不需要 `VITE_API_BASE`；独立前端或 APK 需在构建前设置它指向实际 API。项目使用 HashRouter，页面路由不依赖服务端回退。PWA 的 `public/manifest.webmanifest` 是唯一 manifest，故意不设置 theme_color；系统栏交给系统与浏览器处理，页面主题独立切换。
 
-绑定成功后即可通过 `https://your-domain.com` 访问。
-
-#### 5. 配置前端 API 地址（前后端分离时才需要）
-
-同域部署会自动使用当前域名下的 `/api/*`，无需设置 `VITE_API_BASE`。
-
-如果前端和 API 分离部署，可在 Vercel 项目设置中添加环境变量 `VITE_API_BASE` 指向 API 地址，然后重新构建部署。
-
-### 部署到其他平台（静态托管）
-
-前端可部署到任意静态托管平台，API 需继续部署在 Vercel 或其他兼容服务上：
-
-1. **构建生产版本**：
-   ```bash
-   npm run build
-   ```
-   产物在 `dist/` 目录。
-
-2. **部署 `dist/` 到任意静态托管**（如 Netlify、Cloudflare Pages、Nginx 等）
-
-3. 设置 `VITE_API_BASE` 指向独立部署的 API 地址后重新构建。项目使用 `HashRouter`，页面路由不依赖服务器回退规则。
-
-## 目录结构
-
-```
-Asset-Monitor/
-├── index.html
-├── package.json
-├── vite.config.js
-├── tailwind.config.js
-├── postcss.config.js
-├── vercel.json                # Vercel 部署配置
-├── .env.example              # 前端环境变量示例
-├── api/                       # Vercel Serverless Functions（生产环境 API）
-│   ├── _google.js             # Google Service Account JWT 认证（零外部依赖）
-│   ├── _auth.js               # JWT 签发与私人 API 统一鉴权（无默认密钥）
-│   ├── _auth-config.js        # 认证配置读写、校验与 20 秒短缓存
-│   ├── _system-settings.js    # SystemSettings 统一配置存储
-│   ├── _password.js           # scrypt 密码哈希、校验与恒定时间比较
-│   ├── _pwned-password.js     # 公开泄漏密码 k-anonymity 检查
-│   ├── _login-rate-limit.js   # 登录失败延迟与暖实例轻量限流
-│   ├── _http.js               # Serverless / Express 通用请求解析
-│   ├── _holdings-schema.js    # Holdings schema、归一化与输入校验
-│   ├── _holdings-formulas.js  # Holdings Google Sheets 公式和行生成
-│   ├── _holdings-service.js   # Holdings 读取、版本校验与编辑选项
-│   ├── _snapshot.js           # 手动与定时快照的共享逻辑
-│   ├── auth/
-│   │   ├── login.js           # POST /api/auth/login（签发 JWT）
-│   │   └── change-password.js # POST /api/auth/change-password
-│   ├── futures.js             # GET  /api/futures
-│   ├── health.js              # GET  /api/health
-│   ├── holdings.js            # GET  /api/holdings
-│   ├── history.js             # GET  /api/history
-│   ├── snapshot.js            # POST /api/snapshot
-│   ├── market.js              # GET  /api/market
-│   ├── snapshot-auto.js       # GET  /api/snapshot-auto（Vercel Cron）
-│   └── target.js              # GET  /api/target
-├── public/
-│   ├── icon.png
-│   └── 品牌图片
-├── src/
-│   ├── main.jsx
-│   ├── App.jsx
-│   ├── index.css
-│   ├── components/
-│   │   ├── HomeAssetHero.jsx    # 首页总资产区域
-│   │   ├── HomeOverviewCards.jsx # 首页稳定概览卡片
-│   │   ├── ChangePasswordDialog.jsx # 修改密码弹窗
-│   │   ├── Layout.jsx           # 桌面侧边栏 + 移动端顶部栏/底部 Tab
-│   │   ├── StatCard.jsx
-│   │   ├── TrendChart.jsx       # 趋势图（月/季/半年/年/全部 + 高点标注）
-│   │   ├── AllocationChart.jsx  # 资产配置横向条形图（按类别）
-│   │   └── HoldingsOverview.jsx # 账户分布进度条
-│   ├── pages/
-│   │   ├── Home.jsx             # 首页（总资产 + 涨跌卡片 + 生成快照）
-│   │   ├── Holdings.jsx         # 持仓明细（表格 + 移动端卡片）
-│   │   ├── Target.jsx           # 配置目标（超配/低配提醒）
-│   │   ├── AssetDetail.jsx      # 资产详情（美股/A股/港股/日股/基金/虚拟币/期货/黄金）
-│   │   ├── Cash.jsx             # 现金分布
-│   │   ├── Login.jsx            # 登录页
-│   │   ├── Market.jsx           # 行情页
-│   │   ├── Future.jsx           # 期货页（期现贴水）
-│   │   └── Settings.jsx         # 设置（数据模式、AI、账号安全、主题）
-│   ├── data/
-│   │   ├── demo.js              # 演示模式数据
-│   │   └── holdings.js          # 分类、市场和币种的显示配置
-│   ├── hooks/
-│   │   ├── useAssetData.js      # 数据加载/刷新/自动同步 hook
-│   │   ├── useVisiblePolling.js # 独立数据源的可见性轮询与并发保护
-│   │   └── useAuth.js           # 登录状态 / JWT 管理
-│   └── utils/
-│       ├── asset.js             # 资产计算（聚合/涨跌/回撤）
-│       ├── dataStore.js         # 离线优先数据存储（Google Sheets + localStorage）
-│       ├── api.js               # API 地址、鉴权头、401 与 GET 去重
-│       ├── password.js          # 前端修改密码基础校验
-│       ├── refreshPolicy.js     # 可见性、过期时间和并发刷新判断
-│       ├── snapshot.js          # 快照内存缓存管理
-│       └── format.js            # 数值/日期格式化
-├── server/                      # 本地 Express 后端（开发环境可选）
-│   ├── index.js
-│   ├── package.json
-│   ├── setup-target.mjs        # target 表初始化脚本
-│   └── .env.example
-├── electron/                    # 历史 Electron 主进程代码（当前未配置打包依赖/脚本）
-│   └── main.cjs
-└── android/                     # Capacitor Android 原生项目
-```
-
-## 数据维护
-
-实盘数据来源于 Google Sheets；演示数据位于 `src/data/demo.js`。
-
-### Market 行情刷新脚本
-
-Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheets 的 `SystemSettings` 表，key 为 `appsScript.marketCode`。表格中的代码仅用于集中管理和复制，不会自动执行；实际运行版本仍需粘贴到绑定的 Google Apps Script 编辑器中。
-
-### 持仓数据（`Holdings` 表）
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `assetType` | string | 资产大类（股票 / 虚拟币 / 黄金 / 现金 / 基金 / 期货） |
-| `market` | string | 市场（US / CN / HK / JP / GLOBAL） |
-| `account` | string | 账户/平台 |
-| `symbol` | string | 代码（现金类为 `-`） |
-| `name` | string | 名称 |
-| `currency` | string | 计价币种（CNY / USD / HKD） |
-| `quantity` | number/null | 持仓数量（现金类为 null） |
-| `price` | number/null | 单价（现金类为 null） |
-| `marketValue` | number | 原币市值 |
-| `marketValueCNY` | number | 人民币市值 |
-
-`src/data/holdings.js` 只维护资产颜色、市场颜色和市场标签，不包含实盘持仓。
-
-### 历史数据（`History` 表）
-
-每日一条 `{ date, total, categories?, note? }` 快照。手动和定时快照都会从 `Holdings` 实时汇总总资产与九类资产数据；美股历史按账户口径包含 US 现金，A股和港股历史只包含股票（现金列仍保留全部现金，总资产只累计一次），同日已有记录时覆盖并保留原备注，否则追加。
-
-### 系统设置（`SystemSettings` 表）
-
-系统设置统一使用 `key | value | updatedAt | description` 四列，当前 key 包括：
-
-- `auth.username`、`auth.passwordHash`、`auth.passwordSalt`、`auth.tokenVersion`、`auth.updatedAt`
-- `ai.rules`
-- `ai.models`
-- `appsScript.marketCode`
-
-密码使用 Node.js 原生 scrypt 和随机 salt 生成，表中不保存明文密码；`JWT_SECRET` 仍只存在服务端环境变量。旧 `AuthConfig` 和 `AIConfig` 在迁移期只作为读取回退，后续密码修改和 AI 规则保存只写入 `SystemSettings`，不会自动删除旧表。
-
-## 离线优先（Offline-First）架构
-
-应用实现了离线优先的数据同步策略，确保无网络时仍可使用：
-
-### 数据读取优先级
-1. **在线模式**：从后端 API（Google Sheets）拉取最新数据 → 更新本地缓存
-2. **离线模式**：使用本地缓存（localStorage）中的最近一次数据
-3. **无可用数据**：实盘模式显示空状态；演示模式使用 `src/data/demo.js`
-
-在线 GET 另有一层仅存在于当前页面进程的短 TTL 缓存，用于避免快速切换页面时重复访问 Google Sheets：Holdings 和 Target 为 15 秒，Market 和 Futures 为 20 秒。它不使用浏览器/CDN HTTP Cache，不缓存写请求；写入数据、手动刷新、登录会话切换时会按数据源立即失效。History 仍不做周期 TTL 缓存。
-
-### 数据写入策略（生成快照）
-1. **立即写入本地**：快照保存到 localStorage 的待同步队列，趋势图立即更新
-2. **尝试同步云端**：若后端可用，POST 到 Google Sheets；成功则从待同步队列移除
-3. **自动重试**：下次成功连接后端时，自动重试推送待同步的快照
-
-### 同步状态显示
-- 顶部导航栏显示在线、离线缓存或演示状态
-- 首页快照按钮旁显示「N 条待同步」提示
-- Holdings 和 History 在需要对应数据的页面每 60 秒自动刷新；隐藏时暂停，返回前台且过期后再刷新
-- Market、Futures 的独立行情轮询默认仍为 5 分钟，也响应手动刷新；尚未完全落实全站每分钟刷新，见项目待办
-- 支持手动点击刷新按钮
-
-### 本地缓存键（localStorage）
-| 键 | 内容 |
+| 目录 | 职责 |
 | --- | --- |
-| `asset-monitor:holdings` | 持仓数据缓存 |
-| `asset-monitor:history` | 历史快照缓存 |
-| `asset-monitor:pendingSync` | 待同步到 Google Sheets 的快照队列 |
-| `asset-monitor:lastSyncAt` | 最后成功同步时间 |
-| `youshu-theme` | 当前设备的主题选择：light / dark / system |
-| `youshu-subscription-hidden-date` | 当天已手动隐藏打新提醒的日期 |
-| `youshu-ai-enabled` | 是否在页面显示 AI 助手 |
-| `youshu-ai-consent` | 是否已确认资产数据会发送给所选模型服务商 |
-| `youshu-ai-messages` | 当前浏览器最近的 AI 对话 |
-| `youshu-ai-model` | 当前设备在 AI 对话框中选择的模型；旧版 `youshu-ai-provider` 会自动迁移并删除 |
+| `src/pages/`、`src/components/` | 页面与 UI 组件 |
+| `src/hooks/`、`src/utils/` | 数据加载、缓存、格式化、交互与评分 |
+| `src/data/` | 显示配置和演示数据，不保存实盘持仓 |
+| `shared/` | 前后端共用的资产分类和配置偏差规则 |
+| `api/` | 生产 API；下划线模块为共享实现 |
+| `server/` | 本地 Express 容器，无独立业务实现 |
+| `public/` | 正在使用的应用图标、品牌图、助手头像和 manifest |
+| `android/` | Capacitor 原生项目；发布 Web 不更新 APK |
+| `scripts/`、`test/` | 版本同步与自动化验证 |
 
-JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。前端不执行动态 HTML、AI 回复只按纯文本渲染，并且 localStorage 不保存密码、API Key 或 Google 凭据。
-
-Android Chrome 安装的 PWA 不主动指定系统状态栏颜色，由 Chrome 跟随手机系统明暗模式；“有数”页面主题仍按 `youshu-theme` 独立生效。
-
-## 配色说明
-
-遵循国内市场习惯：**红涨绿跌**。
-
-## 后端 API 说明
-
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| `/api/auth/login` | POST | 登录，返回 JWT token |
-| `/api/auth/change-password` | POST | 私人；验证当前密码后写入 SystemSettings，并使旧 JWT 失效 |
-| `/api/ai-chat` | POST | 登录后读取资产数据并流式调用当前选择的 DeepSeek 或 Gemini |
-| `/api/ai-rules?resource=models` | GET/PUT | 登录后读取或保存 `SystemSettings` 中的 AI 模型清单 |
-| `/api/ai-rules` | GET / PUT | 登录后读取或保存统一 AI 规则；首次保存自动创建 `SystemSettings` 表 |
-| `/api/health` | GET | 健康检查，返回是否已配置 Google 凭据 |
-| `/api/holdings` | GET / POST / PUT / DELETE | 私人；读取、新增、编辑或整行删除 Google Sheets「Holdings」持仓，写操作另有行版本校验 |
-| `/api/history` | GET / PUT | 私人；读取 History 或按日期更新当天最后一列备注 |
-| `/api/snapshot` | POST | 私人；从 Holdings 重新汇总并写入 History，body: `{ date }`（额外字段会忽略） |
-| `/api/snapshot-auto` | GET | 服务调用；每日北京时间 23:00 自动快照，必须使用 `CRON_SECRET` Bearer 鉴权 |
-| `/api/target` | GET / PUT | 私人；读取或修改 target 表目标比例与配置思路，并结合实时持仓返回配置符合度 |
-| `/api/market` | GET | 读取 Market 表行情（公开） |
-| `/api/futures` | GET | 中证500股指期货贴水（公开） |
-
-登录接口会对连续失败进行延迟和暖实例内的轻量限流。认证配置在每个服务端实例内缓存 20 秒并合并并发读取；修改密码会立即清除当前实例缓存。Vercel Serverless 不保证同一请求落到同一实例，因此登录限流不是跨实例严格限流，其他暖实例也可能在最多 20 秒内继续接受旧 tokenVersion；如需强一致失效，需要外部共享存储或边缘层支持。
-
-### Google Sheets 凭据获取
-
-1. 在 [Google Cloud Console](https://console.cloud.google.com/) 创建项目
-2. 启用 Google Sheets API
-3. 创建服务账号并下载 JSON 密钥
-4. 把服务账号邮箱（形如 `xxx@xxx.iam.gserviceaccount.com`）分享给你的 Google Sheets（编辑权限）
-5. 将凭据填入环境变量（见上方部署章节）
+当前不提供 Electron 构建流程。历史发布记录保留在 Git 与 CHANGELOG，不作为现行功能说明。

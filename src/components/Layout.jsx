@@ -29,7 +29,6 @@ const pageTitles = {
   '/holdings': '持仓',
   '/target': '目标',
   '/market': '行情',
-  '/my': '我的',
   '/settings': '设置',
   '/us': '美股',
   '/cn': 'A股',
@@ -116,7 +115,7 @@ function AiTitleButton({ compact = false, onClick }) {
   )
 }
 
-export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
+export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const location = useLocation()
   const navigate = useNavigate()
   const pagePath = location.pathname.startsWith('/settings/') ? '/settings' : location.pathname

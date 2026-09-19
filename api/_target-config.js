@@ -144,13 +144,6 @@ export function parseTargetStrategies(result) {
   return strategies
 }
 
-export function serializeTargetDetails(targetMap, strategyMap = new Map()) {
-  return serializeTargetConfig(targetMap).map((item) => ({
-    ...item,
-    strategy: strategyMap.get(item.category) || '',
-  }))
-}
-
 export function sheetColumnName(index) {
   if (!Number.isInteger(index) || index < 0) throw new Error('工作表列索引无效')
   let value = index + 1

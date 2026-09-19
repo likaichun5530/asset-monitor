@@ -1,8 +1,7 @@
 import { readSheet } from './_google.js'
-import { SYSTEM_SETTING_KEYS, SYSTEM_SETTINGS_SHEET, systemSettingsStore } from './_system-settings.js'
+import { SYSTEM_SETTING_KEYS, systemSettingsStore } from './_system-settings.js'
 import { invalidateAiDataCache, readCachedAiData } from './_ai-data-cache.js'
 
-export const AI_CONFIG_SHEET = SYSTEM_SETTINGS_SHEET
 export const LEGACY_AI_CONFIG_SHEET = 'AIConfig'
 export const AI_RULES_KEY = 'AI_RULES'
 export const AI_SYSTEM_RULES_KEY = 'AI_SYSTEM_RULES'
@@ -60,10 +59,6 @@ export async function readAiRules({ settingsStore = systemSettingsStore } = {}) 
     return resolveAiRules(settings)
   }
   return settingsStore === systemSettingsStore ? readCachedAiData('rules', load) : load()
-}
-
-export async function readAiUserRules() {
-  return readAiRules()
 }
 
 export async function writeAiRules(value, { settingsStore = systemSettingsStore } = {}) {

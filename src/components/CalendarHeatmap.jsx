@@ -406,7 +406,7 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
         {WEEKDAY_HEADERS.map((w) => (
           <div key={w} className="text-center text-[10px] text-gray-400 py-[2px]">{w}</div>
         ))}
-        {monthData.map((dayInfo, idx) => {
+        {monthData.map((dayInfo) => {
           const isUp = dayInfo.change > 0
           const isDown = dayInfo.change < 0
           const hasChange = dayInfo.change !== null

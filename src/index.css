@@ -16,7 +16,6 @@
 
 :root { color-scheme: light; background-color: #f9fafb; }
 html.dark { color-scheme: dark; background-color: #111827; }
-.no-transitions, .no-transitions * { transition: none !important; }
 html, html *, html *::before, html *::after { transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
 
 html, body, #root { height: 100%; }
@@ -39,7 +38,7 @@ button, a, input, textarea, select {
 }
 
 /* 阻止移动端长按弹出菜单（底部导航等） */
-nav a, nav button, .bottom-nav-link {
+nav a, nav button {
   -webkit-touch-callout: none;
 }
 
@@ -117,9 +116,6 @@ html.dark body {
     @apply mt-1 text-[13px] leading-5 text-slate-400 dark:text-gray-500;
   }
 
-  .desktop-primary-button {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-medium text-white shadow-sm transition duration-200 hover:-translate-y-px hover:bg-brand-700 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
-  }
 
   .desktop-secondary-button {
     @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-medium text-slate-600 shadow-sm transition duration-200 hover:-translate-y-px hover:border-slate-300 hover:text-slate-900 hover:shadow-md active:translate-y-0 active:scale-[0.98] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700;
@@ -132,9 +128,6 @@ html.dark body {
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
-  .desktop-table-wrap {
-    @apply sm:rounded-xl sm:border sm:border-slate-100 sm:overflow-hidden dark:sm:border-gray-700;
-  }
 }
 
 @media (min-width: 640px) {

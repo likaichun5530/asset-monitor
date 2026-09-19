@@ -16,7 +16,6 @@ const KEYS = {
   holdings: 'asset-monitor:holdings',
   history: 'asset-monitor:history',
   pending: 'asset-monitor:pendingSync',
-  lastSync: 'asset-monitor:lastSyncAt',
 }
 
 export const TARGET_UPDATED_EVENT = 'youshu-target-updated'
@@ -94,7 +93,6 @@ export async function fetchHoldings({ forceRefresh = false } = {}) {
       const holdings = normalizeHoldings(data.holdings || [])
       if (holdings.length) {
         writeLocal(KEYS.holdings, { holdings, syncedAt: data.syncedAt })
-        writeLocal(KEYS.lastSync, new Date().toISOString())
         return { holdings, source: 'online', syncedAt: data.syncedAt }
       }
     } catch { /* 使用本地缓存 */ }
@@ -187,7 +185,6 @@ export async function fetchHistory({ forceRefresh = false } = {}) {
         const pending = readLocal(KEYS.pending, [])
         const merged = mergeHistory(history, pending)
         writeLocal(KEYS.history, { history: merged, syncedAt: data.syncedAt })
-        writeLocal(KEYS.lastSync, new Date().toISOString())
         return { history: merged, source: 'online', syncedAt: data.syncedAt }
       }
     } catch { /* 使用本地缓存 */ }
@@ -230,35 +227,7 @@ function mergeHistory(base, extra) {
   return Array.from(map.values()).sort((a, b) => new Date(a.date) - new Date(b.date))
 }
 
-// ===== 快照生成 =====
-
-export async function addSnapshot(total) {
-  const date = todayStr()
-  const snapshot = { date, total: Math.round(total * 100) / 100 }
-
-  const pending = readLocal(KEYS.pending, [])
-  const filtered = pending.filter((s) => s.date !== date)
-  filtered.push(snapshot)
-  writeLocal(KEYS.pending, filtered)
-
-  const cached = readLocal(KEYS.history, { history: [], syncedAt: null })
-  const newHistory = mergeHistory(cached.history, [snapshot])
-  writeLocal(KEYS.history, { history: newHistory, syncedAt: cached.syncedAt })
-
-  let synced = false
-  if (API_BASE) {
-    try {
-      const result = await apiPost('snapshot', snapshot)
-      if (result.ok) {
-        synced = true
-        const pendingNow = readLocal(KEYS.pending, [])
-        writeLocal(KEYS.pending, pendingNow.filter((s) => s.date !== date))
-      }
-    } catch { /* 保留待同步快照 */ }
-  }
-
-  return { ok: true, date, total, synced }
-}
+// ===== 兼容旧版本待同步快照 =====
 
 export async function retryPendingSync() {
   const pending = readLocal(KEYS.pending, [])
@@ -390,15 +359,6 @@ function computeTargetLocal(holdings) {
 
 // ===== 辅助 =====
 
-export function hasBackend() {
-  return Boolean(API_BASE)
-}
-
 export function getPendingCount() {
   return readLocal(KEYS.pending, []).length
-}
-
-function todayStr() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }

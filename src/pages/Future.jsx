@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
-import { formatCurrency, formatNumber } from '../utils/format.js'
+import { formatCurrency } from '../utils/format.js'
 import { useVisiblePolling } from '../hooks/useVisiblePolling.js'
 import { FUTURES_UPDATED_EVENT, readFuturesData, refreshFuturesData } from '../utils/quoteData.js'
 

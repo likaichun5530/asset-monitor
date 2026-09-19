@@ -63,30 +63,12 @@ export default function Cash({ refreshKey = 0, targetRefreshKey = 0 }) {
   }, [cashHoldings])
 
   // 低配资产分析：显示当前低于目标配置的资产及需要买入的金额
-  const { underWeight, totalDeficit } = useMemo(() => {
-    if (!targetData.length) return { underWeight: [], totalDeficit: 0 }
-
-    const under = targetData
-      .filter((r) => !r.isTotal
-        && r.category !== '现金'
-        && getTargetAllocationStatus(r.currentRatio, r.targetRatio).status === 'under')
-      .sort((a, b) => a.diff - b.diff)
-
-    const totalDeficit = under.reduce((sum, r) => sum + total * Math.abs(r.diff), 0)
-
-    const items = under.map((r) => {
-      const deficitAmount = total * Math.abs(r.diff)
-      const ratio = totalDeficit > 0 ? deficitAmount / totalDeficit : 0
-      return {
-        ...r,
-        deficitAmount,
-        deficitRatio: ratio,
-        suggestToTarget: deficitAmount, // 要达到目标仓位需要的金额
-      }
-    })
-
-    return { underWeight: items, totalDeficit }
-  }, [targetData, total])
+  const underWeight = useMemo(() => targetData
+    .filter((row) => !row.isTotal
+      && row.category !== '现金'
+      && getTargetAllocationStatus(row.currentRatio, row.targetRatio).status === 'under')
+    .sort((a, b) => a.diff - b.diff)
+    .map((row) => ({ ...row, deficitAmount: total * Math.abs(row.diff) })), [targetData, total])
 
   return (
     <div className="space-y-2">

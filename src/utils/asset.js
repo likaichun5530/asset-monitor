@@ -2,7 +2,7 @@
 // 实盘模式从 API / 本地缓存加载，演示模式使用内置 demo 数据。
 
 import { getMergedHistory, getCurrentPeak, setCachedHistory } from './snapshot.js'
-import { fetchHoldings, fetchHistory, addSnapshot, retryPendingSync, hasBackend, getPendingCount } from './dataStore.js'
+import { fetchHoldings, fetchHistory } from './dataStore.js'
 import { aggregateHoldingsByCategory, getHoldingCategory, getHoldingMarketValueCNY } from '../../shared/allocation.js'
 
 // 检查是否演示模式
@@ -69,28 +69,6 @@ export function groupByCategory() {
     .sort((a, b) => b.marketValue - a.marketValue)
 }
 
-// 按币种聚合
-export function groupByCurrency() {
-  const map = new Map()
-  for (const h of activeHoldings) {
-    const c = h.currency || '其他'
-    if (!map.has(c)) map.set(c, { currency: c, marketValue: 0, marketValueCNY: 0, count: 0 })
-    const item = map.get(c)
-    item.marketValue += Number(h.marketValue) || 0
-    item.marketValueCNY += holdingMarketValue(h)
-    item.count += 1
-  }
-  const totalCNY = totalMarketValue()
-  return Array.from(map.values())
-    .map((item) => ({
-      ...item,
-      marketValue: Math.round(item.marketValue * 100) / 100,
-      marketValueCNY: Math.round(item.marketValueCNY * 100) / 100,
-      ratio: totalCNY ? (item.marketValueCNY / totalCNY) * 100 : 0,
-    }))
-    .sort((a, b) => b.marketValueCNY - a.marketValueCNY)
-}
-
 // ===== 历史数据 =====
 
 export function getHistory() {
@@ -113,14 +91,14 @@ export function getPeak() {
   return getCurrentPeak()
 }
 
-export function latestSnapshot() {
+function latestSnapshot() {
   const h = getHistory()
   if (!h.length) return null
   return h[h.length - 1]
 }
 
 // 计算区间涨跌
-export function calcRangeChange(days) {
+function calcRangeChange(days) {
   const h = getHistory()
   if (h.length < 2) {
     return { change: 0, changePct: 0, start: null, end: null, startValue: 0, endValue: 0 }
@@ -285,12 +263,3 @@ export async function loadHistoryData({ forceRefresh = false } = {}) {
   setCachedHistory(historyResult.history)
   return historyResult
 }
-
-// 生成快照（写入本地 + 尝试同步 Google Sheets）
-export async function generateSnapshot(total) {
-  const result = await addSnapshot(total)
-  await loadHistoryData()
-  return result
-}
-
-export { hasBackend, getPendingCount, retryPendingSync }

@@ -34,6 +34,8 @@ pnpm-debug.log*
 server/.env
 .vercel
 .env*
+!.env.example
+!server/.env.example
 release/
 
 # Google Apps Script 本机 clasp 项目绑定

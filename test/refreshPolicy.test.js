@@ -22,10 +22,10 @@ test('Holdings 与 History 自动刷新按依赖页面启停', async () => {
   assert.match(hookSource, /loadHoldingsData\(\{ forceRefresh: force \}\)/)
   assert.match(hookSource, /autoRefreshHoldings/)
   assert.match(hookSource, /setInterval\(\(\) => \{ refreshHoldings\(false\) \}/)
-  assert.match(hookSource, /const HISTORY_REFRESH_MS = 5 \* 60 \* 1000/)
+  assert.match(hookSource, /const HISTORY_REFRESH_MS = 60 \* 1000/)
   assert.match(hookSource, /lastHistoryRefreshRef/)
   assert.match(hookSource, /setInterval\(\(\) => \{ refreshHistory\(false\) \}, HISTORY_REFRESH_MS\)/)
-  assert.match(hookSource, /if \(requestSucceeded\) lastHistoryRefreshRef\.current = Date\.now\(\)/)
+  assert.match(hookSource, /if \(requestSucceeded\) lastHistoryRefreshRef\.current = startedAt/)
   assert.match(appSource, /const HOLDINGS_PAGES = new Set/)
   assert.match(appSource, /autoRefreshHistory: needsHistory/)
   assert.doesNotMatch(appSource.match(/const HOLDINGS_PAGES[^\n]+/)?.[0] || '', /market|settings/)
@@ -48,7 +48,7 @@ test('页面刷新优先当前页，再依次刷新其他数据源', async () =>
   assert.match(appSource, /refreshQueueRef\.current/)
 })
 
-test('期货页复用 futures 响应中的 Market 数据，不重复请求 market 接口', async () => {
+test('期货页仅请求 futures 接口，不再额外请求 market', async () => {
   const futureSource = await readFile(new URL('../src/pages/Future.jsx', import.meta.url), 'utf8')
   const quoteSource = await readFile(new URL('../src/utils/quoteData.js', import.meta.url), 'utf8')
   assert.match(futureSource, /refreshFuturesData\(\{ forceRefresh \}\)/)

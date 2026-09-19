@@ -5,12 +5,11 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ReferenceDot,
 } from 'recharts'
 import { getHistory, getPeak } from '../utils/asset.js'
-import { formatCurrency, formatDateShort, formatDateMid, formatWan } from '../utils/format.js'
+import { formatCurrency, formatDateShort, formatDateMid } from '../utils/format.js'
 
 const RANGES = [
   { key: '1m', label: '近1月', days: 30 },
@@ -189,7 +188,7 @@ export default function TrendChart({ refreshKey = 0 }) {
                 fontWeight: 400,
               }}
               labelFormatter={(label) => `日期 ${formatDateMid(new Date(label).toISOString().slice(0, 10))}`}
-              formatter={(value, name, props) => {
+              formatter={(value, _name, props) => {
                 const note = props?.payload?.note
                 const text = formatCurrency(value)
                 return [note ? `${text}（${note}）` : text, '资产总额']

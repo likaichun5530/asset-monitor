@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { categoryColors, marketLabels, marketColors, assetColors } from '../data/holdings.js'
+import { marketLabels, assetColors } from '../data/holdings.js'
 import { holdingMarketValue, totalMarketValue, getActiveHoldings } from '../utils/asset.js'
 import { formatCurrency, formatNumber } from '../utils/format.js'
 import HoldingEditor from '../components/HoldingEditor.jsx'

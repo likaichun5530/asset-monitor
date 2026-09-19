@@ -1,5 +1,13 @@
 # 发布记录
 
+## 2.5.28 — 2026-09-19 已发布
+
+- 部署：dpl_7ZvcnE5U9YhCqatJLY5gj9syvE3c，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 清理无入口的 Electron 代码、旧目标表初始化脚本、闲置组件与图片、Android 模板测试，以及无用函数、导入、样式和计算；移除 googleapis 及其依赖。
+- 重写 README 和打包指南，校正当前首页、AI 入口、快照、表结构与部署说明，精简前端环境示例并更新审查记录。
+- 补全交互和暗夜样式使用的 brand-200 / 300 / 400；修复过时测试断言，全量 134 项测试通过。
+
 ## 2.5.27 — 2026-09-19 已发布
 
 - 部署：dpl_H34xenx8uyDS5YVfb2zjzHsh2KKA，READY，已绑定 https://asset.kenny5530.asia 。

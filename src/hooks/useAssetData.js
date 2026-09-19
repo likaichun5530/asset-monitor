@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { loadHistoryData, loadHoldingsData, retryPendingSync } from '../utils/asset.js'
+import { loadHistoryData, loadHoldingsData } from '../utils/asset.js'
+import { retryPendingSync } from '../utils/dataStore.js'
 import { getInitialAssetStatus } from '../utils/assetDataStatus.js'
 import { shouldAutoRefresh } from '../utils/refreshPolicy.js'
 
@@ -15,8 +16,6 @@ export function useAssetData({
 } = {}) {
   const initialStatus = useRef(getInitialAssetStatus())
   const [source, setSource] = useState(initialStatus.current.source)
-  const [syncedAt, setSyncedAt] = useState(initialStatus.current.syncedAt)
-  const [error, setError] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const mountedRef = useRef(true)
@@ -37,7 +36,6 @@ export function useAssetData({
   const applyHoldingsStatus = useCallback((result) => {
     if (!mountedRef.current) return
     setSource(result.source || result.holdingsSource)
-    setSyncedAt(result.syncedAt)
   }, [])
 
   const beginRefresh = useCallback(() => {
@@ -59,7 +57,6 @@ export function useAssetData({
       maxAgeMs: HOLDINGS_REFRESH_MS,
     }))) return false
     if (holdingsInFlightRef.current) return holdingsInFlightRef.current
-    setError(null)
     beginRefresh()
     const startedAt = Date.now()
     const request = (async () => {
@@ -70,8 +67,7 @@ export function useAssetData({
         lastHoldingsRefreshRef.current = startedAt
         if (mountedRef.current) setRefreshKey((key) => key + 1)
         return true
-      } catch (loadError) {
-        if (mountedRef.current) setError(loadError?.message || String(loadError))
+      } catch {
         return false
       }
     })()
@@ -91,7 +87,6 @@ export function useAssetData({
       maxAgeMs: HISTORY_REFRESH_MS,
     }))) return false
     if (historyInFlightRef.current) return historyInFlightRef.current
-    setError(null)
     beginRefresh()
     const startedAt = Date.now()
     const request = (async () => {
@@ -102,8 +97,7 @@ export function useAssetData({
         if (requestSucceeded) lastHistoryRefreshRef.current = startedAt
         if (mountedRef.current) setRefreshKey((key) => key + 1)
         return requestSucceeded
-      } catch (loadError) {
-        if (mountedRef.current) setError(loadError?.message || String(loadError))
+      } catch {
         return false
       }
     })()
@@ -113,8 +107,6 @@ export function useAssetData({
       endRefresh()
     }
   }, [beginRefresh, enabled, endRefresh])
-
-  const bumpRefreshKey = useCallback(() => setRefreshKey((key) => key + 1), [])
 
   useEffect(() => {
     if (!enabled) return
@@ -154,5 +146,5 @@ export function useAssetData({
     }
   }, [autoRefreshHistory, enabled, refreshHistory])
 
-  return { source, syncedAt, error, isRefreshing, refreshHoldings, refreshHistory, refreshKey, bumpRefreshKey }
+  return { source, isRefreshing, refreshHoldings, refreshHistory, refreshKey }
 }
