@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.26 — 2026-09-19 已发布
+
+- 部署：dpl_6BHuVtSdeRNSCjKNkqfd2EkwVxzY，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 顶部栏 AI 圆环、`AI` 字样、用户名和在线状态整体放大一档；双弧圆环改为与字样一致的品牌蓝色，暗夜模式同步使用亮蓝色。
+
 ## 2.5.25 — 2026-09-19 已发布
 
 - 部署：dpl_xF6zEi7sLfumdPASFUkTuZHCnJyP，READY，已绑定 https://asset.kenny5530.asia 。

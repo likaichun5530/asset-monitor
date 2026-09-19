@@ -106,10 +106,10 @@ function AiTitleButton({ compact = false, onClick }) {
       title="打开 AI 助手"
       aria-label="打开 AI 助手"
     >
-      <svg className={`${compact ? 'h-[22px] w-[22px]' : 'h-[30px] w-[30px]'} pointer-events-none absolute text-slate-950 dark:text-white`} viewBox="0 0 36 36" fill="none" aria-hidden="true">
+      <svg className={`${compact ? 'h-6 w-6' : 'h-8 w-8'} pointer-events-none absolute text-brand-600 dark:text-brand-400`} viewBox="0 0 36 36" fill="none" aria-hidden="true">
         <circle cx="18" cy="18" r="15.25" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeDasharray="42 6" transform="rotate(-33 18 18)" />
       </svg>
-      <span className={`${compact ? 'text-[10px]' : 'text-[13px]'} relative font-bold leading-none tracking-[-0.085em] text-brand-600 dark:text-brand-400`} aria-hidden="true">
+      <span className={`${compact ? 'text-[11px]' : 'text-sm'} relative font-bold leading-none tracking-[-0.085em] text-brand-600 dark:text-brand-400`} aria-hidden="true">
         AI
       </span>
     </button>
@@ -243,12 +243,12 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
         <AiTitleButton compact onClick={openAiAssistant} />
       )}
       {auth?.isLoggedIn ? (
-        <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
+        <span className="max-w-24 shrink truncate text-base font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
       ) : (
-        <NavLink to="/login" className="shrink-0 text-[15px] font-medium text-brand-600 dark:text-brand-400">登录</NavLink>
+        <NavLink to="/login" className="shrink-0 text-base font-medium text-brand-600 dark:text-brand-400">登录</NavLink>
       )}
-      <span className={`inline-flex shrink-0 items-center gap-1 text-[15px] font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
-        <span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
+      <span className={`inline-flex shrink-0 items-center gap-1.5 text-base font-medium ${source === 'online' ? 'text-green-600 dark:text-green-400' : source === 'cache' ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+        <span className={`h-[7px] w-[7px] rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
         {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
       </span>
       <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
@@ -338,7 +338,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
                   {showAiButton && (
                     <AiTitleButton onClick={openAiAssistant} />
                   )}
-                  <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
+                  <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-[15px] font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
                 </>
               )}
               <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-5 w-5" /></NavLink>

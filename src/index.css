@@ -94,7 +94,7 @@ html.dark body {
   }
 
   .status-pill {
-    @apply inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3.5 text-sm font-medium text-slate-500 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300;
+    @apply inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3.5 text-[15px] font-medium text-slate-500 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300;
   }
 
   .status-pill-online {
