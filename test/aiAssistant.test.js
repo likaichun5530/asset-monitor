@@ -78,11 +78,15 @@ test('AI接口要求登录，且API密钥仅在服务端读取', async () => {
 test('AI入口位于标题栏用户名左侧，弹窗锁定页面并由返回键优先关闭', async () => {
   const source = await readFile(new URL('../src/components/AiAssistant.jsx', import.meta.url), 'utf8')
   const layoutSource = await readFile(new URL('../src/components/Layout.jsx', import.meta.url), 'utf8')
+  const aiButtonSource = layoutSource.match(/function AiTitleButton[\s\S]*?(?=\nexport default)/)?.[0] || ''
   assert.doesNotMatch(source, /AI_BUTTON_POSITION_KEY|handleButtonPointerDown|transition-\[left,top\]/)
   assert.match(layoutSource, /aria-label="打开 AI 助手"/)
   assert.match(layoutSource, />\s*AI\s*<\/span>/)
   assert.match(layoutSource, /strokeDasharray="42 6"/)
   assert.match(layoutSource, /h-\[22px\] w-\[22px\]/)
+  assert.match(layoutSource, /strokeWidth="2\.8"/)
+  assert.match(layoutSource, /WebkitTapHighlightColor: 'transparent'/)
+  assert.doesNotMatch(aiButtonSource, /hover:bg-/)
   assert.match(layoutSource, /openRequest=\{aiOpenRequest\}/)
   assert.ok(layoutSource.indexOf('aria-label="打开 AI 助手"') < layoutSource.indexOf('{auth.username}'))
   assert.match(source, /document\.body\.style\.position = 'fixed'/)

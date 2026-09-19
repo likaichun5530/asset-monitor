@@ -101,14 +101,15 @@ function AiTitleButton({ compact = false, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`${compact ? 'h-8 w-8' : 'h-10 w-10'} relative flex shrink-0 items-center justify-center rounded-full bg-transparent text-slate-950 transition-[transform,background-color] duration-150 hover:bg-slate-100 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:text-white dark:hover:bg-white/[0.07] dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-slate-900`}
+      className={`${compact ? 'h-8 w-8' : 'h-10 w-10'} relative flex shrink-0 items-center justify-center rounded-full bg-transparent transition-transform duration-150 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 dark:focus-visible:ring-brand-400 dark:focus-visible:ring-offset-slate-900`}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
       title="打开 AI 助手"
       aria-label="打开 AI 助手"
     >
-      <svg className={`${compact ? 'h-[22px] w-[22px]' : 'h-[30px] w-[30px]'} pointer-events-none absolute`} viewBox="0 0 36 36" fill="none" aria-hidden="true">
-        <circle cx="18" cy="18" r="15.25" stroke="currentColor" strokeWidth="2.15" strokeLinecap="round" strokeDasharray="42 6" transform="rotate(-33 18 18)" />
+      <svg className={`${compact ? 'h-[22px] w-[22px]' : 'h-[30px] w-[30px]'} pointer-events-none absolute text-slate-950 dark:text-white`} viewBox="0 0 36 36" fill="none" aria-hidden="true">
+        <circle cx="18" cy="18" r="15.25" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeDasharray="42 6" transform="rotate(-33 18 18)" />
       </svg>
-      <span className={`${compact ? 'text-[10px]' : 'text-[13px]'} relative font-semibold leading-none tracking-[-0.085em]`} aria-hidden="true">
+      <span className={`${compact ? 'text-[10px]' : 'text-[13px]'} relative font-bold leading-none tracking-[-0.085em] text-brand-600 dark:text-brand-400`} aria-hidden="true">
         AI
       </span>
     </button>

@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.25 — 2026-09-19 已发布
+
+- 部署：dpl_xF6zEi7sLfumdPASFUkTuZHCnJyP，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 移除标题栏 AI 入口点击后残留的灰色背景及 Android 点击高亮；`AI` 字样改为品牌蓝色，并加粗文字与双弧圆环笔画。
+
 ## 2.5.24 — 2026-09-19 已发布
 
 - 部署：dpl_HM3vKY4Xep4o4UVfmNDjZkgSbCBW，READY，已绑定 https://asset.kenny5530.asia 。
