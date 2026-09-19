@@ -307,7 +307,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
 
         {/* 移动端 */}
         <div className="sm:hidden overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-          <table className="min-w-full text-xs whitespace-nowrap">
+          <table className="min-w-full text-sm whitespace-nowrap">
             <thead>
               <tr className="text-left text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
                 <th className="py-2.5 px-2 font-medium sticky left-0 bg-white dark:bg-gray-800 z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>名称</th>

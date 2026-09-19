@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.18 — 2026-09-19 已发布
+
+- 部署：dpl_BHVgzQkmaqWJHvgmbdLxemRTqPNZ，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机端资产详情页持仓列表字号由 12px 调整为 14px。
+
 ## 2.5.17 — 2026-09-19 已发布
 
 - 部署：dpl_4gWi1oAzKSAhKCr318Zp8RmSAnM4，READY，已绑定 https://asset.kenny5530.asia 。
