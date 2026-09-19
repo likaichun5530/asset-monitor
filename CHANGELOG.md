@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.24 — 2026-09-19 已发布
+
+- 部署：dpl_HM3vKY4Xep4o4UVfmNDjZkgSbCBW，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 缩小标题栏 AI 字标：手机端可见圆环调整为接近用户名文字行高，桌面端同步收小，同时保留足够的点击区域。
+
 ## 2.5.23 — 2026-09-19 已发布
 
 - 部署：dpl_D5rNrwv7gvPmF3VLGDobTVqeBXqj，READY，已绑定 https://asset.kenny5530.asia 。

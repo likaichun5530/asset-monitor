@@ -82,6 +82,7 @@ test('AI入口位于标题栏用户名左侧，弹窗锁定页面并由返回键
   assert.match(layoutSource, /aria-label="打开 AI 助手"/)
   assert.match(layoutSource, />\s*AI\s*<\/span>/)
   assert.match(layoutSource, /strokeDasharray="42 6"/)
+  assert.match(layoutSource, /h-\[22px\] w-\[22px\]/)
   assert.match(layoutSource, /openRequest=\{aiOpenRequest\}/)
   assert.ok(layoutSource.indexOf('aria-label="打开 AI 助手"') < layoutSource.indexOf('{auth.username}'))
   assert.match(source, /document\.body\.style\.position = 'fixed'/)
