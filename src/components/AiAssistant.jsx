@@ -14,7 +14,6 @@ import {
   getAiModelOption,
   getCachedAiModel,
   isAiEnabled,
-  setAiEnabled,
   loadAiMessages,
   saveAiMessages,
   streamAiChat,
@@ -35,53 +34,9 @@ const PAGE_PROMPTS = {
   '/future': ['分析期货配置风险', '期货仓位对组合有什么影响'],
   '/cash': ['分析现金配置', '现金是否高于或低于目标'],
 }
-const AI_BUSINESS_PAGES = new Set(Object.keys(PAGE_PROMPTS))
+export const AI_BUSINESS_PAGES = new Set(Object.keys(PAGE_PROMPTS))
 
-const AI_BUTTON_POSITION_KEY = 'youshu-ai-button-position'
-const BUTTON_SIZE = 44
-const EDGE_GAP = 8
-
-function clampButtonPosition(position) {
-  if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
-  return {
-    x: Math.min(Math.max(position.x, EDGE_GAP), Math.max(EDGE_GAP, window.innerWidth - BUTTON_SIZE - EDGE_GAP)),
-    y: Math.min(Math.max(position.y, EDGE_GAP), Math.max(EDGE_GAP, window.innerHeight - BUTTON_SIZE - EDGE_GAP)),
-  }
-}
-
-function snapButtonToEdge(position) {
-  if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
-  const clamped = clampButtonPosition(position)
-  return {
-    x: clamped.x + BUTTON_SIZE / 2 < window.innerWidth / 2
-      ? EDGE_GAP
-      : Math.max(EDGE_GAP, window.innerWidth - BUTTON_SIZE - EDGE_GAP),
-    y: clamped.y,
-  }
-}
-
-function loadButtonPosition() {
-  if (typeof window === 'undefined') return { x: EDGE_GAP, y: 56 }
-  try {
-    const saved = JSON.parse(localStorage.getItem(AI_BUTTON_POSITION_KEY) || 'null')
-    if (Number.isFinite(saved?.xRatio) && Number.isFinite(saved?.yRatio)) {
-      return snapButtonToEdge({ x: saved.xRatio * window.innerWidth, y: saved.yRatio * window.innerHeight })
-    }
-  } catch {
-    // Ignore malformed local preferences.
-  }
-  return snapButtonToEdge({ x: window.innerWidth, y: window.innerWidth >= 640 ? 80 : 56 })
-}
-
-function saveButtonPosition(position) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(AI_BUTTON_POSITION_KEY, JSON.stringify({
-    xRatio: position.x / window.innerWidth,
-    yRatio: position.y / window.innerHeight,
-  }))
-}
-
-export default function AiAssistant({ auth } = {}) {
+export default function AiAssistant({ auth, openRequest = 0 } = {}) {
   const location = useLocation()
   const [enabled, setEnabled] = useState(() => isAiEnabled())
   const [open, setOpen] = useState(false)
@@ -97,18 +52,11 @@ export default function AiAssistant({ auth } = {}) {
   const [webSearch, setWebSearch] = useState(() => {
     try { return localStorage.getItem(AI_WEB_SEARCH_KEY) === 'true' } catch { return false }
   })
-  const [buttonPosition, setButtonPosition] = useState(loadButtonPosition)
-  const [buttonDragging, setButtonDragging] = useState(false)
-  const [showDismissButton, setShowDismissButton] = useState(false)
   const [keyboardInset, setKeyboardInset] = useState(0)
   const [copiedMessageIndex, setCopiedMessageIndex] = useState(null)
   const scrollRef = useRef(null)
   const autoScrollRef = useRef(true)
   const abortRef = useRef(null)
-  const dragRef = useRef(null)
-  const longPressTimerRef = useRef(null)
-  const longPressTriggeredRef = useRef(false)
-  const suppressClickRef = useRef(false)
   const historyEntryRef = useRef(false)
   const modelMenuRef = useRef(null)
   const copyFeedbackTimerRef = useRef(null)
@@ -176,6 +124,10 @@ export default function AiAssistant({ auth } = {}) {
   useEffect(() => {
     if (!visible && open) close()
   }, [close, open, visible])
+
+  useEffect(() => {
+    if (visible && openRequest > 0) setOpen(true)
+  }, [openRequest, visible])
 
   useEffect(() => {
     currentPageRef.current = location.pathname
@@ -254,16 +206,6 @@ export default function AiAssistant({ auth } = {}) {
   }, [open])
 
   useEffect(() => {
-    const handleResize = () => setButtonPosition((current) => {
-      const next = snapButtonToEdge(current)
-      saveButtonPosition(next)
-      return next
-    })
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  useEffect(() => {
     if (!open) return undefined
     history.pushState({ ...(history.state || {}), youshuAiAssistant: true }, '', window.location.href)
     historyEntryRef.current = true
@@ -298,8 +240,6 @@ export default function AiAssistant({ auth } = {}) {
 
   useEffect(() => () => abortRef.current?.abort(), [])
 
-  useEffect(() => () => clearTimeout(longPressTimerRef.current), [])
-
   useEffect(() => {
     if (!modelMenuOpen) return undefined
     const closeModelMenu = (event) => {
@@ -308,10 +248,6 @@ export default function AiAssistant({ auth } = {}) {
     document.addEventListener('pointerdown', closeModelMenu)
     return () => document.removeEventListener('pointerdown', closeModelMenu)
   }, [modelMenuOpen])
-
-  useEffect(() => {
-    if (location.pathname !== '/') setShowDismissButton(false)
-  }, [location.pathname])
 
   if (!visible) return null
 
@@ -350,75 +286,6 @@ export default function AiAssistant({ auth } = {}) {
         setLoading(false)
       }
     }
-  }
-
-  const handleButtonPointerDown = (event) => {
-    if (event.button !== undefined && event.button !== 0) return
-    event.currentTarget.setPointerCapture?.(event.pointerId)
-    dragRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: buttonPosition.x,
-      originY: buttonPosition.y,
-      moved: false,
-    }
-    longPressTriggeredRef.current = false
-    clearTimeout(longPressTimerRef.current)
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTriggeredRef.current = true
-      suppressClickRef.current = true
-      setShowDismissButton(true)
-      navigator.vibrate?.(30)
-    }, 550)
-  }
-
-  const handleButtonPointerMove = (event) => {
-    const drag = dragRef.current
-    if (!drag || drag.pointerId !== event.pointerId) return
-    const deltaX = event.clientX - drag.startX
-    const deltaY = event.clientY - drag.startY
-    if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return
-    clearTimeout(longPressTimerRef.current)
-    drag.moved = true
-    setButtonDragging(true)
-    suppressClickRef.current = true
-    setButtonPosition(clampButtonPosition({ x: drag.originX + deltaX, y: drag.originY + deltaY }))
-  }
-
-  const handleButtonPointerEnd = (event) => {
-    const drag = dragRef.current
-    if (!drag || drag.pointerId !== event.pointerId) return
-    clearTimeout(longPressTimerRef.current)
-    dragRef.current = null
-    setButtonDragging(false)
-    if (drag.moved) {
-      setButtonPosition((current) => {
-        const next = snapButtonToEdge(current)
-        saveButtonPosition(next)
-        return next
-      })
-    }
-  }
-
-  const handleButtonClick = () => {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false
-      return
-    }
-    if (showDismissButton || longPressTriggeredRef.current) {
-      setShowDismissButton(false)
-      return
-    }
-    setOpen(true)
-  }
-
-  const disableAssistant = (event) => {
-    event.stopPropagation()
-    clearTimeout(longPressTimerRef.current)
-    setShowDismissButton(false)
-    setAiEnabled(false)
-    setEnabled(false)
   }
 
   const clearMessages = () => {
@@ -463,37 +330,6 @@ export default function AiAssistant({ auth } = {}) {
 
   return (
     <>
-      {!open && (
-        <div
-          className={`fixed z-40 h-11 w-11 ${buttonDragging ? '' : 'transition-[left,top] duration-200 ease-out'}`}
-          style={{ left: `${buttonPosition.x}px`, top: `${buttonPosition.y}px` }}
-          data-pull-refresh-ignore="true"
-        >
-          <button
-            type="button"
-            onClick={handleButtonClick}
-            onPointerDown={handleButtonPointerDown}
-            onPointerMove={handleButtonPointerMove}
-            onPointerUp={handleButtonPointerEnd}
-            onPointerCancel={handleButtonPointerEnd}
-            className={`flex h-11 w-11 touch-none select-none items-center justify-center rounded-xl bg-transparent drop-shadow-[0_5px_7px_rgba(79,70,229,0.28)] outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-brand-400 ${showDismissButton ? 'scale-105' : ''}`}
-            title="薯薯AI助手"
-            aria-label="打开薯薯AI助手"
-          >
-            <ShushuIcon className="h-11 w-11" />
-          </button>
-          {showDismissButton && (
-            <button
-              type="button"
-              onClick={disableAssistant}
-              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-800 text-sm font-bold leading-none text-white shadow-md dark:border-gray-900"
-              aria-label="关闭薯薯AI助手"
-              title="关闭薯薯AI助手"
-            >×</button>
-          )}
-        </div>
-      )}
-
       {open && (
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭薯薯AI助手" onClick={close} />

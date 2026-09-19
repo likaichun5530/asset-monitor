@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import AiAssistant from './AiAssistant.jsx'
+import AiAssistant, { AI_BUSINESS_PAGES } from './AiAssistant.jsx'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
+import { AI_SETTING_EVENT, isAiEnabled } from '../utils/ai.js'
 
 const navItems = [
   { type: 'label', label: '工作台' },
@@ -107,6 +108,8 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   const isMobileDetailPage = mobileDetailPages.has(location.pathname)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [aiEnabled, setAiEnabled] = useState(isAiEnabled)
+  const [aiOpenRequest, setAiOpenRequest] = useState(0)
   const contentRef = useRef(null)
   const touchStartY = useRef(null)
   const refreshingRef = useRef(false)
@@ -114,6 +117,23 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   const sloganTimerRef = useRef(null)
   const MAX_PULL = 90
   const THRESHOLD = 50
+  const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
+  const showAiButton = aiEnabled && auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
+
+  useEffect(() => {
+    const syncAiSetting = (event) => setAiEnabled(Boolean(event.detail?.enabled))
+    const syncAiStorage = (event) => {
+      if (event.key === 'youshu-ai-enabled') setAiEnabled(event.newValue === 'true')
+    }
+    window.addEventListener(AI_SETTING_EVENT, syncAiSetting)
+    window.addEventListener('storage', syncAiStorage)
+    return () => {
+      window.removeEventListener(AI_SETTING_EVENT, syncAiSetting)
+      window.removeEventListener('storage', syncAiStorage)
+    }
+  }, [])
+
+  const openAiAssistant = () => setAiOpenRequest((request) => request + 1)
 
   const resetPull = useCallback(() => {
     if (contentRef.current) {
@@ -199,6 +219,11 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
 
   const mobileHeaderActions = (
     <div className="flex shrink-0 items-center gap-3">
+      {showAiButton && (
+        <button type="button" onClick={openAiAssistant} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-900 bg-white text-[11px] font-bold tracking-[-0.03em] text-gray-900 transition-transform active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-white dark:bg-gray-900 dark:text-white" title="打开 AI 助手" aria-label="打开 AI 助手">
+          AI
+        </button>
+      )}
       {auth?.isLoggedIn ? (
         <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
       ) : (
@@ -291,7 +316,14 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
                 <svg className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
               </button>
               {auth?.isLoggedIn && (
-                <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
+                <>
+                  {showAiButton && (
+                    <button type="button" onClick={openAiAssistant} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-900 bg-white text-xs font-bold tracking-[-0.03em] text-slate-900 transition-transform hover:scale-[1.03] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-white dark:bg-slate-900 dark:text-white" title="打开 AI 助手" aria-label="打开 AI 助手">
+                      AI
+                    </button>
+                  )}
+                  <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
+                </>
               )}
               <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-5 w-5" /></NavLink>
             </div>
@@ -318,7 +350,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
           </NavLink>
         ))}
       </nav>
-      <AiAssistant auth={auth} />
+      <AiAssistant auth={auth} openRequest={aiOpenRequest} />
     </div>
   )
 }

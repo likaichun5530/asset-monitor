@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.21 — 2026-09-19 已发布
+
+- 部署：dpl_6R86Ca7YbcnyGpvf2EzNVDV2G41h，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 移除可拖动的 AI 悬浮头像，将入口改为标题栏用户名左侧的黑白圆形 `AI` 按钮；手机端与桌面端共用原有对话功能。
+
 ## 2.5.20 — 2026-09-19 已发布
 
 - 部署：dpl_5LXwipKxvR4erycKRk4ZVVTjMLi9，READY，已绑定 https://asset.kenny5530.asia 。
