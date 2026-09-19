@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.20 — 2026-09-19 已发布
+
+- 部署：dpl_5LXwipKxvR4erycKRk4ZVVTjMLi9，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 资产详情页在人民币市值模式下不再显示 `¥` 符号，覆盖顶部总市值、趋势提示、持仓行和桌面端合计。
+
 ## 2.5.19 — 2026-09-19 已发布
 
 - 部署：dpl_1priPjy7NFajCe3Ys2eFjVpX4VrD，READY，已绑定 https://asset.kenny5530.asia 。

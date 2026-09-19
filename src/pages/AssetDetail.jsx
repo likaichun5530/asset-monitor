@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue, getCategoryHistory } from '../utils/asset.js'
 import { isUsAccountHolding } from '../utils/holdingScope.js'
-import { formatCurrency, formatNumber, formatDateShort, formatDateMid } from '../utils/format.js'
+import { formatNumber, formatDateShort, formatDateMid } from '../utils/format.js'
 import { assetColors } from '../data/holdings.js'
 import {
   ResponsiveContainer,
@@ -144,7 +144,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
           <div className="mt-0.5 text-3xl font-bold tracking-[-0.035em] text-gray-900 dark:text-gray-200 sm:mt-3 sm:text-[32px]">
             {showOriginalMode
               ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2)
-              : formatCurrency(sumMarketValue)
+              : formatNumber(sumMarketValue, 2)
             }
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
                     fontSize: 12,
                   }}
                   labelFormatter={(label) => `日期 ${formatDateMid(new Date(label).toISOString().slice(0, 10))}`}
-                  formatter={(value) => [formatCurrency(value), config.label]}
+                  formatter={(value) => [formatNumber(value, 2), config.label]}
                 />
                 <Area
                   type="monotone"
@@ -285,7 +285,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
                     {h.price === null ? '—' : formatNumber(h.price, assetKey === 'crypto' ? 2 : (h.price < 1 ? 6 : 2))}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-800 dark:text-gray-200 font-medium">
-                    {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatCurrency(h.marketValueCNY)}
+                    {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatNumber(h.marketValueCNY, 2)}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-500 dark:text-gray-400">
                     {sumMarketValue ? ((h.marketValueCNY / sumMarketValue) * 100).toFixed(2) : 0}%
@@ -297,7 +297,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
               <tr className="font-semibold border-t-2 border-gray-100 dark:border-gray-600">
                 <td className="py-3 px-6 text-gray-800 dark:text-gray-200" colSpan={5}>合计</td>
                 <td className="py-3 px-2 text-right text-gray-800 dark:text-gray-200">
-                  {showOriginalMode ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2) : formatCurrency(sumMarketValue)}
+                  {showOriginalMode ? formatNumber(originalSummary.reduce((sum, s) => sum + s.value, 0), 2) : formatNumber(sumMarketValue, 2)}
                 </td>
                 <td className="py-3 px-2 text-right text-gray-500 dark:text-gray-400">100%</td>
               </tr>
@@ -328,7 +328,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
                     {h.price === null ? '—' : formatNumber(h.price, assetKey === 'crypto' ? 2 : (h.price < 1 ? 6 : 2))}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-800 dark:text-gray-200 font-medium">
-                    {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatCurrency(h.marketValueCNY)}
+                    {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatNumber(h.marketValueCNY, 2)}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-500 dark:text-gray-400">
                     {sumMarketValue ? ((h.marketValueCNY / sumMarketValue) * 100).toFixed(1) : 0}%
