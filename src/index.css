@@ -21,28 +21,6 @@ html, html *, html *::before, html *::after { transition: background-color 0.2s 
 
 html, body, #root { height: 100%; }
 
-/* Cover transparent PWA status bars and keep content below the system icons. */
-:root { --status-bar-background: #ffffff; }
-html.dark { --status-bar-background: #1f2937; }
-#root { padding-top: env(safe-area-inset-top, 0px); }
-#root::before {
-  content: '';
-  position: fixed;
-  inset: 0 0 auto;
-  height: env(safe-area-inset-top, 0px);
-  background: var(--status-bar-background);
-  z-index: 100;
-  pointer-events: none;
-  transition: none;
-}
-header.mobile-topbar { top: env(safe-area-inset-top, 0px); }
-/* iOS black-translucent uses white system icons, including in light mode. */
-@supports (-webkit-touch-callout: none) {
-  @media (display-mode: standalone) {
-    :root { --status-bar-background: #1f2937; }
-  }
-}
-
 body {
   margin: 0;
   font-family: "Youshu Numerals", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",

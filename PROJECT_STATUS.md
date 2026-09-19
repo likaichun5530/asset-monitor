@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.5.15，已部署；源码及发布记录随本批次提交 |
-| 最近已确认生产版本 | 2.5.15 |
-| 最近已确认部署 | dpl_AMZbvgZaEvDZdsCmy16AkVQTanpN，READY，已绑定生产域名 |
-| 最近已确认 Git 提交 | 本文件所在的 2.5.15 发布提交；前一版本提交 8172e4b |
+| 本地版本 | 2.5.16，已部署；源码及发布记录随本批次提交 |
+| 最近已确认生产版本 | 2.5.16 |
+| 最近已确认部署 | dpl_2msgz2pzMmZc4q24SUHedD5D6faD，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.5.16 发布提交；前一版本提交 03d58d9 |
 | 用户使用方式 | Android Chrome 添加到主屏幕的 PWA |
-| Android 原生 | Capacitor 8；本地 versionName 2.5.15 / versionCode 133；本批次未构建 APK |
+| Android 原生 | Capacitor 8；本地 versionName 2.5.16 / versionCode 134；本批次未构建 APK |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立历史版本，不是应用显示版本 |
 
 ## 当前业务规则
@@ -25,13 +25,13 @@
 - 现金、期货、黄金无需细分目标；未配置目标的“其他”不参与细分评分。
 - IC 保证金比例 ≤70% 不扣分；70%～75% 每个百分点扣 1 分，75%～80% 扣 2 分，80% 以上扣 3 分，分段累计封顶 60。按 14% 保证金率估算，用户已确认账户权益分母与该比例适用。
 - 持仓和历史在相关页面可见时每 60 秒轮询；行情/期货行情独立轮询默认仍为 5 分钟。前台手动刷新及 refreshKey 变化另行触发刷新。
-- 状态栏目标色：暗夜 #1f2937，与普通卡片一致；明亮 #ffffff。页面暗夜底色仍为 #111827。iOS black-translucent 使用浅色系统图标，因此主屏幕应用顶部安全区保持深色背景。
+- PWA 不主动指定系统状态栏颜色，由 Chrome 跟随手机系统明暗模式；应用页面主题可以独立选择。页面暗夜卡片色为 #1f2937，页面底色 #111827。
 
 ## 审查发现与待办
 
 ### 优先处理
 
-1. **白天状态栏待验证。** 用户最新反馈已确认 Android 暗夜状态栏与卡片同色，但白天仍呈深色。2.5.15 将原先固定深色的 manifest 改为同一应用标识的明暗两份配置，启动和切换主题时同步选择，并同步 color-scheme；已部署，未在用户手机验证白天修正，iPhone 也未真机验证。配置位置：public/manifest.webmanifest、public/manifest-dark.webmanifest、index.html、src/pages/Settings.jsx、src/index.css。浏览器已安装的启动配置可能延迟更新，不能承诺运行时立即更新安装元数据。
+1. **系统跟随方案待真机验证。** 用户确认 Chrome 152.0.7977.83 的普通浏览器状态栏会跟随 Android 系统，但 2.5.15 的 PWA 状态栏持续使用卡片色。2.5.16 已移除 PWA 对状态栏颜色和样式的主动设置并部署，让 Chrome 使用系统主题。应用页面明暗不再决定系统状态栏；Android 新方案与 iPhone 均待真机验证。已安装 WebAPK 的 manifest 更新可能延迟，必要时需等待 Chrome 更新或重新安装。
 2. **刷新周期未完全统一。** src/hooks/useAssetData.js 为 60 秒，src/hooks/useVisiblePolling.js 为 5 分钟，Market 和 Future 使用后者。“所有自动刷新每分钟一次”的意图尚未完全落实，应统一策略后核对各页面，而不是只改 README。
 3. **共享期货账户口径不一致。** src/components/HomeOverviewCards.jsx 取单条 IC 使用率最大值；src/pages/Future.jsx 将各条保证金及市值分别求和。多份合约重复存储同一账户权益时，可能低估整体风险。后续需按账户合计保证金，并只计一次账户权益；本次不修改评分政策或数据结构。
 
@@ -43,7 +43,8 @@
 
 ## 本次验证边界
 
-- 已通过 npm version 生命周期将本地版本同步为 2.5.15，Android versionCode 由 132 增至 133。
+- 2.5.16 已通过 npm version 生命周期同步，Android versionCode 由 133 增至 134。
+- npm run version:check、生产构建与产物检查通过；Vercel 部署返回 READY。未运行全量测试或真机测试。
 - npm run version:check、构建产物核对与 git diff --check 通过；Vercel 生产构建成功并返回 READY。未运行全量测试或真机测试。
 - 本批次包含版本同步机制、文档整理及状态栏明暗配置修正，不新增评分或刷新行为变更。
 - 不将之前的构建成功等同于本次全量测试通过；不将 Vercel 发布等同于 APK 更新。

@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.5.16 — 2026-09-19 已发布
+
+- 部署：dpl_2msgz2pzMmZc4q24SUHedD5D6faD，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 移除 PWA 的 HTML/manifest `theme-color`、动态 manifest 切换和顶部状态栏背景覆盖，让 Android Chrome 按手机系统明暗模式处理状态栏。
+- 移除 iOS `black-translucent` 强制样式，由系统处理状态栏；页面自身的明暗选择保持不变。
+
 ## 2.5.15 — 2026-09-19 已发布
 
 - 部署：dpl_AMZbvgZaEvDZdsCmy16AkVQTanpN，READY，已绑定 https://asset.kenny5530.asia 。

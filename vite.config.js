@@ -7,11 +7,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.png', 'Transparent-Chinese.png', 'white-Chinese.png', '*.webmanifest'],
+      includeAssets: ['icon.png', 'Transparent-Chinese.png', 'white-Chinese.png', 'manifest.webmanifest'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],
       },
-      // Stable, same-identity manifests in public/ are selected by the page theme.
+      // The static manifest intentionally omits theme_color so installed PWAs follow system UI.
       manifest: false,
     }),
   ],

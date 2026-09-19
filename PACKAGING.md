@@ -95,10 +95,10 @@ cd android
 
 ### 状态栏与更新说明
 
-- Android PWA 使用 HTML theme-color 和 manifest theme_color；暗夜目标为 #1f2937。Capacitor StatusBar 插件不会在 PWA 中运行。
-- iPhone 使用 black-translucent 及顶部安全区域背景，不能依靠 Android 原生插件控制。
+- Android PWA 不设置 HTML theme-color 或 manifest theme_color，让 Chrome 按手机系统主题处理状态栏。应用页面主题可以与系统主题不同。
+- iPhone 同样不指定状态栏样式，由系统处理；不能依靠 Android 原生插件控制。
 - Service Worker 使用 autoUpdate。已安装 PWA 的网页缓存及安装信息更新与部署完成不是同一个时刻；不应承诺部署后所有手机立即使用新版本。
-- 用户已确认 Android 暗夜状态栏颜色正确；白天颜色修正及 iPhone 尚未真机验证；详见 PROJECT_STATUS.md。不要将配置颜色当作设备实测颜色。
+- Android 系统跟随方案及 iPhone 尚未真机验证；详见 PROJECT_STATUS.md。不要将配置变更当作设备实测结果。
 
 > API 不可用时 PWA 可以读取已有本地缓存，但无法获取最新实盘数据或同步快照。
 

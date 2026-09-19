@@ -19,9 +19,9 @@
 ## 平台和业务约束
 
 - 用户主要使用 Android Chrome 安装的 PWA。Capacitor 插件仅作用于原生应用，Vercel 发布不会更新已安装 APK。
-- 系统状态栏与页面顶部导航栏不同；用户已确认 Android 暗夜颜色正确，白天仍深色的问题正在修正，iPhone 不能无真机证据宣称通过。
-- public/manifest.webmanifest 与 public/manifest-dark.webmanifest 分别用于明亮/暗夜，除配色外保持字段一致，尤其 id、start_url、scope；由页面选择，vite-plugin-pwa 只生成 Service Worker。
-- 暗夜普通卡片和状态栏目标色为 #1f2937，页面底色 #111827，明亮状态栏 #ffffff。
+- 系统状态栏与页面顶部导航栏不同。PWA 不设置 theme-color，由 Android Chrome 跟随手机系统主题；应用页面仍可独立选择明暗模式。Capacitor 原生应用继续使用插件控制系统栏。iPhone 不能无真机证据宣称通过。
+- public/manifest.webmanifest 是唯一 PWA manifest，故意不包含 theme_color；vite-plugin-pwa 只生成 Service Worker。不要再按应用主题动态切换 manifest。
+- 暗夜普通卡片色为 #1f2937，页面底色 #111827；这些页面颜色不用于主动控制 PWA 系统状态栏。
 - 账户健康度为整数，保留从 100 分开始的动画；每日涨跌不计分。评分规则以 src/utils/healthScore.js 为准。
 - 现金、期货、黄金不要求细分目标；未设目标的“其他”不警告、不参与细分扣分。不要自行变更用户已确定的评分政策。
 - 密钥、令牌、个人持仓数据不得写入文档、提交或日志。

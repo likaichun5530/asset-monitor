@@ -381,6 +381,8 @@ Market 行情脚本不再作为项目文件维护，约定存档在 Google Sheet
 
 JWT 为兼容 Web、Electron 和 Capacitor 当前继续保存在 localStorage。前端不执行动态 HTML、AI 回复只按纯文本渲染，并且 localStorage 不保存密码、API Key 或 Google 凭据。
 
+Android Chrome 安装的 PWA 不主动指定系统状态栏颜色，由 Chrome 跟随手机系统明暗模式；“有数”页面主题仍按 `youshu-theme` 独立生效。
+
 ## 配色说明
 
 遵循国内市场习惯：**红涨绿跌**。

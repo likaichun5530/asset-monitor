@@ -72,17 +72,12 @@ function syncNativeStatusBar(isDark) {
 
 function applyTheme(t) {
   const root = document.documentElement
-  const metaTheme = document.querySelector('meta[name="theme-color"]')
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.classList.toggle('dark', isDark)
   root.style.backgroundColor = isDark ? '#111827' : '#f9fafb'
   root.style.colorScheme = isDark ? 'dark' : 'light'
   const schemeMeta = document.querySelector('meta[name="color-scheme"]')
   if (schemeMeta) schemeMeta.content = isDark ? 'dark' : 'light'
-  if (metaTheme) metaTheme.content = isDark ? '#1f2937' : '#ffffff'
-  const manifest = document.querySelector('link[rel="manifest"]')
-  const manifestPath = isDark ? '/manifest-dark.webmanifest' : '/manifest.webmanifest'
-  if (manifest && manifest.getAttribute('href') !== manifestPath) manifest.setAttribute('href', manifestPath)
   syncNativeStatusBar(isDark)
 }
 
