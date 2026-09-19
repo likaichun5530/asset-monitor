@@ -106,10 +106,10 @@ function AiTitleButton({ compact = false, onClick }) {
       title="打开 AI 助手"
       aria-label="打开 AI 助手"
     >
-      <svg className={`${compact ? 'h-6 w-6' : 'h-8 w-8'} pointer-events-none absolute text-brand-600 dark:text-brand-400`} viewBox="0 0 36 36" fill="none" aria-hidden="true">
+      <svg className={`${compact ? 'h-6 w-6' : 'h-8 w-8'} pointer-events-none absolute text-slate-950 dark:text-white`} viewBox="0 0 36 36" fill="none" aria-hidden="true">
         <circle cx="18" cy="18" r="15.25" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeDasharray="42 6" transform="rotate(-33 18 18)" />
       </svg>
-      <span className={`${compact ? 'text-[11px]' : 'text-sm'} relative font-bold leading-none tracking-[-0.085em] text-brand-600 dark:text-brand-400`} aria-hidden="true">
+      <span className={`${compact ? 'text-[11px]' : 'text-sm'} relative font-bold leading-none tracking-[-0.085em] text-slate-950 dark:text-white`} aria-hidden="true">
         AI
       </span>
     </button>

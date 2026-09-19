@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.27 — 2026-09-19 已发布
+
+- 部署：dpl_H34xenx8uyDS5YVfb2zjzHsh2KKA，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 标题栏 AI 双弧圆环与 `AI` 字样恢复为统一黑白配色：白天模式使用黑色，暗夜模式使用白色；保留现有尺寸和加粗效果。
+
 ## 2.5.26 — 2026-09-19 已发布
 
 - 部署：dpl_6BHuVtSdeRNSCjKNkqfd2EkwVxzY，READY，已绑定 https://asset.kenny5530.asia 。
