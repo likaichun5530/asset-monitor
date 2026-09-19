@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.19 — 2026-09-19 已发布
+
+- 部署：dpl_1priPjy7NFajCe3Ys2eFjVpX4VrD，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 虚拟币详情页持仓列表的数量和单价统一显示两位小数，桌面端与手机端同步生效。
+
 ## 2.5.18 — 2026-09-19 已发布
 
 - 部署：dpl_BHVgzQkmaqWJHvgmbdLxemRTqPNZ，READY，已绑定 https://asset.kenny5530.asia 。

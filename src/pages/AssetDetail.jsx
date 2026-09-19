@@ -279,10 +279,10 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
                   <td className="py-2.5 px-2 text-gray-500 dark:text-gray-400">{h.symbol === '-' ? '—' : h.symbol}</td>
                   <td className="py-2.5 px-2 text-gray-400 dark:text-gray-500">{h.currency}</td>
                   <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
-                    {h.quantity === null ? '—' : formatNumber(h.quantity, assetKey === 'crypto' ? 4 : 0)}
+                    {h.quantity === null ? '—' : formatNumber(h.quantity, assetKey === 'crypto' ? 2 : 0)}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
-                    {h.price === null ? '—' : formatNumber(h.price, h.price < 1 ? 6 : 2)}
+                    {h.price === null ? '—' : formatNumber(h.price, assetKey === 'crypto' ? 2 : (h.price < 1 ? 6 : 2))}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-800 dark:text-gray-200 font-medium">
                     {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatCurrency(h.marketValueCNY)}
@@ -322,10 +322,10 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
                 <tr key={idx} className="border-b border-gray-50 dark:border-gray-700 last:border-0">
                   <td className="py-2.5 px-2 text-gray-800 dark:text-gray-200 font-medium sticky left-0 bg-white dark:bg-gray-800 z-[2]" style={{ boxShadow: '2px 0 4px rgba(0,0,0,0.04)' }}>{h.name}</td>
                   <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
-                    {h.quantity === null ? '—' : formatNumber(h.quantity, assetKey === 'crypto' ? 4 : 0)}
+                    {h.quantity === null ? '—' : formatNumber(h.quantity, assetKey === 'crypto' ? 2 : 0)}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-600 dark:text-gray-300">
-                    {h.price === null ? '—' : formatNumber(h.price, h.price < 1 ? 6 : 2)}
+                    {h.price === null ? '—' : formatNumber(h.price, assetKey === 'crypto' ? 2 : (h.price < 1 ? 6 : 2))}
                   </td>
                   <td className="py-2.5 px-2 text-right text-gray-800 dark:text-gray-200 font-medium">
                     {showOriginalMode ? (h.marketValue === null ? '—' : formatNumber(h.marketValue, 2)) : formatCurrency(h.marketValueCNY)}
