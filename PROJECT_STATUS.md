@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.5.21，已部署；源码及发布记录随本批次提交 |
-| 最近已确认生产版本 | 2.5.21 |
-| 最近已确认部署 | dpl_6R86Ca7YbcnyGpvf2EzNVDV2G41h，READY，已绑定生产域名 |
-| 最近已确认 Git 提交 | 本文件所在的 2.5.21 发布提交；前一版本提交 ede0375 |
+| 本地版本 | 2.5.22，已部署；源码及发布记录随本批次提交 |
+| 最近已确认生产版本 | 2.5.22 |
+| 最近已确认部署 | dpl_7NXf9z96vkGpEifz8oHpo8U5Kc3o，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.5.22 发布提交；前一版本提交 2d3af68 |
 | 用户使用方式 | Android Chrome 添加到主屏幕的 PWA |
-| Android 原生 | Capacitor 8；本地 versionName 2.5.21 / versionCode 139；本批次未构建 APK |
+| Android 原生 | Capacitor 8；本地 versionName 2.5.22 / versionCode 140；本批次未构建 APK |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立历史版本，不是应用显示版本 |
 
 ## 当前业务规则

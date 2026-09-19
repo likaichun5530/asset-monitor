@@ -96,6 +96,24 @@ const settingsSectionTitles = {
 
 const mobileDetailPages = new Set(['/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash'])
 
+function AiTitleButton({ compact = false, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${compact ? 'h-8 w-8' : 'h-10 w-10'} group relative isolate flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/10 bg-[linear-gradient(145deg,#252a32_0%,#080a0e_72%)] text-white shadow-[0_2px_8px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.16)] transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[0_5px_12px_rgba(15,23,42,0.22),inset_0_1px_0_rgba(255,255,255,0.18)] active:translate-y-0 active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:border-white/20 dark:bg-[linear-gradient(145deg,#ffffff_0%,#d9dde3_76%)] dark:text-slate-950 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.9)] dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-slate-900`}
+      title="打开 AI 助手"
+      aria-label="打开 AI 助手"
+    >
+      <span className="pointer-events-none absolute inset-[2px] rounded-full border border-white/15 dark:border-black/10" aria-hidden="true" />
+      <span className="pointer-events-none absolute left-[18%] top-[9%] h-[32%] w-[54%] rounded-full bg-white/10 blur-[1px] dark:bg-white/55" aria-hidden="true" />
+      <span className={`${compact ? 'text-[10px]' : 'text-[12px]'} relative flex items-baseline font-semibold leading-none tracking-[-0.055em]`} aria-hidden="true">
+        <span>A</span><span className="ml-[0.5px] font-medium">I</span>
+      </span>
+    </button>
+  )
+}
+
 export default function Layout({ source = 'empty', syncedAt, error, onRefresh, auth } = {}) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -220,9 +238,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
   const mobileHeaderActions = (
     <div className="flex shrink-0 items-center gap-3">
       {showAiButton && (
-        <button type="button" onClick={openAiAssistant} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-900 bg-white text-[11px] font-bold tracking-[-0.03em] text-gray-900 transition-transform active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 dark:border-white dark:bg-gray-900 dark:text-white" title="打开 AI 助手" aria-label="打开 AI 助手">
-          AI
-        </button>
+        <AiTitleButton compact onClick={openAiAssistant} />
       )}
       {auth?.isLoggedIn ? (
         <span className="max-w-24 shrink truncate text-[15px] font-medium text-gray-800 dark:text-gray-200">{auth.username}</span>
@@ -318,9 +334,7 @@ export default function Layout({ source = 'empty', syncedAt, error, onRefresh, a
               {auth?.isLoggedIn && (
                 <>
                   {showAiButton && (
-                    <button type="button" onClick={openAiAssistant} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-900 bg-white text-xs font-bold tracking-[-0.03em] text-slate-900 transition-transform hover:scale-[1.03] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-white dark:bg-slate-900 dark:text-white" title="打开 AI 助手" aria-label="打开 AI 助手">
-                      AI
-                    </button>
+                    <AiTitleButton onClick={openAiAssistant} />
                   )}
                   <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-sm font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
                 </>

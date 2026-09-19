@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.22 — 2026-09-19 已发布
+
+- 部署：dpl_7NXf9z96vkGpEifz8oHpo8U5Kc3o，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 优化标题栏 AI 入口，将生硬的描边圆圈改为带双层细边、柔和黑白渐变与轻微高光的精致徽章；手机端和桌面端统一样式，并补充悬停、按压和键盘焦点反馈。
+
 ## 2.5.21 — 2026-09-19 已发布
 
 - 部署：dpl_6R86Ca7YbcnyGpvf2EzNVDV2G41h，READY，已绑定 https://asset.kenny5530.asia 。
