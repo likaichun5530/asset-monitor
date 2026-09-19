@@ -101,14 +101,15 @@ function AiTitleButton({ compact = false, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`${compact ? 'h-8 w-8' : 'h-10 w-10'} group relative isolate flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/10 bg-[linear-gradient(145deg,#252a32_0%,#080a0e_72%)] text-white shadow-[0_2px_8px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.16)] transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[0_5px_12px_rgba(15,23,42,0.22),inset_0_1px_0_rgba(255,255,255,0.18)] active:translate-y-0 active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:border-white/20 dark:bg-[linear-gradient(145deg,#ffffff_0%,#d9dde3_76%)] dark:text-slate-950 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.9)] dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-slate-900`}
+      className={`${compact ? 'h-8 w-8' : 'h-9 w-9'} relative flex shrink-0 items-center justify-center rounded-full bg-transparent text-slate-950 transition-[transform,background-color] duration-150 hover:bg-slate-100 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:text-white dark:hover:bg-white/[0.07] dark:focus-visible:ring-slate-300 dark:focus-visible:ring-offset-slate-900`}
       title="打开 AI 助手"
       aria-label="打开 AI 助手"
     >
-      <span className="pointer-events-none absolute inset-[2px] rounded-full border border-white/15 dark:border-black/10" aria-hidden="true" />
-      <span className="pointer-events-none absolute left-[18%] top-[9%] h-[32%] w-[54%] rounded-full bg-white/10 blur-[1px] dark:bg-white/55" aria-hidden="true" />
-      <span className={`${compact ? 'text-[10px]' : 'text-[12px]'} relative flex items-baseline font-semibold leading-none tracking-[-0.055em]`} aria-hidden="true">
-        <span>A</span><span className="ml-[0.5px] font-medium">I</span>
+      <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+        <circle cx="18" cy="18" r="15.25" stroke="currentColor" strokeWidth="2.15" strokeLinecap="round" strokeDasharray="42 6" transform="rotate(-33 18 18)" />
+      </svg>
+      <span className={`${compact ? 'text-[13px]' : 'text-[15px]'} relative font-semibold leading-none tracking-[-0.085em]`} aria-hidden="true">
+        AI
       </span>
     </button>
   )

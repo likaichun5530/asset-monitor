@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.23 — 2026-09-19 已发布
+
+- 部署：dpl_D5rNrwv7gvPmF3VLGDobTVqeBXqj，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 参照轻量 AI 字标重新设计标题栏入口：移除渐变、阴影和实体底色，改为带两处留白的细线双弧圆环与紧凑 `AI` 字样，暗夜模式同步使用反白线条。
+
 ## 2.5.22 — 2026-09-19 已发布
 
 - 部署：dpl_7NXf9z96vkGpEifz8oHpo8U5Kc3o，READY，已绑定 https://asset.kenny5530.asia 。
