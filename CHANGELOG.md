@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.5.33 — 2026-09-20 已发布
+
+- 部署：dpl_HYVfsq68cAQ8tSR3eK1dWNZetxoi，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 移除总资产卡内部左右区域的分割线和独立背景，使总资产与资产趋势完整共享同一个卡片底色、圆角和阴影。
+- 修复桌面收益日历格内文字溢出：恢复单元格高度，分别约束星期、日期和涨跌文字尺寸，并为涨跌文字增加边界裁切与省略处理。
+
 ## 2.5.32 — 2026-09-20 已发布
 
 - 部署：dpl_ANJfGPrV9iRbhXcMgU9qZ6bCje3M，READY，已绑定 https://asset.kenny5530.asia 。

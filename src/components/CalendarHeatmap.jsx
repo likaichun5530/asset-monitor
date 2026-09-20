@@ -424,7 +424,7 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
               className={`calendar-day-cell aspect-square flex flex-col items-center justify-center rounded cursor-pointer transition-colors ${cellBg} ${isSelected ? 'ring-2 ring-brand-500' : ''} hover:ring-1 hover:ring-gray-300 relative overflow-hidden ${!dayInfo.isCurrentMonth ? 'opacity-60' : ''}`}
             >
               {/* 右上角日期数字 */}
-              <span className={`absolute top-1.5 right-1.5 text-sm ${!dayInfo.hasTotal ? 'text-gray-300' : isUp ? 'text-red-600' : isDown ? 'text-green-600' : 'text-gray-500'}`}>
+              <span className={`calendar-date absolute top-1.5 right-1.5 text-sm ${!dayInfo.hasTotal ? 'text-gray-300' : isUp ? 'text-red-600' : isDown ? 'text-green-600' : 'text-gray-500'}`}>
                 {isToday ? '今' : dayInfo.day}
               </span>
               {/* 底部涨跌金额/比例 */}

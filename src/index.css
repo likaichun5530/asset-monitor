@@ -387,9 +387,6 @@ html.dark body {
     height: 240px;
   }
   .home-hero-panel {
-    border-right: 1px solid rgba(226, 232, 240, 0.72);
-  }
-  .home-hero-panel:only-child {
     border-right: 0;
   }
   .home-hero-panel > .card,
@@ -405,6 +402,8 @@ html.dark body {
   }
   .home-hero-panel > .card {
     padding: 22px 28px;
+    background: transparent;
+    background-image: none;
   }
   .home-hero-trend > .card {
     padding: 20px 24px 10px;
@@ -450,9 +449,9 @@ html.dark body {
   .home-card-key-currency > div > .card,
   .home-card-key-health > div > .card,
   .home-card-key-calendar > div > .card {
-    height: 310px;
-    min-height: 310px;
-    max-height: 310px;
+    height: 340px;
+    min-height: 340px;
+    max-height: 340px;
     overflow: hidden;
   }
   .home-card-key-allocation > div > .card,
@@ -522,11 +521,24 @@ html.dark body {
     padding: 5px 10px;
   }
   .home-card-key-calendar .calendar-day-cell {
-    height: 30px;
+    height: 34px;
   }
-  .home-card-key-calendar .calendar-weekday,
+  .home-card-key-calendar .calendar-weekday {
+    font-size: 11px;
+    line-height: 14px;
+  }
+  .home-card-key-calendar .calendar-date {
+    font-size: 13px;
+    line-height: 16px;
+  }
   .home-card-key-calendar .calendar-change {
-    font-size: 12px;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 0 2px;
+    font-size: 10px;
+    line-height: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .home-card-key-health .margin-risk-labels {
     font-size: 11px;
@@ -540,8 +552,9 @@ html.dark body {
     border-color: #374151;
     background: #1f2937;
   }
-  html.dark .home-hero-panel {
-    border-right-color: #374151;
+  html.dark .home-hero-panel > .home-hero-card {
+    background: transparent;
+    background-image: none;
   }
 }
 
