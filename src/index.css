@@ -121,6 +121,10 @@ html.dark body {
     @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-medium text-slate-600 shadow-sm transition duration-200 hover:-translate-y-px hover:border-slate-300 hover:text-slate-900 hover:shadow-md active:translate-y-0 active:scale-[0.98] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700;
   }
 
+  .desktop-sidebar-action {
+    @apply flex h-10 w-full items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white;
+  }
+
   .desktop-metric-card {
     @apply h-full rounded-2xl border border-slate-200/70 bg-white p-5 dark:border-gray-700 dark:bg-gray-800;
     background-image: linear-gradient(145deg, rgba(255,255,255,1), rgba(248,250,252,0.72));
@@ -188,6 +192,14 @@ html.dark body {
   .desktop-brand-mark {
     border: 1px solid rgba(226, 232, 240, 0.82);
     box-shadow: 0 8px 22px -18px rgba(37, 99, 235, 0.65);
+  }
+  .desktop-sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    border-top: 1px solid rgba(226, 232, 240, 0.76);
+    background: rgba(248, 250, 252, 0.94);
+    backdrop-filter: blur(14px);
   }
   .desktop-workspace {
     background-image:
@@ -284,6 +296,10 @@ html.dark body {
   }
   html.dark body { background-color: #0f172a; }
   html.dark .desktop-brand { background: rgba(2, 6, 23, 0.88); }
+  html.dark .desktop-sidebar-footer {
+    border-top-color: rgba(51, 65, 85, 0.8);
+    background: rgba(2, 6, 23, 0.94);
+  }
   html.dark .desktop-brand-mark { border-color: rgba(71, 85, 105, 0.62); }
   html.dark .desktop-metric-card {
     background-image: linear-gradient(145deg, rgba(30,41,59,1), rgba(15,23,42,0.84));
@@ -494,12 +510,6 @@ html.dark body {
   }
   .home-today-button > span:nth-child(2) {
     font-size: 20px;
-  }
-  .home-hero-today > button:last-child {
-    position: absolute;
-    right: 24px;
-    top: 24px;
-    margin-top: 0;
   }
   .home-stat-card {
     min-height: 150px;

@@ -24,7 +24,7 @@ function toWanNum(v) {
   return (Number(v) / 10000).toFixed(0)
 }
 
-export default function TrendChart({ refreshKey = 0 }) {
+export default function TrendChart({ refreshKey = 0, embedded = false }) {
   const [range, setRange] = useState('1m')
 
   const allData = useMemo(() => getHistory(), [refreshKey])
@@ -128,11 +128,11 @@ export default function TrendChart({ refreshKey = 0 }) {
 
   return (
     <div className="card pb-[1px] sm:pb-6 px-[1px] sm:px-6">
-      <div className="flex items-center justify-between mb-[1px] flex-wrap gap-2 px-3 sm:px-0">
-        <div>
+      <div className={`flex items-center ${embedded ? 'justify-end' : 'justify-between'} mb-[1px] flex-wrap gap-2 px-3 sm:px-0`}>
+        {!embedded && <div>
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
           <p className="font-num-regular mt-0.5 text-xs text-gray-400">单位：万元</p>
-        </div>
+        </div>}
         <div className="flex items-center gap-[1px] bg-gray-100 rounded-lg">
           {RANGES.map((r) => (
             <button
@@ -169,15 +169,19 @@ export default function TrendChart({ refreshKey = 0 }) {
               tickLine={false}
               axisLine={{ stroke: '#e2e8f0' }}
             />
-            <YAxis
-              ticks={yTicks}
-              domain={yDomain}
-              tickFormatter={toWanNum}
-              tick={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', fontSize: 12, fontWeight: 500, fill: '#94a3b8' }}
-              tickLine={false}
-              axisLine={false}
-              width={44}
-            />
+            {embedded ? (
+              <YAxis hide domain={yDomain} width={0} />
+            ) : (
+              <YAxis
+                ticks={yTicks}
+                domain={yDomain}
+                tickFormatter={toWanNum}
+                tick={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', fontSize: 12, fontWeight: 500, fill: '#94a3b8' }}
+                tickLine={false}
+                axisLine={false}
+                width={44}
+              />
+            )}
             <Tooltip
               contentStyle={{
                 borderRadius: 12,

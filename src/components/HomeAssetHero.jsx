@@ -1,6 +1,6 @@
 import { formatChange, formatDateLong, formatNumber, formatPercent } from '../utils/format.js'
 
-export default function HomeAssetHero({ total, todayChange, todayChangePct, updateDate, pendingCount, editMode, valuesHidden, onToggleEdit, onToggleValuesHidden, onOpenTodayDetail }) {
+export default function HomeAssetHero({ total, todayChange, todayChangePct, updateDate, pendingCount, valuesHidden, onToggleValuesHidden, onOpenTodayDetail }) {
   const isUp = Number(todayChange) > 0
   const isDown = Number(todayChange) < 0
   const changeColor = valuesHidden
@@ -48,10 +48,6 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
             <span className={`mt-1 text-xs font-medium ${changeColor}`}>
               {valuesHidden ? '******' : todayChangePct === null || todayChangePct === undefined ? '--' : formatPercent(todayChangePct, { withSign: true })}
             </span>
-          </button>
-          <button type="button" onClick={onToggleEdit} className="mt-3 hidden h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 text-xs font-medium text-slate-500 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:inline-flex">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
-              {editMode ? '退出编辑' : '编辑布局'}
           </button>
         </div>
       </div>

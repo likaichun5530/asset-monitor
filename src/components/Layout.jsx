@@ -20,8 +20,6 @@ const navItems = [
   { to: '/crypto', label: '虚拟币', icon: BitcoinIcon },
   { to: '/future', label: '期货', icon: ZapIcon },
   { to: '/cash', label: '现金', icon: WalletIcon },
-  { type: 'label', label: '系统' },
-  { to: '/settings', label: '设置', icon: SettingsIcon },
 ]
 
 const pageTitles = {
@@ -286,6 +284,24 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
             )
           })}
         </nav>
+        <div className="desktop-sidebar-footer shrink-0 px-3 pb-4 pt-3">
+          <div id="desktop-sidebar-page-actions" />
+          <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-sidebar-action" title="刷新数据" aria-label="刷新数据">
+            <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
+            <span>{isRefreshing ? '刷新中' : '刷新数据'}</span>
+          </button>
+          <NavLink to="/settings" className="desktop-sidebar-action" title="设置" aria-label="设置">
+            <SettingsIcon className="h-4 w-4" />
+            <span className="truncate">设置</span>
+          </NavLink>
+          <div className="mt-2 flex items-center justify-between gap-2 px-2 text-[13px] font-medium text-slate-500 dark:text-slate-400">
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
+              <span>{displayLabel}</span>
+            </span>
+            {auth?.isLoggedIn && <span className="min-w-0 truncate text-slate-700 dark:text-slate-300">{auth.username}</span>}
+          </div>
+        </div>
       </aside>
 
       {/* 主内容区 */}
@@ -325,22 +341,13 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
               <p className="mt-2 text-[13px] text-slate-500 dark:text-slate-400">{pageDescription}</p>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className={`status-pill ${source === 'online' ? 'status-pill-online' : source === 'cache' ? 'status-pill-cache' : ''}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-                {displayLabel}
-              </span>
-              <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-icon-button" title="刷新数据" aria-label="刷新数据">
-                <svg className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
-              </button>
               {auth?.isLoggedIn && (
                 <>
                   {showAiButton && (
                     <AiTitleButton onClick={openAiAssistant} />
                   )}
-                  <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-[15px] font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
                 </>
               )}
-              <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-5 w-5" /></NavLink>
             </div>
           </div>
         </header>

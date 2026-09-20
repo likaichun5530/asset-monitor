@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Sortable from 'sortablejs'
 import TrendChart from '../components/TrendChart.jsx'
 import AllocationChart from '../components/AllocationChart.jsx'
@@ -67,6 +68,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
   const [editMode, setEditMode] = useState(false)
   const [valuesHidden, setValuesHidden] = useState(readPrivacyMode)
   const [todayDetailRequest, setTodayDetailRequest] = useState(0)
+  const [desktopSidebarActions, setDesktopSidebarActions] = useState(null)
   const longPressTimer = useRef(null)
   const sortRef = useRef(null)
   const sortInstance = useRef(null)
@@ -111,6 +113,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
     }
   }, [cancelLongPress])
   useEffect(() => { return () => { if (longPressTimer.current) clearTimeout(longPressTimer.current) } }, [])
+  useEffect(() => { setDesktopSidebarActions(document.getElementById('desktop-sidebar-page-actions')) }, [])
 
   function toggleCard(key) {
     const next = { ...cardConfigRef.current, [key]: !cardConfigRef.current[key] }
@@ -264,6 +267,13 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
       onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onMouseDown={startLongPress}
       onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
+      {desktopSidebarActions && createPortal(
+        <button type="button" onClick={() => setEditMode((value) => !value)} className="desktop-sidebar-action" aria-pressed={editMode}>
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+          <span>{editMode ? '退出编辑' : '编辑布局'}</span>
+        </button>,
+        desktopSidebarActions,
+      )}
       {editMode && (
         <div className="card py-2 sm:py-3 px-4 sm:px-5 flex items-center justify-between bg-brand-50 border-brand-200 dark:bg-brand-500/10">
           <span className="text-xs sm:text-sm text-brand-700 dark:text-brand-400 font-medium">编辑模式 — 按住卡片拖动调整顺序，点击减号隐藏卡片</span>
@@ -279,9 +289,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
             todayChangePct={today.changePct}
             updateDate={updateDate}
             pendingCount={pendingCount}
-            editMode={editMode}
             valuesHidden={valuesHidden}
-            onToggleEdit={() => setEditMode((value) => !value)}
             onToggleValuesHidden={togglePrivacyMode}
             onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
           />
@@ -291,7 +299,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
             {editMode && (
               <button onClick={() => toggleCard('trend')} className="absolute right-2 top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white shadow hover:bg-red-600">−</button>
             )}
-            <TrendChart refreshKey={refreshKey} />
+            <TrendChart refreshKey={refreshKey} embedded />
           </div>
         )}
       </div>

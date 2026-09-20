@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.5.34 — 2026-09-20 已发布
+
+- 部署：dpl_5ngE9sR3Z6DrpLAorGgT5xbHGPQc，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 简化桌面总资产卡内趋势图：移除“资产趋势”、单位与纵坐标，仅保留时间范围、横轴和趋势曲线。
+- 将桌面端编辑布局、刷新、设置、在线状态和用户名统一移至左侧栏底部固定操作区；顶部栏仅在可用页面保留 AI 入口，手机端顶部栏不变。
+
 ## 2.5.33 — 2026-09-20 已发布
 
 - 部署：dpl_HYVfsq68cAQ8tSR3eK1dWNZetxoi，READY，已绑定 https://asset.kenny5530.asia 。
