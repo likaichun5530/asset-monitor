@@ -93,7 +93,7 @@ html.dark body {
   }
 
   .status-pill {
-    @apply inline-flex h-9 items-center gap-2 rounded-[10px] border border-slate-200 bg-slate-50 px-3 text-[13px] font-medium text-slate-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300;
+    @apply inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3.5 text-[15px] font-medium text-slate-500 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300;
   }
 
   .status-pill-online {
@@ -105,7 +105,7 @@ html.dark body {
   }
 
   .desktop-icon-button {
-    @apply hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-500 transition duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-brand-600 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700;
+    @apply hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-500 shadow-sm transition duration-200 hover:-translate-y-px hover:border-slate-300 hover:text-brand-600 hover:shadow-md active:translate-y-0 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700;
   }
 
   .desktop-section-title {
@@ -118,29 +118,30 @@ html.dark body {
 
 
   .desktop-secondary-button {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-medium text-slate-600 shadow-sm transition duration-200 hover:-translate-y-px hover:border-slate-300 hover:text-slate-900 hover:shadow-md active:translate-y-0 active:scale-[0.98] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700;
   }
 
   .desktop-metric-card {
-    @apply h-full rounded-[14px] border border-slate-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+    @apply h-full rounded-2xl border border-slate-200/70 bg-white p-5 dark:border-gray-700 dark:bg-gray-800;
+    background-image: linear-gradient(145deg, rgba(255,255,255,1), rgba(248,250,252,0.72));
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025), 0 12px 28px -24px rgba(51, 65, 85, 0.38);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
 }
 
 @media (min-width: 640px) {
-  :root { background-color: #f3f5f8; }
-  body { background-color: #f3f5f8; }
+  :root { background-color: #f5f7fa; }
+  body { background-color: #f5f7fa; }
   .card {
-    border: 1px solid #e3e8ef;
-    border-radius: 14px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025), 0 10px 24px -26px rgba(15, 23, 42, 0.28);
+    border: 1px solid rgba(226, 232, 240, 0.78);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025), 0 12px 32px -26px rgba(30, 64, 175, 0.22);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .card:hover {
-    border-color: #d6dde7;
-    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.035), 0 14px 30px -28px rgba(15, 23, 42, 0.34);
+    border-color: rgba(203, 213, 225, 0.9);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.035), 0 16px 36px -28px rgba(30, 64, 175, 0.3);
   }
   .desktop-page-shell > .space-y-2 > :not([hidden]) ~ :not([hidden]) {
     margin-top: 16px;
@@ -158,8 +159,9 @@ html.dark body {
     min-height: 138px;
   }
   .desktop-metric-card:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 16px 30px -28px rgba(15, 23, 42, 0.4);
+    border-color: rgba(191, 219, 254, 0.9);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.035), 0 18px 36px -27px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
   }
   button:focus-visible,
   a:focus-visible,
@@ -169,33 +171,33 @@ html.dark body {
     outline-offset: 2px;
   }
   .desktop-sidebar {
-    background: #101827;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
-    box-shadow: 12px 0 36px -30px rgba(15, 23, 42, 0.58);
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+    box-shadow: 10px 0 32px -30px rgba(15, 23, 42, 0.3);
   }
   .desktop-topbar {
-    box-shadow: 0 8px 24px -26px rgba(15, 23, 42, 0.28);
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.32);
   }
   .desktop-brand {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: rgba(16, 24, 39, 0.9);
+    background: rgba(248, 250, 252, 0.88);
     backdrop-filter: blur(14px);
   }
   .desktop-brand-mark {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 28px -18px rgba(59, 130, 246, 0.7);
+    border: 1px solid rgba(226, 232, 240, 0.82);
+    box-shadow: 0 8px 22px -18px rgba(37, 99, 235, 0.65);
   }
   .desktop-workspace {
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.38), transparent 16rem);
+    background-image:
+      radial-gradient(circle at 78% -12%, rgba(59, 130, 246, 0.055), transparent 31rem),
+      linear-gradient(180deg, rgba(255,255,255,0.18), transparent 18rem);
   }
   .desktop-summary-strip,
   .desktop-asset-summary {
-    background: #fff;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    background-image: linear-gradient(135deg, rgba(255,255,255,1), rgba(248,250,252,0.74));
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 18px 42px -34px rgba(37, 99, 235, 0.34);
   }
   .desktop-summary-strip > div {
     min-height: 142px;
@@ -214,7 +216,8 @@ html.dark body {
   .desktop-market-tile:hover {
     z-index: 1;
     background: #fff;
-    box-shadow: 0 14px 30px -26px rgba(15, 23, 42, 0.36);
+    box-shadow: 0 14px 30px -24px rgba(37, 99, 235, 0.42);
+    transform: translateY(-1px);
   }
   table thead th {
     background: rgba(248, 250, 252, 0.85);
@@ -234,17 +237,11 @@ html.dark body {
     padding-bottom: 11px !important;
   }
   .home-hero-card {
-    position: relative;
-    border-color: rgba(255,255,255,0.07);
-    background-color: #101827;
+    background-color: #ffffff;
     background-image:
-      radial-gradient(circle at 72% 0%, rgba(59, 130, 246, 0.22), transparent 24rem),
-      linear-gradient(112deg, #111c2f 0%, #101827 56%, #0d1421 100%);
-    box-shadow: 0 18px 40px -30px rgba(15, 23, 42, 0.85);
-  }
-  .home-hero-card:hover {
-    border-color: rgba(255,255,255,0.12);
-    box-shadow: 0 20px 44px -30px rgba(15, 23, 42, 0.9);
+      radial-gradient(circle at 92% 12%, rgba(59, 130, 246, 0.095), transparent 18rem),
+      linear-gradient(120deg, rgba(248,250,252,0.2), rgba(255,255,255,0.92));
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 22px 50px -38px rgba(37, 99, 235, 0.4);
   }
   .home-card-slot {
     display: flex;
@@ -281,15 +278,18 @@ html.dark body {
     aspect-ratio: auto;
     height: 34px;
   }
+  .home-hero-card {
+    min-height: 168px;
+    padding: 24px 28px;
+  }
   html.dark body { background-color: #0f172a; }
-  html.dark .desktop-sidebar { background: #080d16; }
-  html.dark .desktop-brand { background: rgba(8, 13, 22, 0.9); }
+  html.dark .desktop-brand { background: rgba(2, 6, 23, 0.88); }
   html.dark .desktop-brand-mark { border-color: rgba(71, 85, 105, 0.62); }
   html.dark .desktop-metric-card {
-    background: #1f2937;
+    background-image: linear-gradient(145deg, rgba(30,41,59,1), rgba(15,23,42,0.84));
   }
   html.dark .desktop-workspace {
-    background-image: linear-gradient(180deg, rgba(30,41,59,0.24), transparent 16rem);
+    background-image: radial-gradient(circle at 78% -12%, rgba(59, 130, 246, 0.075), transparent 31rem);
   }
   html.dark .desktop-summary-strip,
   html.dark .desktop-asset-summary {
@@ -302,8 +302,8 @@ html.dark body {
     background: #1e293b;
   }
   html.dark .home-hero-card {
-    background-color: #0b111d;
-    background-image: radial-gradient(circle at 72% 0%, rgba(59, 130, 246, 0.18), transparent 24rem);
+    background-color: #1e293b;
+    background-image: radial-gradient(circle at 92% 12%, rgba(59, 130, 246, 0.16), transparent 18rem);
   }
   html.dark .card:hover { border-color: #475569; }
   html.dark table thead th { background: rgba(15, 23, 42, 0.55); }

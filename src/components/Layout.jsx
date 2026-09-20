@@ -257,29 +257,29 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   return (
     <div className="app-shell min-h-full flex dark:bg-gray-900">
       {/* PC 侧栏 */}
-      <aside className="desktop-sidebar sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col overflow-y-auto sm:flex">
-        <div className="desktop-brand flex h-[88px] items-center px-5">
+      <aside className="desktop-sidebar sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col overflow-y-auto border-r border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 sm:flex">
+        <div className="desktop-brand flex h-20 items-center px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="desktop-brand-mark relative h-11 w-11 shrink-0 overflow-hidden rounded-[14px] bg-white">
+            <span className="desktop-brand-mark relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-slate-900">
               <img src="/icon.png" alt="有数 App Logo" className="absolute left-1/2 top-1/2 h-[76px] w-[76px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
             </span>
             <div className="min-w-0">
-              <div className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-white">有数</div>
-              <div className="mt-1.5 text-[10px] font-semibold tracking-[0.18em] text-slate-500">ASSET MONITOR</div>
+              <div className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-slate-950 dark:text-white">有数</div>
+              <div className="mt-1.5 text-[10px] font-semibold tracking-[0.16em] text-slate-400 dark:text-slate-500">ASSET MONITOR</div>
             </div>
           </div>
         </div>
-        <nav className="desktop-nav flex-1 space-y-1 px-3 pb-5 pt-1">
+        <nav className="flex-1 space-y-1 px-3 pb-5 pt-2">
           {navItems.map((item, i) => {
-            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-2 pt-5 text-[10px] font-semibold tracking-[0.16em] text-slate-500 first:pt-2">{item.label}</div>
+            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-5 text-[11px] font-semibold tracking-[0.12em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
             const Icon = item.icon
             return (
-              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium transition-all duration-200 ${isActive ? 'bg-white/[0.11] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]' : 'text-slate-400 hover:bg-white/[0.055] hover:text-slate-100'}`}>
+              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 ${isActive ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800 dark:text-white dark:ring-white/10' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
                 {({ isActive }) => (
                   <>
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-[10px] transition-colors ${isActive ? 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_rgba(59,130,246,0.9)]' : 'bg-white/[0.045] text-slate-500 group-hover:bg-white/[0.08] group-hover:text-slate-300'}`}><Icon className="h-[17px] w-[17px] shrink-0" /></span>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400' : 'bg-slate-200/55 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 dark:bg-white/[0.05] dark:text-slate-500'}`}><Icon className="h-[17px] w-[17px] shrink-0" /></span>
                     <span className="truncate">{item.label}</span>
-                    {isActive && <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-brand-400 shadow-[0_0_0_4px_rgba(59,130,246,0.12)]" aria-hidden="true" />}
+                    {isActive && <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true" />}
                   </>
                 )}
               </NavLink>
@@ -289,7 +289,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       </aside>
 
       {/* 主内容区 */}
-      <div className="desktop-workspace flex min-w-0 flex-1 flex-col bg-gray-50 sm:bg-[#f3f5f8] dark:bg-gray-900">
+      <div className="desktop-workspace flex min-w-0 flex-1 flex-col bg-gray-50 sm:bg-[#f5f7fa] dark:bg-gray-900">
         {/* 移动端顶部栏 */}
         <header className="mobile-topbar sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
           {settingsSectionTitle ? (
@@ -318,14 +318,11 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         </header>
 
         {/* PC 顶部栏 */}
-        <header className="desktop-topbar sticky top-0 z-20 hidden border-b border-slate-200/70 bg-white/[0.88] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/[0.88] sm:flex">
-          <div className="mx-auto flex h-[76px] w-full max-w-[1480px] flex-1 items-center justify-between px-6 lg:px-8">
-            <div className="min-w-0">
-              <div className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-brand-600 dark:text-brand-400">资产工作台</div>
-              <div className="flex min-w-0 items-baseline gap-3">
-                <h1 className="shrink-0 text-[22px] font-semibold leading-none tracking-[-0.03em] text-slate-950 dark:text-gray-100">{pageTitle}</h1>
-                <p className="truncate text-[13px] text-slate-400 dark:text-slate-500">{pageDescription}</p>
-              </div>
+        <header className="desktop-topbar sticky top-0 z-20 hidden border-b border-slate-200/60 bg-[#f5f7fa]/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 sm:flex">
+          <div className="flex h-20 flex-1 items-center justify-between px-6 lg:px-8">
+            <div>
+              <h1 className="text-[25px] font-semibold leading-none tracking-[-0.035em] text-slate-950 dark:text-gray-100">{pageTitle}</h1>
+              <p className="mt-2 text-[13px] text-slate-500 dark:text-slate-400">{pageDescription}</p>
             </div>
             <div className="flex items-center gap-2.5">
               <span className={`status-pill ${source === 'online' ? 'status-pill-online' : source === 'cache' ? 'status-pill-cache' : ''}`}>
@@ -340,7 +337,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
                   {showAiButton && (
                     <AiTitleButton onClick={openAiAssistant} />
                   )}
-                  <span className="hidden h-9 items-center rounded-[10px] border border-slate-200 bg-slate-50 px-3.5 text-[14px] font-medium text-slate-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
+                  <span className="hidden h-10 items-center rounded-xl border border-slate-200/80 bg-white px-3.5 text-[15px] font-medium text-slate-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 lg:flex">{auth.username}</span>
                 </>
               )}
               <NavLink to="/settings" className="desktop-icon-button" title="设置" aria-label="设置"><SettingsIcon className="h-5 w-5" /></NavLink>
@@ -353,7 +350,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="desktop-content mx-auto px-3 pt-2 pb-24 w-full max-w-[1480px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-6 lg:px-8 lg:pt-7">
+            <main className="desktop-content mx-auto px-3 pt-2 pb-24 w-full max-w-[1560px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pt-6">
               <div className="desktop-page-shell"><Outlet /></div>
             </main>
           </div>

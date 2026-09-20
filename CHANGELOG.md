@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.5.30 — 2026-09-20 已发布
+
+- 部署：dpl_DqJJyvuF84J14EbaFrU4vb1V94DZ，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 按反馈撤回 2.5.29 的桌面 UI 重构，恢复 2.5.28 的浅色侧栏、桌面顶栏、总资产卡片及卡片视觉样式；业务功能和数据逻辑不变。
+
 ## 2.5.29 — 2026-09-20 已发布
 
 - 部署：dpl_42NNuq2h4XqfXiBGc3m3x2UnyitE，READY，已绑定 https://asset.kenny5530.asia 。
