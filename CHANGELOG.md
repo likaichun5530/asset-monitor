@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.5.32 — 2026-09-20 已发布
+
+- 部署：dpl_ANJfGPrV9iRbhXcMgU9qZ6bCje3M，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 修正桌面首页首屏结构：资产趋势不再使用独立卡片，改为直接嵌入总资产卡右侧，仅保留内容分隔线；总资产和趋势共用一张 240px 高的紧凑卡片。
+- 桌面卡片统一取消窄体数字字体和负字距，改用正常宽度的系统字体并提高正文、数字及图表刻度字重。
+
 ## 2.5.31 — 2026-09-20 已发布
 
 - 部署：dpl_FpgLi7Rq7fNnAYX7AmNTqs7Smigt，READY，已绑定 https://asset.kenny5530.asia 。

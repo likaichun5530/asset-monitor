@@ -165,7 +165,7 @@ export default function TrendChart({ refreshKey = 0 }) {
               domain={['dataMin', 'dataMax']}
               ticks={xTicks.length ? xTicks : undefined}
               tickFormatter={(ts) => formatDateShort(new Date(ts).toISOString().slice(0, 10))}
-              tick={{ fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif', fontSize: 12, fontWeight: 400, fill: '#94a3b8' }}
+              tick={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', fontSize: 12, fontWeight: 500, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={{ stroke: '#e2e8f0' }}
             />
@@ -173,7 +173,7 @@ export default function TrendChart({ refreshKey = 0 }) {
               ticks={yTicks}
               domain={yDomain}
               tickFormatter={toWanNum}
-              tick={{ fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif', fontSize: 12, fontWeight: 400, fill: '#94a3b8' }}
+              tick={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', fontSize: 12, fontWeight: 500, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={false}
               width={44}
@@ -183,7 +183,7 @@ export default function TrendChart({ refreshKey = 0 }) {
                 borderRadius: 12,
                 border: '1px solid #e2e8f0',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif',
+                fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
                 fontSize: 12,
                 fontWeight: 400,
               }}
@@ -217,7 +217,7 @@ export default function TrendChart({ refreshKey = 0 }) {
                   fill: '#1f2937',
                   fontSize: 12,
                   fontWeight: 400,
-                  fontFamily: '"SF Pro Display", "Arial Narrow", system-ui, sans-serif',
+                  fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
                   offset: 10,
                 }}
               />

@@ -226,10 +226,10 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
         delete document.body.dataset.sortableDragging
         const visibleKeys = sortInstance.current?.toArray() || []
         setCardOrder((previous) => {
-          const expectedCount = previous.filter((key) => cardConfigRef.current[key]).length
+          const expectedCount = previous.filter((key) => cardConfigRef.current[key] && key !== 'trend').length
           if (visibleKeys.length !== expectedCount) return previous
           let visibleIndex = 0
-          const result = previous.map((key) => cardConfigRef.current[key] ? visibleKeys[visibleIndex++] : key)
+          const result = previous.map((key) => cardConfigRef.current[key] && key !== 'trend' ? visibleKeys[visibleIndex++] : key)
           writeCardOrder(result)
           return result
         })
@@ -271,23 +271,35 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
         </div>
       )}
 
-      <HomeAssetHero
-        total={total}
-        todayChange={today.change}
-        todayChangePct={today.changePct}
-        updateDate={updateDate}
-        pendingCount={pendingCount}
-        editMode={editMode}
-        valuesHidden={valuesHidden}
-        onToggleEdit={() => setEditMode((value) => !value)}
-        onToggleValuesHidden={togglePrivacyMode}
-        onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
-      />
+      <div className="home-hero-composite space-y-2 lg:space-y-0">
+        <div className="home-hero-panel">
+          <HomeAssetHero
+            total={total}
+            todayChange={today.change}
+            todayChangePct={today.changePct}
+            updateDate={updateDate}
+            pendingCount={pendingCount}
+            editMode={editMode}
+            valuesHidden={valuesHidden}
+            onToggleEdit={() => setEditMode((value) => !value)}
+            onToggleValuesHidden={togglePrivacyMode}
+            onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
+          />
+        </div>
+        {cardConfig.trend && (
+          <div className="home-hero-trend relative">
+            {editMode && (
+              <button onClick={() => toggleCard('trend')} className="absolute right-2 top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white shadow hover:bg-red-600">−</button>
+            )}
+            <TrendChart refreshKey={refreshKey} />
+          </div>
+        )}
+      </div>
 
       <SubscriptionTicker refreshKey={refreshKey} />
 
       <div ref={sortRef} className="home-card-grid -mx-1 flex flex-wrap items-stretch">
-        {visibleItems.map((key) => {
+        {visibleItems.filter((key) => key !== 'trend').map((key) => {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
