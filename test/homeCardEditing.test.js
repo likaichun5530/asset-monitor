@@ -78,9 +78,11 @@ test('账户健康度优先展示目标缓存，再延后刷新最新目标', ()
   assert.match(overviewSource, /text-gray-900.*dark:text-gray-100/)
 })
 
-test('桌面导航使用应用 Logo、浅色侧栏和精简工作台名称', () => {
+test('桌面导航使用应用 Logo、深色侧栏和精简工作台名称', () => {
   assert.match(layoutSource, /src="\/icon\.png" alt="有数 App Logo"/)
-  assert.match(layoutSource, /border-slate-200\/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/)
+  assert.match(layoutSource, /className="desktop-sidebar/)
+  assert.match(layoutSource, /bg-white\/\[0\.11\] text-white/)
+  assert.match(layoutSource, /bg-brand-500 text-white/)
   for (const label of ['总览', '行情', '持仓', '目标']) assert.match(layoutSource, new RegExp(`label: '${label}'`))
   assert.doesNotMatch(layoutSource, /label: '持仓明细'|label: '配置目标'/)
   assert.doesNotMatch(layoutSource, /auth\.username\?\.slice\(0, 1\)/)

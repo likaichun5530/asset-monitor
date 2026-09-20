@@ -260,7 +260,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
   }
 
   return (
-    <div className="home-page space-y-2" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
+    <div className="home-page space-y-2 sm:space-y-4" onTouchStart={startLongPress} onTouchMove={handleLongPressMove}
       onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onMouseDown={startLongPress}
       onMouseMove={handleLongPressMove} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
     >
