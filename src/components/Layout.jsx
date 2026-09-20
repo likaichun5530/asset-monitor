@@ -11,16 +11,18 @@ const navItems = [
   { to: '/holdings', label: '持仓', icon: ListIcon },
   { to: '/target', label: '目标', icon: TargetIcon },
   { type: 'label', label: '资产账户' },
-  { to: '/us', label: '美股', icon: StockUpIcon },
-  { to: '/cn', label: 'A股', icon: ChartUpIcon },
-  { to: '/hk', label: '港股', icon: GlobeIcon },
-  { to: '/jp', label: '日股', icon: SunIcon },
-  { to: '/gold', label: '黄金', icon: GoldIcon },
-  { to: '/bond', label: '基金', icon: ShieldIcon },
-  { to: '/crypto', label: '虚拟币', icon: BitcoinIcon },
-  { to: '/future', label: '期货', icon: ZapIcon },
-  { to: '/cash', label: '现金', icon: WalletIcon },
+  { to: '/us', label: '美股', icon: StockUpIcon, group: 'assets' },
+  { to: '/cn', label: 'A股', icon: ChartUpIcon, group: 'assets' },
+  { to: '/hk', label: '港股', icon: GlobeIcon, group: 'assets' },
+  { to: '/jp', label: '日股', icon: SunIcon, group: 'assets' },
+  { to: '/gold', label: '黄金', icon: GoldIcon, group: 'assets' },
+  { to: '/bond', label: '基金', icon: ShieldIcon, group: 'assets' },
+  { to: '/crypto', label: '虚拟币', icon: BitcoinIcon, group: 'assets' },
+  { to: '/future', label: '期货', icon: ZapIcon, group: 'assets' },
+  { to: '/cash', label: '现金', icon: WalletIcon, group: 'assets' },
 ]
+
+const assetRoutes = new Set(navItems.filter((item) => item.group === 'assets').map((item) => item.to))
 
 const pageTitles = {
   '/': '总览',
@@ -125,6 +127,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const isMobileDetailPage = mobileDetailPages.has(location.pathname)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [assetMenuOpen, setAssetMenuOpen] = useState(() => assetRoutes.has(location.pathname))
   const [aiEnabled, setAiEnabled] = useState(isAiEnabled)
   const [aiOpenRequest, setAiOpenRequest] = useState(0)
   const contentRef = useRef(null)
@@ -136,6 +139,10 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const THRESHOLD = 50
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
   const showAiButton = aiEnabled && auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
+
+  useEffect(() => {
+    if (assetRoutes.has(location.pathname)) setAssetMenuOpen(true)
+  }, [location.pathname])
 
   useEffect(() => {
     const syncAiSetting = (event) => setAiEnabled(Boolean(event.detail?.enabled))
@@ -258,8 +265,8 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       <aside className="desktop-sidebar sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col overflow-y-auto border-r border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 sm:flex">
         <div className="desktop-brand flex h-20 items-center px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="desktop-brand-mark relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-white dark:bg-slate-900">
-              <img src="/icon.png" alt="有数 App Logo" className="absolute left-1/2 top-1/2 h-[76px] w-[76px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain" />
+            <span className="desktop-brand-mark flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-0.5 dark:bg-slate-900">
+              <img src="/icon.png" alt="有数 App Logo" className="h-full w-full object-contain" />
             </span>
             <div className="min-w-0">
               <div className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-slate-950 dark:text-white">有数</div>
@@ -269,10 +276,17 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         </div>
         <nav className="flex-1 space-y-1 px-3 pb-5 pt-2">
           {navItems.map((item, i) => {
+            if (item.type === 'label' && item.label === '资产账户') return (
+              <button key={`${item.label}-${i}`} type="button" onClick={() => setAssetMenuOpen((open) => !open)} aria-expanded={assetMenuOpen} className="mt-3 flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold tracking-[0.12em] text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-white/[0.04] dark:hover:text-slate-400">
+                <span>{item.label}</span>
+                <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${assetMenuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+            )
             if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-5 text-[11px] font-semibold tracking-[0.12em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
+            if (item.group === 'assets' && !assetMenuOpen) return null
             const Icon = item.icon
             return (
-              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 ${isActive ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800 dark:text-white dark:ring-white/10' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
+              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 ${item.group === 'assets' ? 'ml-1' : ''} ${isActive ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800 dark:text-white dark:ring-white/10' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
                 {({ isActive }) => (
                   <>
                     <span className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400' : 'bg-slate-200/55 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 dark:bg-white/[0.05] dark:text-slate-500'}`}><Icon className="h-[17px] w-[17px] shrink-0" /></span>

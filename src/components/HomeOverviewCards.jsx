@@ -89,20 +89,20 @@ export function CurrencyCard({ refreshKey = 0 }) {
   }, [pieData])
 
   return (
-    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
+    <div className="card currency-card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="text-base font-semibold text-gray-800 dark:text-gray-200">货币比例</div>
-      <div className="flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
-        <svg viewBox="0 0 128 128" className="h-24 w-24 shrink-0">
+      <div className="currency-card-content flex-1 flex flex-col justify-center items-center gap-2 min-h-0">
+        <svg viewBox="0 0 128 128" className="currency-ring h-24 w-24 shrink-0">
           <circle cx="64" cy="64" r="46" fill="none" strokeWidth="22" className="stroke-gray-200 dark:stroke-gray-700" />
           {ring.length === 1
             ? <circle cx="64" cy="64" r="46" fill="none" stroke={ring[0].color} strokeWidth="22" />
             : ring.map((segment, index) => <path key={index} d={ringSegmentPath(segment.startAngle, segment.endAngle)} fill={segment.color} />)}
         </svg>
-        <div className="-mx-2 grid w-[calc(100%+16px)] shrink-0 grid-cols-[max-content_max-content] justify-center gap-x-4 gap-y-0 leading-[14px]">
+        <div className="currency-legend -mx-2 grid w-[calc(100%+16px)] shrink-0 grid-cols-[max-content_max-content] justify-center gap-x-4 gap-y-0 leading-[14px]">
           {pieData.map((item) => (
-            <div key={item.name} className="flex h-[14px] items-center gap-1 text-xs font-medium">
+            <div key={item.name} className="currency-legend-item flex h-[14px] items-center gap-1 text-xs font-medium">
               <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-gray-600 dark:text-gray-400">
-                <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: item.color }} />
+                <span className="currency-legend-dot w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: item.color }} />
                 <span>{item.name}</span>
               </span>
               <span className="text-gray-800 dark:text-gray-200 font-medium shrink-0">{Math.round(item.ratio)}%</span>
@@ -238,16 +238,16 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0, isRefreshing 
   const markerPosition = Math.min(98.5, Math.max(1.5, marginRiskMarkerPosition(futureUsageRate)))
   return (
     <>
-    <div className="card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
+    <div className="card health-card w-full h-[200px] flex flex-col px-3 pt-2 pb-2 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div><div className="text-base font-semibold text-gray-800 dark:text-gray-200">账户健康度</div>{healthScore.dataWarnings.length > 0 && <div className="text-[10px] text-amber-600">评分数据不完整</div>}</div>
         <button type="button" onClick={() => setScoreDialogOpen(true)} disabled={!scoreReady} className="font-num flex shrink-0 items-baseline rounded-lg bg-transparent px-1 py-0.5 text-gray-900 [-webkit-tap-highlight-color:transparent] disabled:cursor-default dark:text-gray-100" title="查看账户健康度扣分细则" aria-label={scoreReady ? `账户健康度 ${healthScore.score} 分，点击查看扣分细则` : '账户健康度加载中'}>
-          <span className="text-[36px] font-medium leading-none">{displayScore ?? '--'}</span>{scoreReady && <span className="ml-0.5 text-[11px] font-medium">分</span>}
+          <span className="health-score text-[36px] font-medium leading-none">{displayScore ?? '--'}</span>{scoreReady && <span className="health-score-unit ml-0.5 text-[11px] font-medium">分</span>}
         </button>
       </div>
-      <div className="mt-[14px] flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
-        <div className="leading-4"><span>减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
-        <div className="leading-4"><span>加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
+      <div className="health-card-content mt-[14px] flex flex-1 flex-col text-xs font-medium text-gray-600 dark:text-gray-300">
+        <div className="health-allocation-row leading-4"><span>减持：</span>{overCategories.length ? overCategories.map((category, index) => <span key={category} className="text-red-500 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
+        <div className="health-allocation-row leading-4"><span>加仓：</span>{underCategories.length ? underCategories.map((category, index) => <span key={category} className="text-green-600 font-medium">{index > 0 ? '、' : ''}{category}</span>) : <span className="text-gray-400">无</span>}</div>
         <div className="my-4 border-t border-gray-100" />
         <div className="flex -translate-y-1.5 items-center justify-between">
           <span>期货保证金</span>

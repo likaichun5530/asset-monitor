@@ -145,16 +145,18 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
     return Array.from(set).sort()
   }, [history])
 
-  // 生成完整 42 格日历（月初含上月、月末含下月）
+  // 按月份实际需要生成 5 或 6 行，避免能放进 5 行的月份多出空白行。
   const monthData = useMemo(() => {
     const firstDay = new Date(viewYear, viewMonth, 1)
     const firstWeekday = firstDay.getDay() // 0=周日
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+    const cellCount = firstWeekday + daysInMonth <= 35 ? 35 : 42
 
     // 日历起始日期 = 本月1号往前数 firstWeekday 天
     const startDate = new Date(viewYear, viewMonth, 1 - firstWeekday)
 
     const days = []
-    for (let i = 0; i < 42; i++) {
+    for (let i = 0; i < cellCount; i++) {
       const date = new Date(startDate)
       date.setDate(startDate.getDate() + i)
       const ds = toDateStr(date)
@@ -402,7 +404,7 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
       </div>
 
       {/* 日历网格（无 z 堆叠，避免穿透底部导航栏） */}
-      <div className="grid grid-cols-7 gap-[2px]">
+      <div className="calendar-grid grid grid-cols-7 gap-[2px]" data-calendar-rows={monthData.length / 7}>
         {WEEKDAY_HEADERS.map((w) => (
           <div key={w} className="calendar-weekday text-center text-[10px] text-gray-400 py-[2px]">{w}</div>
         ))}
@@ -423,13 +425,11 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
               onClick={() => handleDayClick(dayInfo)}
               className={`calendar-day-cell aspect-square flex flex-col items-center justify-center rounded cursor-pointer transition-colors ${cellBg} ${isSelected ? 'ring-2 ring-brand-500' : ''} hover:ring-1 hover:ring-gray-300 relative overflow-hidden ${!dayInfo.isCurrentMonth ? 'opacity-60' : ''}`}
             >
-              {/* 右上角日期数字 */}
-              <span className={`calendar-date absolute top-1.5 right-1.5 text-sm ${!dayInfo.hasTotal ? 'text-gray-300' : isUp ? 'text-red-600' : isDown ? 'text-green-600' : 'text-gray-500'}`}>
+              <span className={`calendar-date text-sm ${!dayInfo.hasTotal ? 'text-gray-300' : isUp ? 'text-red-600' : isDown ? 'text-green-600' : 'text-gray-500'}`}>
                 {isToday ? '今' : dayInfo.day}
               </span>
-              {/* 底部涨跌金额/比例 */}
               {hasChange && (
-                <span className={`calendar-change absolute bottom-1.5 left-0 right-0 text-center text-[10px] leading-none font-medium ${isUp ? 'text-red-500' : 'text-green-600'}`}>
+                <span className={`calendar-change text-center text-[10px] leading-none font-medium ${isUp ? 'text-red-500' : 'text-green-600'}`}>
                   {displayMode === 'amount' ? formatChangeShort(dayInfo.change) : formatChangePct(dayInfo.changePct)}
                 </span>
               )}

@@ -531,7 +531,9 @@ html.dark body {
     padding: 5px 10px;
   }
   .home-card-key-calendar .calendar-day-cell {
-    height: 34px;
+    height: 40px;
+    gap: 2px;
+    padding: 4px 2px;
   }
   .home-card-key-calendar .calendar-weekday {
     font-size: 11px;
@@ -539,24 +541,67 @@ html.dark body {
   }
   .home-card-key-calendar .calendar-date {
     font-size: 13px;
-    line-height: 16px;
+    line-height: 15px;
   }
   .home-card-key-calendar .calendar-change {
     max-width: 100%;
     overflow: hidden;
     padding: 0 2px;
     font-size: 10px;
-    line-height: 11px;
+    line-height: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .home-card-key-health .margin-risk-labels {
-    font-size: 11px;
-    line-height: 14px;
+  .home-card-key-calendar .calendar-grid[data-calendar-rows="6"] .calendar-day-cell {
+    height: 32px;
+    gap: 0;
+    padding-top: 2px;
+    padding-bottom: 2px;
   }
-  .home-card-key-currency svg[viewBox="0 0 128 128"] {
-    width: 120px;
-    height: 120px;
+  .home-card-key-health .margin-risk-labels {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .home-card-key-currency .currency-card-content {
+    gap: 12px;
+  }
+  .home-card-key-currency .currency-ring {
+    width: 148px;
+    height: 148px;
+  }
+  .home-card-key-currency .currency-legend {
+    column-gap: 20px;
+    row-gap: 4px;
+    line-height: 20px;
+  }
+  .home-card-key-currency .currency-legend-item {
+    height: 20px;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .home-card-key-currency .currency-legend-dot {
+    width: 10px;
+    height: 10px;
+  }
+  .home-card-key-health .health-score {
+    font-size: 42px;
+  }
+  .home-card-key-health .health-score-unit {
+    font-size: 14px;
+  }
+  .home-card-key-health .health-card-content {
+    margin-top: 18px;
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .home-card-key-health .health-allocation-row {
+    line-height: 22px;
+  }
+  .home-card-key-health .health-card-content > .border-t {
+    margin-top: 18px;
+    margin-bottom: 18px;
   }
   html.dark .home-hero-composite {
     border-color: #374151;
