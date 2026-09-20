@@ -149,7 +149,7 @@ export default function TrendChart({ refreshKey = 0 }) {
           ))}
         </div>
       </div>
-      <div className="w-full h-[160px] lg:h-[255px]">
+      <div className="trend-chart-canvas w-full h-[160px] lg:h-[255px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 24, right: 12, bottom: 0, left: 0 }}>
             <defs>

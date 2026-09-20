@@ -37,14 +37,14 @@ export function StatMini({ label, change, changePct, valuesHidden = false }) {
       ? 'bg-gradient-to-b from-green-100/90 via-green-50/60 to-green-50/25 dark:from-green-500/[0.20] dark:via-green-500/[0.10] dark:to-green-500/[0.04]'
       : ''
   return (
-    <div className={`card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
+    <div className={`card home-stat-card w-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left p-2 sm:p-5 min-h-[85px] sm:min-h-[132px] ${cardGradient}`}>
       <div className="relative flex w-full items-center justify-center">
-        <div className="text-center text-xs font-medium text-gray-500">{label}</div>
+        <div className="home-stat-label text-center text-xs font-medium text-gray-500">{label}</div>
         <span className={`absolute right-0 hidden h-2 w-2 rounded-full sm:block ${isUp ? 'bg-red-400' : isDown ? 'bg-green-500' : 'bg-slate-300'}`} />
       </div>
-      <div className={`font-num mt-2 text-base font-medium sm:mt-3 ${color}`}>{valuesHidden ? '******' : formatChange(change)}</div>
+      <div className={`home-stat-value font-num mt-2 text-base font-medium sm:mt-3 ${color}`}>{valuesHidden ? '******' : formatChange(change)}</div>
       <div className="mt-2 flex items-center gap-1.5">
-        <span className={`font-num inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs font-medium ${bg} ${color}`}>
+        <span className={`home-stat-badge font-num inline-flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded sm:rounded-lg text-xs font-medium ${bg} ${color}`}>
           {!valuesHidden && isUp && <span>▲</span>} {!valuesHidden && isDown && <span>▼</span>} {valuesHidden ? '******' : formatPercent(Math.abs(changePct))}
         </span>
       </div>
@@ -260,7 +260,7 @@ export function HealthCard({ refreshKey = 0, targetRefreshKey = 0, isRefreshing 
             <span className="flex-1 bg-amber-400" />
             <span className="flex-1 bg-red-500" />
           </div>
-          <div className="font-num-regular mt-1 flex text-[9px] leading-none text-gray-400">
+          <div className="margin-risk-labels font-num-regular mt-1 flex text-[9px] leading-none text-gray-400">
             <span className="flex-1 text-left">安全 ≤70%</span>
             <span className="flex-1 text-center">警戒 70–75%</span>
             <span className="flex-1 text-right">危险 &gt;75%</span>

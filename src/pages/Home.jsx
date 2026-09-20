@@ -291,7 +291,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat mb-2 w-1/3 px-1 sm:w-1/2 lg:w-1/4 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-stat mb-2 w-1/3 px-1 sm:w-1/2 lg:w-1/4 home-card-key-${key} ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
                 <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -303,7 +303,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
           }
           if (HALF_KEYS.includes(key)) {
             return (
-              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact mb-2 w-1/2 px-1 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+              <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-compact mb-2 w-1/2 px-1 home-card-key-${key} ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
                 <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                   {editMode && (
                     <button onClick={() => toggleCard(key)} className="absolute top-1 right-1 z-20 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600">−</button>
@@ -314,7 +314,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
             )
           }
           return (
-            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis mb-2 w-full px-1 lg:w-1/2 ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
+            <div key={key} data-id={key} data-pull-refresh-ignore={editMode ? 'true' : undefined} className={`home-card-slot home-card-slot-analysis mb-2 w-full px-1 lg:w-1/2 home-card-key-${key} ${editMode ? 'home-card-sortable cursor-grab active:cursor-grabbing' : ''}`}>
               <div className={`relative w-full ${editMode ? 'home-card-wobble' : ''}`}>
                 {editMode && (
                   <button onClick={() => toggleCard(key)} className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-red-500 text-white text-sm flex items-center justify-center shadow hover:bg-red-600">−</button>

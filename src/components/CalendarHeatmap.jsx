@@ -404,7 +404,7 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
       {/* 日历网格（无 z 堆叠，避免穿透底部导航栏） */}
       <div className="grid grid-cols-7 gap-[2px]">
         {WEEKDAY_HEADERS.map((w) => (
-          <div key={w} className="text-center text-[10px] text-gray-400 py-[2px]">{w}</div>
+          <div key={w} className="calendar-weekday text-center text-[10px] text-gray-400 py-[2px]">{w}</div>
         ))}
         {monthData.map((dayInfo) => {
           const isUp = dayInfo.change > 0
@@ -429,7 +429,7 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
               </span>
               {/* 底部涨跌金额/比例 */}
               {hasChange && (
-                <span className={`absolute bottom-1.5 left-0 right-0 text-center text-[10px] leading-none font-medium ${isUp ? 'text-red-500' : 'text-green-600'}`}>
+                <span className={`calendar-change absolute bottom-1.5 left-0 right-0 text-center text-[10px] leading-none font-medium ${isUp ? 'text-red-500' : 'text-green-600'}`}>
                   {displayMode === 'amount' ? formatChangeShort(dayInfo.change) : formatChangePct(dayInfo.changePct)}
                 </span>
               )}
