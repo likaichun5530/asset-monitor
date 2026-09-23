@@ -239,10 +239,10 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
         delete document.body.dataset.sortableDragging
         const visibleKeys = sortInstance.current?.toArray() || []
         setCardOrder((previous) => {
-          const expectedCount = previous.filter((key) => cardConfigRef.current[key] && key !== 'trend').length
+          const expectedCount = previous.filter((key) => cardConfigRef.current[key] && (!isDesktopLayout || key !== 'trend')).length
           if (visibleKeys.length !== expectedCount) return previous
           let visibleIndex = 0
-          const result = previous.map((key) => cardConfigRef.current[key] && key !== 'trend' ? visibleKeys[visibleIndex++] : key)
+          const result = previous.map((key) => cardConfigRef.current[key] && (!isDesktopLayout || key !== 'trend') ? visibleKeys[visibleIndex++] : key)
           writeCardOrder(result)
           return result
         })
@@ -254,7 +254,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
       delete document.body.dataset.sortableDragging
       if (sortInstance.current) { sortInstance.current.destroy(); sortInstance.current = null }
     }
-  }, [editMode])
+  }, [editMode, isDesktopLayout])
 
   function getStat(key) {
     switch (key) { case 'change7d': return c7; case 'change30d': return c30; case 'changeYtd': return ytd; case 'drawdown': return settledDrawdown; default: return null }
@@ -304,21 +304,20 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
             onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
           />
         </div>
-        {!isDesktopLayout && <SubscriptionTicker refreshKey={refreshKey} />}
-        {cardConfig.trend && (
+        {isDesktopLayout && cardConfig.trend && (
           <div className="home-hero-trend relative">
             {editMode && (
               <button onClick={() => toggleCard('trend')} className="absolute right-2 top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white shadow hover:bg-red-600">−</button>
             )}
-            <TrendChart refreshKey={refreshKey} embedded hideYAxis={isDesktopLayout} />
+            <TrendChart refreshKey={refreshKey} embedded />
           </div>
         )}
       </div>
 
-      {isDesktopLayout && <SubscriptionTicker refreshKey={refreshKey} />}
+      <SubscriptionTicker refreshKey={refreshKey} />
 
       <div ref={sortRef} className="home-card-grid -mx-1 flex flex-wrap items-stretch">
-        {visibleItems.filter((key) => key !== 'trend').map((key) => {
+        {visibleItems.filter((key) => !isDesktopLayout || key !== 'trend').map((key) => {
           if (STAT_KEYS.includes(key)) {
             const s = getStat(key)
             return s ? (

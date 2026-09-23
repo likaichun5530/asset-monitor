@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.5.37 — 2026-09-23 已发布
+
+- 部署：dpl_6Eg96RFRCU69vgss4ejzrqnFcLey，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机端资产趋势恢复为完整的普通卡片，重新显示“资产趋势”标题和左侧纵坐标。
+- 手机端资产趋势重新加入卡片编辑列表，可拖动排序、隐藏和恢复；桌面端继续固定嵌入总资产卡片右侧。
+
 ## 2.5.36 — 2026-09-23 已发布
 
 - 部署：dpl_4ntk6FjhSu7fSvboY81bG7GRd4ox，READY，已绑定 https://asset.kenny5530.asia 。
