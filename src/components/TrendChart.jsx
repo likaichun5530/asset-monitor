@@ -24,7 +24,7 @@ function toWanNum(v) {
   return (Number(v) / 10000).toFixed(0)
 }
 
-export default function TrendChart({ refreshKey = 0, embedded = false }) {
+export default function TrendChart({ refreshKey = 0, embedded = false, hideYAxis = embedded }) {
   const [range, setRange] = useState('1m')
 
   const allData = useMemo(() => getHistory(), [refreshKey])
@@ -169,7 +169,7 @@ export default function TrendChart({ refreshKey = 0, embedded = false }) {
               tickLine={false}
               axisLine={{ stroke: '#e2e8f0' }}
             />
-            {embedded ? (
+            {hideYAxis ? (
               <YAxis hide domain={yDomain} width={0} />
             ) : (
               <YAxis

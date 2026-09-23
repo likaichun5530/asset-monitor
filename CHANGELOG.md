@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.5.36 — 2026-09-23 已发布
+
+- 部署：dpl_4ntk6FjhSu7fSvboY81bG7GRd4ox，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 修复手机首页“今日打新”被排到资产趋势之后的问题，恢复为总资产卡片之后、资产趋势之前。
+- 恢复手机资产趋势图左侧纵坐标；桌面组合卡片继续隐藏纵坐标，保持当前紧凑布局。
+
 ## 2.5.35 — 2026-09-20 已发布
 
 - 部署：dpl_AhJ8LisHaRjJ3wzY2BxB515AGSzE，READY，已绑定 https://asset.kenny5530.asia 。

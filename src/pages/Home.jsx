@@ -55,6 +55,7 @@ function readCardOrder() {
 function writeCardOrder(o) { try { localStorage.setItem(ORDER_KEY, JSON.stringify(o)) } catch {} }
 function readPrivacyMode() { try { return localStorage.getItem(PRIVACY_KEY) === 'true' } catch { return false } }
 function writePrivacyMode(hidden) { try { localStorage.setItem(PRIVACY_KEY, String(hidden)) } catch {} }
+function readDesktopLayout() { return typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches }
 
 const CARD_LABELS = {
   change7d: '近7日盈亏', change30d: '近1月盈亏', changeYtd: '今年盈亏',
@@ -69,6 +70,7 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
   const [valuesHidden, setValuesHidden] = useState(readPrivacyMode)
   const [todayDetailRequest, setTodayDetailRequest] = useState(0)
   const [desktopSidebarActions, setDesktopSidebarActions] = useState(null)
+  const [isDesktopLayout, setIsDesktopLayout] = useState(readDesktopLayout)
   const longPressTimer = useRef(null)
   const sortRef = useRef(null)
   const sortInstance = useRef(null)
@@ -88,6 +90,14 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
   useEffect(() => {
     if (!isRefreshing) setSettledDrawdown(dd)
   }, [dd, isRefreshing])
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)')
+    const syncLayout = () => setIsDesktopLayout(media.matches)
+    syncLayout()
+    media.addEventListener('change', syncLayout)
+    return () => media.removeEventListener('change', syncLayout)
+  }, [])
   const startLongPress = useCallback((e) => {
     if (editMode || e?.target?.closest?.('.recharts-wrapper, button, a, input, [data-home-long-press-ignore]')) return
     const point = e.touches?.[0] || e
@@ -294,17 +304,18 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
             onOpenTodayDetail={() => setTodayDetailRequest((value) => value + 1)}
           />
         </div>
+        {!isDesktopLayout && <SubscriptionTicker refreshKey={refreshKey} />}
         {cardConfig.trend && (
           <div className="home-hero-trend relative">
             {editMode && (
               <button onClick={() => toggleCard('trend')} className="absolute right-2 top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-sm text-white shadow hover:bg-red-600">−</button>
             )}
-            <TrendChart refreshKey={refreshKey} embedded />
+            <TrendChart refreshKey={refreshKey} embedded hideYAxis={isDesktopLayout} />
           </div>
         )}
       </div>
 
-      <SubscriptionTicker refreshKey={refreshKey} />
+      {isDesktopLayout && <SubscriptionTicker refreshKey={refreshKey} />}
 
       <div ref={sortRef} className="home-card-grid -mx-1 flex flex-wrap items-stretch">
         {visibleItems.filter((key) => key !== 'trend').map((key) => {
