@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.6.0 — 2026-09-24 已发布
+
+- 部署：dpl_BU6WwTSmtmW8saH5dwcQ4Wh8UxMi，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 将页面状态栏中的“缓存”文案改为“离线”，状态现在明确显示为“在线”或“离线”。
+
 ## 2.5.37 — 2026-09-23 已发布
 
 - 部署：dpl_6Eg96RFRCU69vgss4ejzrqnFcLey，READY，已绑定 https://asset.kenny5530.asia 。

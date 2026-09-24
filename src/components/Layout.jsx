@@ -64,7 +64,7 @@ function SettingsIcon({ className }) { return <svg className={className} viewBox
 
 const sourceLabels = {
   online: '在线',
-  cache: '缓存',
+  cache: '离线',
   demo: '演示',
   empty: '无数据',
 }
