@@ -28,8 +28,14 @@
     <title>有数</title>
   </head>
   <body>
-    <style>*{margin:0;padding:0}</style>
-    <div id="root"></div>
+    <style>
+      *{margin:0;padding:0}
+      #app-boot-shell{box-sizing:border-box;min-height:100%;background:#f9fafb;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+      #app-boot-shell>div{display:flex;height:48px;align-items:center;padding:0 16px;font-size:24px;font-weight:700}
+      html.dark #app-boot-shell{background:#111827;color:#e5e7eb}
+      @media(min-width:640px){#app-boot-shell>div{display:none}}
+    </style>
+    <div id="root"><div id="app-boot-shell" aria-hidden="true"><div>总览</div></div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

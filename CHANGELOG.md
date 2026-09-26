@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.6.6 — 2026-09-27 已发布
+
+- 部署：dpl_Cve2BLydwWszmF8uGKM7Y9GfvRXm，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 在 React 和图表代码执行前直接绘制与手机首页顶部一致的轻量启动壳，让 Android Chrome PWA 完整退出后再次启动时更早结束系统启动画面。
+- 启动壳同步支持白天与暗夜背景，React 首帧完成后自动替换，不参与业务数据加载。
+
 ## 2.6.5 — 2026-09-26 已发布
 
 - 部署：dpl_Myd21fpMJukKmcaxuz3JnvtnEdFk，READY，已绑定 https://asset.kenny5530.asia 。
