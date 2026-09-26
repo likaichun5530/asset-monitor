@@ -1,6 +1,6 @@
 # 项目现状与审查记录
 
-更新日期：2026-09-24。最近一次完整项目审查覆盖前后端引用、依赖、静态资源、原生工程遗留、构建与部署配置、自动化测试和项目文档；本次状态文案调整未访问实盘表格或执行资产数据写入。
+更新日期：2026-09-26。最近一次完整项目审查覆盖前后端引用、依赖、静态资源、原生工程遗留、构建与部署配置、自动化测试和项目文档；本次手机总览样式调整未访问实盘表格或执行资产数据写入。
 
 ## 版本与环境
 
@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.6.0，已部署；状态栏由“在线 / 缓存”调整为“在线 / 离线” |
-| 最近已确认生产版本 | 2.6.0 |
-| 最近已确认部署 | dpl_BU6WwTSmtmW8saH5dwcQ4Wh8UxMi，READY，已绑定生产域名 |
-| 最近已确认 Git 提交 | 本文件所在的 2.6.0 发布提交；前一版本 05f978f |
+| 本地版本 | 2.6.1，已部署；手机总资产区域与总览标题栏使用连续背景 |
+| 最近已确认生产版本 | 2.6.1 |
+| 最近已确认部署 | dpl_BqCgsLgGxTQHL5gdHyAU2ohj1jbw，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.6.1 本地发布提交；最近已推送提交 756dd52 |
 | 用户使用方式 | Android Chrome 添加到主屏幕的 PWA |
-| Android 原生 | Capacitor 8；本地 versionName 2.6.0 / versionCode 156；本批次未构建 APK |
+| Android 原生 | Capacitor 8；本地 versionName 2.6.1 / versionCode 157；本批次未构建 APK |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则

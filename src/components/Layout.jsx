@@ -321,7 +321,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       {/* 主内容区 */}
       <div className="desktop-workspace flex min-w-0 flex-1 flex-col bg-gray-50 sm:bg-[#f5f7fa] dark:bg-gray-900">
         {/* 移动端顶部栏 */}
-        <header className="mobile-topbar sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700">
+        <header className={`mobile-topbar ${pagePath === '/' ? 'mobile-home-topbar' : ''} sm:hidden sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-100 dark:border-gray-700`}>
           {settingsSectionTitle ? (
             <div className="relative flex h-12 items-center justify-center px-4">
               <NavLink to="/settings" replace className="absolute left-2 flex items-center rounded-lg p-2 text-gray-900 dark:text-gray-100" aria-label="返回设置一级菜单">
@@ -371,7 +371,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
-            <main className="desktop-content mx-auto px-3 pt-2 pb-24 w-full max-w-[1560px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pt-6">
+            <main className={`desktop-content ${pagePath === '/' ? 'mobile-home-content' : ''} mx-auto px-3 pt-2 pb-24 w-full max-w-[1560px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pt-6`}>
               <div className="desktop-page-shell"><Outlet /></div>
             </main>
           </div>

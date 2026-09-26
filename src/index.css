@@ -646,6 +646,36 @@ html.dark body {
 }
 
 @media (max-width: 639px) {
+  .mobile-topbar.mobile-home-topbar {
+    border-bottom-color: transparent;
+    background: #fff;
+    backdrop-filter: none;
+  }
+  .mobile-home-content {
+    padding-top: 0;
+  }
+  .mobile-home-content .home-hero-composite {
+    margin-right: -0.75rem;
+    margin-left: -0.75rem;
+  }
+  .mobile-home-content .home-hero-card,
+  .mobile-home-content .home-hero-card:hover {
+    min-height: 112px;
+    padding: 14px 16px 18px;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    background-image: none;
+    box-shadow: none;
+  }
+  html.dark .mobile-topbar.mobile-home-topbar,
+  html.dark .mobile-home-content .home-hero-card,
+  html.dark .mobile-home-content .home-hero-card:hover {
+    border-color: transparent;
+    background: #111827;
+    background-image: none;
+    box-shadow: none;
+  }
   .market-page {
     gap: 12px;
   }

@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.6.1 — 2026-09-26 已发布
+
+- 部署：dpl_BqCgsLgGxTQHL5gdHyAU2ohj1jbw，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机总览移除总资产卡片的圆角、边框和阴影，并让总资产区域全宽连接顶部“总览”标题栏。
+- 手机顶部总资产区域白天使用纯白背景，暗夜使用页面深色背景；桌面总资产组合卡片保持不变。
+
 ## 2.6.0 — 2026-09-24 已发布
 
 - 部署：dpl_BU6WwTSmtmW8saH5dwcQ4Wh8UxMi，READY，已绑定 https://asset.kenny5530.asia 。
