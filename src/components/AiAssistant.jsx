@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import ShushuIcon from './ShushuIcon.jsx'
+import AiMark from './AiMark.jsx'
 import {
   AI_MESSAGES_KEY,
   AI_MESSAGES_CLEARED_EVENT,
@@ -336,7 +336,7 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
           <section role="dialog" aria-modal="true" aria-label="薯薯AI助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center"><ShushuIcon className="h-9 w-9" /></span>
+                <AiMark />
                 <div>
                   <div className="text-base font-semibold text-gray-900 dark:text-gray-100">薯薯AI助手</div>
                   <div className="text-[10px] text-gray-400">{actualModel ? `${actualModel}${dataAsOf ? ` · 数据截至 ${dataAsOf}` : ''}` : '发送问题时读取最新资产数据'}</div>

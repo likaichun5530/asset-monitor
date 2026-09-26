@@ -93,7 +93,7 @@ vercel --prod
 
 未经用户明确要求不执行 `git push`。快速定位文件、分级验证和完整发布步骤分别见 [维护地图](docs/MAINTENANCE_MAP.md) 与 [最小成本发布流程](docs/RELEASE_RUNBOOK.md)。
 
-同域部署不需要 `VITE_API_BASE`；独立前端或 APK 需在构建前设置它指向实际 API。项目使用 HashRouter，页面路由不依赖服务端回退。PWA 的 `public/manifest.webmanifest` 是唯一 manifest，故意不设置 theme_color；系统栏交给系统与浏览器处理，页面主题独立切换。
+同域部署不需要 `VITE_API_BASE`；独立前端或 APK 需在构建前设置它指向实际 API。项目使用 HashRouter，页面路由不依赖服务端回退。PWA 的 `public/manifest.webmanifest` 是唯一 manifest，以白色 `theme_color` 作为首次启动的回退色；页面在首屏脚本执行前按已保存的应用主题同步系统栏颜色。
 
 | 目录 | 职责 |
 | --- | --- |
@@ -103,7 +103,7 @@ vercel --prod
 | `shared/` | 前后端共用的资产分类和配置偏差规则 |
 | `api/` | 生产 API；下划线模块为共享实现 |
 | `server/` | 本地 Express 容器，无独立业务实现 |
-| `public/` | 正在使用的应用图标、品牌图、助手头像和 manifest |
+| `public/` | 正在使用的应用图标、品牌图和 manifest |
 | `android/` | Capacitor 原生项目；发布 Web 不更新 APK |
 | `scripts/`、`test/` | 版本同步与自动化验证 |
 | `docs/` | 故障定位地图与最小成本发布流程 |

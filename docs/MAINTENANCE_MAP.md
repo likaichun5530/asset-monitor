@@ -56,7 +56,7 @@ node --test test/对应测试.test.js
 | 现象 | 首查文件 | 再查 |
 | --- | --- | --- |
 | 顶栏、侧栏、底部导航、在线 / 离线、用户名 | `Layout.jsx` | `index.css`、`useAssetData.js`、`assetDataStatus.js` |
-| 手机状态栏颜色 | `Settings.jsx` 的 `syncNativeStatusBar` | `public/manifest.webmanifest`、`capacitor.config.json`、`AGENTS.md` 的平台约束 |
+| 手机状态栏颜色 | PWA：`index.html` 首屏主题脚本；原生：`Settings.jsx` 的 `syncNativeStatusBar` | `public/manifest.webmanifest`、`capacitor.config.json`、`AGENTS.md` 的平台约束 |
 | 首页卡片顺序错误或不能拖动 | `Home.jsx` | `cardSort.js`、`test/cardSort.test.js`、`test/homeCardEditing.test.js` |
 | 首页切页后闪动 | 对应卡片组件的初始 state / 模块缓存 | `useAssetData.js`、`dataStore.js`、`snapshot.js` |
 | 总资产、盈亏、回撤错误 | `asset.js` | `snapshot.js`、`test/todayChange.test.js` |

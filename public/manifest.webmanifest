@@ -4,6 +4,7 @@
   "short_name": "有数",
   "description": "资产配置，心里有数",
   "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "display": "standalone",
   "orientation": "portrait",
   "start_url": "/",

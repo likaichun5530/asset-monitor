@@ -33,7 +33,7 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
               </svg>
             </button>
           </div>
-          <div className="font-num mt-1 whitespace-nowrap text-[28px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3">
+          <div className="font-num mt-1.5 whitespace-nowrap text-[28px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3">
             {valuesHidden ? '******' : formatNumber(total)}
           </div>
           <div className="font-num-regular mt-1.5 text-xs text-gray-400 sm:mt-3">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>

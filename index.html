@@ -5,6 +5,7 @@
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="有数" />
@@ -14,6 +15,7 @@
         try {
           var t = localStorage.getItem('youshu-theme')
           var isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.querySelector('meta[name="theme-color"]').content = isDark ? '#1f2937' : '#ffffff'
           document.querySelector('meta[name="color-scheme"]').content = isDark ? 'dark' : 'light'
           document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
           if (isDark) {
