@@ -7,11 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.png', 'Transparent-Chinese.png', 'white-Chinese.png', 'manifest.webmanifest'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],
       },
-      // The static manifest intentionally omits theme_color so installed PWAs follow system UI.
+      // 使用 public 中的唯一 manifest，避免插件再生成一份。
       manifest: false,
     }),
   ],
@@ -21,5 +20,13 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'chart-vendor': ['recharts'],
+        },
+      },
+    },
   },
 })

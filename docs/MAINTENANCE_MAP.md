@@ -69,7 +69,7 @@ node --test test/对应测试.test.js
 | 行情或期货不刷新 | `Market.jsx` / `Future.jsx` | `quoteData.js`、`useVisiblePolling.js`、对应 API |
 | 登录失效、401、密码修改 | `useAuth.js`、`api.js` | `api/_auth.js`、`_auth-config.js`、`_password.js`、`_pwned-password.js` |
 | AI 入口、模型、对话、流式响应 | `Layout.jsx`、`AiAssistant.jsx`、`ai.js` | `api/ai-chat.js`、`_ai-provider.js`、`_ai-stream.js`、模型供应商文件 |
-| PWA 更新、图标、离线壳 | `vite.config.js`、`public/manifest.webmanifest` | `public/`、浏览器 Service Worker |
+| PWA 更新、图标、离线壳、启动缓存 | `vite.config.js`、`public/manifest.webmanifest`、`vercel.json` | `public/`、浏览器 Service Worker、`test/startupPerformance.test.js` |
 | Android 状态栏、键盘、安全区 | `capacitor.config.json`、`android/.../MainActivity.java` | `index.css`、`AppDialog.jsx`、`PACKAGING.md` |
 | Vercel 发布或 Cron | `vercel.json` | `api/snapshot-auto.js`、`docs/RELEASE_RUNBOOK.md` |
 

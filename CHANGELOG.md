@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.6.5 — 2026-09-26 已发布
+
+- 部署：dpl_Myd21fpMJukKmcaxuz3JnvtnEdFk，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 将单体首屏脚本拆分为业务代码、React 运行库和图表运行库；后续普通发布可复用稳定依赖缓存，避免每次重新下载整份脚本。
+- 为带内容哈希的 `/assets/` 资源增加一年不可变缓存，并移除 PWA 重复登记的静态资源条目。
+
 ## 2.6.4 — 2026-09-26 已发布
 
 - 部署：dpl_EiiLf1ngwbg1ZQ8m825A2KyfMvTc，READY，已绑定 https://asset.kenny5530.asia 。

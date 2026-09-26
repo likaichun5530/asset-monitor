@@ -95,6 +95,8 @@ vercel --prod
 
 同域部署不需要 `VITE_API_BASE`；独立前端或 APK 需在构建前设置它指向实际 API。项目使用 HashRouter，页面路由不依赖服务端回退。PWA 的 `public/manifest.webmanifest` 是唯一 manifest，以白色 `theme_color` 作为首次启动的回退色；页面在首屏脚本执行前按已保存的应用主题同步系统栏颜色。
 
+生产构建将 React 和图表库拆为稳定依赖包，Vercel 对带内容哈希的 `/assets/` 使用一年不可变缓存。普通界面发布只更新业务包，避免已安装 PWA 反复下载整份运行库。
+
 | 目录 | 职责 |
 | --- | --- |
 | `src/pages/`、`src/components/` | 页面与 UI 组件 |
