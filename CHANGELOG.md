@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.6.2 — 2026-09-26 已发布
+
+- 部署：dpl_CCpF62xUBZdzA4hWrrofQkFFnXd3，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机总览标题栏与总资产区域在白天模式下统一使用页面浅灰背景，暗夜模式保持现有深色背景。
+- 收紧手机总资产区域的上下留白：“总资产（人民币）”距标题栏约 12px，“更新于”距下一块内容约 12px。
+
 ## 2.6.1 — 2026-09-26 已发布
 
 - 部署：dpl_BqCgsLgGxTQHL5gdHyAU2ohj1jbw，READY，已绑定 https://asset.kenny5530.asia 。

@@ -648,7 +648,7 @@ html.dark body {
 @media (max-width: 639px) {
   .mobile-topbar.mobile-home-topbar {
     border-bottom-color: transparent;
-    background: #fff;
+    background: #f9fafb;
     backdrop-filter: none;
   }
   .mobile-home-content {
@@ -660,11 +660,11 @@ html.dark body {
   }
   .mobile-home-content .home-hero-card,
   .mobile-home-content .home-hero-card:hover {
-    min-height: 112px;
-    padding: 14px 16px 18px;
+    min-height: 0;
+    padding: 12px 16px 4px;
     border: 0;
     border-radius: 0;
-    background: #fff;
+    background: #f9fafb;
     background-image: none;
     box-shadow: none;
   }
