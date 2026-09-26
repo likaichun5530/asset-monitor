@@ -1,5 +1,11 @@
 # 发布记录
 
+## 2.6.3 — 2026-09-26 已发布
+
+- 部署：dpl_99KTe1x2FoLZ3D76TnG5PxotQEUk，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 将手机总览“总资产（人民币）”与标题栏之间的距离由约 12px 收紧为约 8px。
+
 ## 2.6.2 — 2026-09-26 已发布
 
 - 部署：dpl_CCpF62xUBZdzA4hWrrofQkFFnXd3，READY，已绑定 https://asset.kenny5530.asia 。

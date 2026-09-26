@@ -661,7 +661,7 @@ html.dark body {
   .mobile-home-content .home-hero-card,
   .mobile-home-content .home-hero-card:hover {
     min-height: 0;
-    padding: 12px 16px 4px;
+    padding: 8px 16px 4px;
     border: 0;
     border-radius: 0;
     background: #f9fafb;
