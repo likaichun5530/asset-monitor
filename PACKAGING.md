@@ -2,7 +2,7 @@
 
 ## 版本与 Web 发布
 
-每批新修改运行 `npm version patch --no-git-tag-version`，同步 Android versionName 并递增 versionCode；随后执行 `npm run version:check`、适用测试和 `npm run build`。更新 CHANGELOG 与 PROJECT_STATUS，同一批部署重试不再次升级。生产发布使用 `vercel --prod`，完整环境配置见 [README](README.md)。
+每批运行代码修改执行 `npm version patch --no-git-tag-version`，同步 Android versionName 并递增 versionCode；纯文档和维护规范不升级、不发布。随后执行 `npm run version:check`、适用测试和 `npm run build`。更新 CHANGELOG 与 PROJECT_STATUS，同一批部署重试不再次升级。生产发布使用 `vercel --prod`，完整环境配置见 [README](README.md)，精简步骤见 [发布流程](docs/RELEASE_RUNBOOK.md)。
 
 ## PWA
 

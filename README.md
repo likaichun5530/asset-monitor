@@ -2,7 +2,7 @@
 
 个人资产管理应用，支持 Web、PWA 和 Capacitor Android。React + Vite + Tailwind CSS + Recharts 构建前端；实盘数据来自 Google Sheets，生产 API 由 Vercel Functions 提供，本地 Express 直接复用相同处理器。
 
-[生产应用](https://asset.kenny5530.asia) · [当前状态与审查记录](PROJECT_STATUS.md) · [发布记录](CHANGELOG.md) · [协作规范](AGENTS.md) · [PWA / Android 打包](PACKAGING.md)
+[生产应用](https://asset.kenny5530.asia) · [维护地图](docs/MAINTENANCE_MAP.md) · [最小成本发布](docs/RELEASE_RUNBOOK.md) · [当前状态与审查记录](PROJECT_STATUS.md) · [发布记录](CHANGELOG.md) · [协作规范](AGENTS.md) · [PWA / Android 打包](PACKAGING.md)
 
 应用版本来自根目录 `package.json`；`server/package.json` 的版本独立于应用版本。
 
@@ -79,7 +79,7 @@ npm run preview      # 预览已构建前端，不启动 API
 
 ## 发布与目录
 
-默认完成修改后部署生产环境、提交并推送 Git，除非用户明确要求不部署。每批新修改递增补丁版本一次：
+运行代码或公开配置修改后默认部署生产环境，除非用户明确要求不部署；纯文档、注释和维护规范不发布。每批运行代码修改递增补丁版本一次：
 
 ```bash
 npm version patch --no-git-tag-version
@@ -90,6 +90,8 @@ vercel --prod
 ```
 
 版本脚本同步根目录锁文件与 Android versionName / versionCode。更新 CHANGELOG 与 PROJECT_STATUS，只有 Vercel 返回 READY 且绑定生产域名才记录已发布；部署失败重试不重复升版本。部署配置见 `vercel.json`。DNS 按 Vercel 项目提供的记录配置。
+
+未经用户明确要求不执行 `git push`。快速定位文件、分级验证和完整发布步骤分别见 [维护地图](docs/MAINTENANCE_MAP.md) 与 [最小成本发布流程](docs/RELEASE_RUNBOOK.md)。
 
 同域部署不需要 `VITE_API_BASE`；独立前端或 APK 需在构建前设置它指向实际 API。项目使用 HashRouter，页面路由不依赖服务端回退。PWA 的 `public/manifest.webmanifest` 是唯一 manifest，故意不设置 theme_color；系统栏交给系统与浏览器处理，页面主题独立切换。
 
@@ -104,5 +106,6 @@ vercel --prod
 | `public/` | 正在使用的应用图标、品牌图、助手头像和 manifest |
 | `android/` | Capacitor 原生项目；发布 Web 不更新 APK |
 | `scripts/`、`test/` | 版本同步与自动化验证 |
+| `docs/` | 故障定位地图与最小成本发布流程 |
 
 当前不提供 Electron 构建流程。历史发布记录保留在 Git 与 CHANGELOG，不作为现行功能说明。
