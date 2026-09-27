@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.6.6，已部署；在 React 执行前增加手机首页轻量启动壳，缩短 Android PWA 系统启动画面停留时间 |
-| 最近已确认生产版本 | 2.6.6 |
-| 最近已确认部署 | dpl_Cve2BLydwWszmF8uGKM7Y9GfvRXm，READY，已绑定生产域名 |
-| 最近已确认 Git 提交 | 本文件所在的 2.6.6 本地发布提交；最近已推送提交 756dd52 |
+| 本地版本 | 2.6.7，已部署；内联完整手机首页骨架并异步加载生产样式，使页面尽快结束 Android PWA 系统启动画面 |
+| 最近已确认生产版本 | 2.6.7 |
+| 最近已确认部署 | dpl_DmrMTJtwzy71kZb52jEbZU7Rwz9G，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.6.7 本地发布提交；最近已推送提交 756dd52 |
 | 用户使用方式 | Android Chrome 添加到主屏幕的 PWA |
-| Android 原生 | Capacitor 8；本地 versionName 2.6.6 / versionCode 162；本批次未构建 APK |
+| Android 原生 | Capacitor 8；本地 versionName 2.6.7 / versionCode 163；本批次未构建 APK |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则
@@ -53,7 +53,7 @@
 
 ## 验证
 
-- 手机视口、4 倍 CPU 限速和约 1.6 Mbps 网络的冷加载测试中，加入 HTML 启动壳后首次内容绘制由约 5.3 秒提前至约 2.0 秒；React 完整首页仍在随后加载。
+- 手机视口、4 倍 CPU 限速和约 1.6 Mbps 网络的冷加载测试中，两阶段首页将首次内容绘制由 2.6.6 的约 2.0 秒提前至约 0.6 秒；完整 CSS 与 React 首页仍在随后加载并接管骨架。
 - 完整退出并重启浏览器进程、复用已安装 Service Worker 缓存的受控测试中，2.5.0 首屏约 228 ms，2.6.4 约 232 ms；未复现应用代码导致的数秒级冷启动回退。真机若仍长时间停留在启动画面，需要按等待期间显示的画面继续区分 Android / Chrome 启动层与网页首帧。
 - 全量 Node 测试 134 项通过；其中部分是源码回归检查，不能替代完整端到端测试。
 - 版本一致性、生产构建通过；PWA 预缓存由 3282.65 KiB 降至约 2907 KiB，减少约 375 KiB（11.4%）。

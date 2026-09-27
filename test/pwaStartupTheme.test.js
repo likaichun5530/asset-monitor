@@ -17,7 +17,9 @@ test('首屏和运行时都按应用主题同步状态栏颜色', () => {
 })
 
 test('PWA 在 React 启动前提供可绘制的首页启动壳', () => {
-  assert.match(indexSource, /<div id="root"><div id="app-boot-shell"/)
-  assert.match(indexSource, /#app-boot-shell\{[^}]*min-height:100%/)
-  assert.match(indexSource, /html\.dark #app-boot-shell/)
+  assert.match(indexSource, /<div id="root">\s*<div id="app-boot-shell"/)
+  assert.match(indexSource, /#app-boot-shell\{[^}]*min-height:100vh/)
+  assert.match(indexSource, /class="boot-card boot-trend"/)
+  assert.match(indexSource, /class="boot-stats"/)
+  assert.match(indexSource, /html\.dark,html\.dark body,html\.dark #root,html\.dark #app-boot-shell/)
 })

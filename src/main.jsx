@@ -33,10 +33,23 @@ try {
   // 调试能力不可用时不影响应用启动。
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <HashRouter>
-      <App />
-    </HashRouter>
-  </React.StrictMode>
-)
+const mountApp = () => {
+  if (mountApp.done) return
+  mountApp.done = true
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <HashRouter>
+        <App />
+      </HashRouter>
+    </React.StrictMode>
+  )
+}
+
+// 生产环境先显示内联首页，再等待完整样式就绪后挂载 React，避免无样式闪烁。
+const appStyles = document.getElementById('app-styles')
+if (appStyles && !appStyles.sheet) {
+  appStyles.addEventListener('load', mountApp, { once: true })
+  window.setTimeout(mountApp, 3000)
+} else {
+  mountApp()
+}

@@ -1,5 +1,13 @@
 # 发布记录
 
+## 2.6.7 — 2026-09-27 已发布
+
+- 部署：dpl_DmrMTJtwzy71kZb52jEbZU7Rwz9G，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 将手机启动过程改为两阶段：首页结构和暗夜样式直接内联绘制，完整 CSS 与 React 在后台加载，避免 Android PWA 完整退出后再次打开时长时间停留在系统启动画面。
+- 启动首屏补齐总资产、资产趋势、盈亏概览、货币比例、账户健康度和底部导航的稳定骨架；完整样式就绪后再挂载 React，避免无样式页面闪烁。
+- 手机限速冷启动测量中，首次内容绘制由上一版约 2.0 秒提前至约 0.6 秒。
+
 ## 2.6.6 — 2026-09-27 已发布
 
 - 部署：dpl_Cve2BLydwWszmF8uGKM7Y9GfvRXm，READY，已绑定 https://asset.kenny5530.asia 。

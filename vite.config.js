@@ -2,9 +2,26 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const deferProductionStyles = () => ({
+  name: 'defer-production-styles',
+  enforce: 'post',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html, context) {
+      if (!context.bundle) return html
+      return html.replace(
+        /<link rel="stylesheet"([^>]*?)href="([^"]+)"([^>]*)>/,
+        '<link id="app-styles" rel="preload" as="style"$1href="$2"$3 onload="this.onload=null;this.rel=\'stylesheet\'">' +
+          '<noscript><link rel="stylesheet"$1href="$2"$3></noscript>',
+      )
+    },
+  },
+})
+
 export default defineConfig({
   plugins: [
     react(),
+    deferProductionStyles(),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {

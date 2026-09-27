@@ -29,13 +29,35 @@
   </head>
   <body>
     <style>
-      *{margin:0;padding:0}
-      #app-boot-shell{box-sizing:border-box;min-height:100%;background:#f9fafb;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-      #app-boot-shell>div{display:flex;height:48px;align-items:center;padding:0 16px;font-size:24px;font-weight:700}
-      html.dark #app-boot-shell{background:#111827;color:#e5e7eb}
-      @media(min-width:640px){#app-boot-shell>div{display:none}}
+      *{box-sizing:border-box;margin:0;padding:0}
+      html,body,#root{min-height:100%;background:#f9fafb}
+      #app-boot-shell{min-height:100vh;padding-bottom:76px;background:#f9fafb;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+      .boot-topbar{display:flex;height:48px;align-items:center;justify-content:space-between;padding:0 16px;font-size:24px;font-weight:750}
+      .boot-top-actions{display:flex;align-items:center;gap:12px}.boot-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}.boot-user{width:38px;height:16px;border-radius:8px;background:#e5e7eb}
+      .boot-hero{padding:8px 16px 12px}.boot-label{height:19px;color:#6b7280;font-size:16px;line-height:19px}.boot-value{width:65%;height:42px;margin-top:9px;border-radius:10px;background:#dfe3e8}.boot-updated{width:112px;height:15px;margin-top:9px;border-radius:7px;background:#e5e7eb}
+      .boot-content{display:grid;gap:12px;padding:0 12px}.boot-card{overflow:hidden;border:1px solid #eef0f3;border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+      .boot-alert{height:58px;padding:18px 16px}.boot-alert-line{width:72%;height:17px;border-radius:8px;background:#edf0f3}
+      .boot-trend{height:254px;padding:18px 16px}.boot-card-title{height:20px;font-size:17px;font-weight:700;line-height:20px}.boot-tabs{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.boot-tabs i{display:block;width:42px;height:24px;border-radius:9px;background:#f0f2f5}
+      .boot-chart{position:relative;height:128px;margin-top:18px;border-bottom:1px solid #e5e7eb}.boot-chart:before{position:absolute;right:2%;bottom:18px;left:2%;height:74px;border-radius:50% 50% 8px 8px/70% 70% 8px 8px;background:linear-gradient(180deg,rgba(59,130,246,.22),rgba(59,130,246,0));content:"";clip-path:polygon(0 76%,12% 68%,20% 73%,31% 52%,43% 61%,53% 34%,65% 42%,78% 20%,88% 32%,100% 0,100% 100%,0 100%)}
+      .boot-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.boot-stat{height:104px;padding:16px 12px}.boot-stat div{height:16px;border-radius:7px;background:#e5e7eb}.boot-stat div+div{width:82%;height:23px;margin:17px auto 0}
+      .boot-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.boot-half{height:188px;padding:17px 14px}.boot-ring{width:90px;height:90px;margin:22px auto;border:15px solid #e7eaf0;border-radius:50%}.boot-lines{display:grid;gap:12px;margin-top:27px}.boot-lines i{display:block;width:90%;height:15px;border-radius:7px;background:#e7eaf0}
+      .boot-nav{position:fixed;right:0;bottom:0;left:0;display:grid;height:68px;grid-template-columns:repeat(4,1fr);align-items:center;border-top:1px solid #e8ebef;background:rgba(255,255,255,.96)}.boot-nav i{display:block;width:28px;height:28px;margin:auto;border-radius:9px;background:#e2e7ee}
+      html.dark,html.dark body,html.dark #root,html.dark #app-boot-shell{background:#111827;color:#e5e7eb}html.dark .boot-card{border-color:#374151;background:#1f2937;box-shadow:none}html.dark .boot-label{color:#9ca3af}html.dark .boot-value{background:#4b5563}html.dark .boot-user,html.dark .boot-updated,html.dark .boot-alert-line,html.dark .boot-tabs i,html.dark .boot-stat div,html.dark .boot-ring,html.dark .boot-lines i,html.dark .boot-nav i{background:#374151}html.dark .boot-chart{border-color:#374151}html.dark .boot-nav{border-color:#374151;background:rgba(31,41,55,.97)}
+      @media(min-width:640px){#app-boot-shell{display:none}}
     </style>
-    <div id="root"><div id="app-boot-shell" aria-hidden="true"><div>总览</div></div></div>
+    <div id="root">
+      <div id="app-boot-shell" aria-hidden="true">
+        <header class="boot-topbar"><span>总览</span><span class="boot-top-actions"><i class="boot-dot"></i><i class="boot-user"></i></span></header>
+        <section class="boot-hero"><div class="boot-label">总资产（人民币）</div><div class="boot-value"></div><div class="boot-updated"></div></section>
+        <main class="boot-content">
+          <section class="boot-card boot-alert"><div class="boot-alert-line"></div></section>
+          <section class="boot-card boot-trend"><div class="boot-card-title">资产趋势</div><div class="boot-tabs"><i></i><i></i><i></i><i></i></div><div class="boot-chart"></div></section>
+          <section class="boot-stats"><div class="boot-card boot-stat"><div></div><div></div></div><div class="boot-card boot-stat"><div></div><div></div></div><div class="boot-card boot-stat"><div></div><div></div></div></section>
+          <section class="boot-pair"><div class="boot-card boot-half"><div class="boot-card-title">货币比例</div><div class="boot-ring"></div></div><div class="boot-card boot-half"><div class="boot-card-title">账户健康度</div><div class="boot-lines"><i></i><i></i><i></i></div></div></section>
+        </main>
+        <nav class="boot-nav"><i></i><i></i><i></i><i></i></nav>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
