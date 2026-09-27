@@ -1,8 +1,8 @@
 {
-  "versionCode": 171,
-  "versionName": "2.6.15",
-  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.15.apk",
-  "sha256": "c0a83d86474881bfd473823db234db70a3a9fda894625874fe22e8928d4e221c",
-  "size": 5290992,
-  "notes": "新增应用内检查、下载和安装升级功能；升级包下载后会校验 SHA-256，并由 Android 系统确认覆盖安装。"
+  "versionCode": 172,
+  "versionName": "2.6.16",
+  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.16.apk",
+  "sha256": "79e4091e06ac18936990f80a3522b39aebddacd467f09c469a6503e386885e14",
+  "size": 5291436,
+  "notes": "检查更新时，若已是最新版本或检查失败，仅显示短时轻量提示；只有发现新版本时才打开升级对话框。"
 }

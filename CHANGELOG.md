@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.6.16 — 2026-09-27 已发布
+
+- 部署：dpl_6DkQXgEtjtfY8PLyiNwdDEtQGpCq，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手动检查更新时，若已是最新版本或检查失败，改用约 2.4 秒后自动消失的轻量提示，不再打开全屏对话框。
+- 仅在发现新版本时显示升级对话框，保留版本说明、下载进度、哈希校验和系统安装流程。
+
 ## 2.6.15 — 2026-09-27 已发布
 
 - 部署：dpl_3pkmWwUBGYBquYdPefjPugNsD5p3，READY，已绑定 https://asset.kenny5530.asia 。
