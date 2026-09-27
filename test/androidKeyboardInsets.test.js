@@ -19,6 +19,8 @@ test('Android Capacitor 8 使用 IME resize 与 keyboard-aware safe area', () =>
   assert.match(indexHtml, /viewport-fit=cover/)
   assert.match(styles, /var\(--safe-area-inset-bottom, env\(safe-area-inset-bottom, 0px\)\)/)
   assert.match(styles, /\.mobile-topbar\s*\{[^}]*var\(--safe-area-inset-top, env\(safe-area-inset-top, 0px\)\)/s)
+  assert.match(styles, /\.mobile-scroll-region\s*\{[^}]*overflow-y: auto;/s)
+  assert.match(styles, /\.app-shell\s*\{[^}]*height: 100dvh;[^}]*overflow: hidden;/s)
   const apiHeaders = vercelConfig.headers.find(({ source }) => source === '/api/(.*)')?.headers || []
   assert.ok(apiHeaders.some(({ key, value }) => key === 'Access-Control-Allow-Origin' && value === 'https://localhost'))
 })

@@ -131,6 +131,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const [aiEnabled, setAiEnabled] = useState(isAiEnabled)
   const [aiOpenRequest, setAiOpenRequest] = useState(0)
   const contentRef = useRef(null)
+  const scrollRegionRef = useRef(null)
   const touchStartY = useRef(null)
   const refreshingRef = useRef(false)
   const pullingRef = useRef(false)
@@ -167,7 +168,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   }, [])
 
   const handleTouchStart = useCallback((e) => {
-    const scrollY = window.scrollY || document.documentElement.scrollTop
+    const scrollY = scrollRegionRef.current?.scrollTop || window.scrollY || document.documentElement.scrollTop
     const ignoredGesture = document.body.dataset.sortableDragging === 'true'
       || document.body.dataset.modalOpen === 'true'
       || shouldIgnorePullRefresh(e.target)
@@ -189,7 +190,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       return
     }
     if (window.innerWidth >= 640 || touchStartY.current === null || document.body.dataset.sortableDragging === 'true') return
-    const scrollY = window.scrollY || document.documentElement.scrollTop
+    const scrollY = scrollRegionRef.current?.scrollTop || window.scrollY || document.documentElement.scrollTop
     if (scrollY > 5) return
     const deltaY = e.touches[0].clientY - touchStartY.current
     if (deltaY <= 0) { if (pullingRef.current) { pullingRef.current = false; resetPull() }; return }
@@ -366,7 +367,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
           </div>
         </header>
 
-        <div className="relative flex-1 flex flex-col" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
+        <div ref={scrollRegionRef} className="mobile-scroll-region relative flex-1 flex flex-col" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchCancel}>
           <div ref={contentRef} className="flex-1 flex flex-col relative">
             <div className="sm:hidden absolute left-0 right-0 flex items-center justify-center" style={{ top: '-36px', height: '36px', zIndex: 5 }}>
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
@@ -379,7 +380,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       </div>
 
       {/* 移动端底部导航 */}
-      <nav className="safe-area-bottom fixed inset-x-0 bottom-0 z-20 flex border-t border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800 sm:hidden">
+      <nav className="mobile-bottom-nav safe-area-bottom absolute inset-x-0 bottom-0 z-20 flex border-t border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800 sm:hidden">
         {[["/", "总览", HomeIcon], ["/market", "行情", MarketIcon], ["/holdings", "持仓", ListIcon], ["/target", "目标", TargetIcon]].map(([to, label, Icon]) => (
           <NavLink key={to} to={to} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
             {({ isActive }) => <span className={`flex min-w-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><Icon className="h-5 w-5" /><span>{label}</span></span>}

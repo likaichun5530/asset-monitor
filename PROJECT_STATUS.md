@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.6.10，已部署；修复 APK 顶部安全区、生产 API 跨域登录和 Android 图标 |
-| 最近已确认生产版本 | 2.6.10 |
-| 最近已确认部署 | dpl_FJhBhZpuzqynocfGRZ6mAECPDybb，READY，已绑定生产域名 |
-| 最近已确认 Git 提交 | 本文件所在的 2.6.10 本地发布提交；最近已推送提交 756dd52 |
+| 本地版本 | 2.6.11，已部署；固定手机底部导航、消除 APK 启动骨架闪动、调整默认卡片和图标边距 |
+| 最近已确认生产版本 | 2.6.11 |
+| 最近已确认部署 | dpl_ALbmdBTRvXySXAuQmppXzkV4d6mb，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.6.11 本地发布提交；最近已推送提交 756dd52 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；本地 versionName 2.6.10 / versionCode 166；调试 APK 已重新构建，运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；本地 versionName 2.6.11 / versionCode 167；调试 APK 已重新构建，运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则

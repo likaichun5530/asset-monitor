@@ -55,6 +55,11 @@ test('盈亏小卡片使用统一金融字体与 500 字重', () => {
   assert.doesNotMatch(homeSource, /近7天涨跌|近1月涨跌|今年涨跌/)
 })
 
+test('首次安装首页默认隐藏今年盈亏卡片', () => {
+  assert.match(homeSource, /config\[key\] = key !== 'changeYtd'/)
+  assert.match(homeSource, /if \(cfg\[k\] === undefined\) cfg\[k\] = k !== 'changeYtd'/)
+})
+
 test('今日盈亏入口驱动收益日历打开今日明细', () => {
   assert.match(heroSource, /onClick=\{onOpenTodayDetail\}/)
   assert.match(heroSource, /font-num flex flex-col items-end/)

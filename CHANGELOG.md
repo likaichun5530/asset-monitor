@@ -1,5 +1,14 @@
 # 发布记录
 
+## 2.6.11 — 2026-09-27 已发布
+
+- 部署：dpl_ALbmdBTRvXySXAuQmppXzkV4d6mb，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机端改为固定应用视口和独立内容滚动区，底部导航不再随页面滑动或回弹。
+- Capacitor APK 启动时隐藏 PWA 专用首页骨架，避免退出后台后再次启动出现一次骨架切换闪动。
+- 首次安装默认隐藏“今年盈亏”卡片，用户仍可在首页编辑模式中打开。
+- Android 启动图标内容缩小 10%，增加安全边距，避免自适应图标裁切溢出。
+
 ## 2.6.10 — 2026-09-27 已发布
 
 - 部署：dpl_FJhBhZpuzqynocfGRZ6mAECPDybb，READY，已绑定 https://asset.kenny5530.asia 。

@@ -22,19 +22,25 @@ const ALL_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown', 'currency', 
 const STAT_KEYS = ['change7d', 'change30d', 'changeYtd', 'drawdown']
 const HALF_KEYS = ['currency', 'health']
 
+function defaultCardConfig() {
+  const config = {}
+  ALL_KEYS.forEach((key) => { config[key] = key !== 'changeYtd' })
+  return config
+}
+
 function readCardConfig() {
   try {
     const raw = localStorage.getItem(CARD_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
       if (parsed.statCards !== undefined && parsed.change7d === undefined) {
-        const cfg = {}; ALL_KEYS.forEach((k) => { cfg[k] = true }); writeCardConfig(cfg); return cfg
+        const cfg = defaultCardConfig(); writeCardConfig(cfg); return cfg
       }
       const cfg = { ...parsed }
-      ALL_KEYS.forEach((k) => { if (cfg[k] === undefined) cfg[k] = true }); return cfg
+      ALL_KEYS.forEach((k) => { if (cfg[k] === undefined) cfg[k] = k !== 'changeYtd' }); return cfg
     }
   } catch {}
-  const cfg = {}; ALL_KEYS.forEach((k) => { cfg[k] = true }); return cfg
+  return defaultCardConfig()
 }
 function writeCardConfig(cfg) { try { localStorage.setItem(CARD_KEY, JSON.stringify(cfg)) } catch {} }
 function readCardOrder() {

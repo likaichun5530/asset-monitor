@@ -13,6 +13,8 @@
       // 在页面渲染前同步设置暗夜模式，避免闪烁
       (function() {
         try {
+          var isNativeApp = location.protocol === 'https:' && location.hostname === 'localhost'
+          if (isNativeApp) document.documentElement.classList.add('native-app')
           var t = localStorage.getItem('youshu-theme')
           var isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
           document.querySelector('meta[name="theme-color"]').content = isDark ? '#21262f' : '#f9fafb'
@@ -43,6 +45,7 @@
       .boot-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.boot-half{height:188px;padding:17px 14px}.boot-ring{width:90px;height:90px;margin:22px auto;border:15px solid #e7eaf0;border-radius:50%}.boot-lines{display:grid;gap:12px;margin-top:27px}.boot-lines i{display:block;width:90%;height:15px;border-radius:7px;background:#e7eaf0}
       .boot-nav{position:fixed;right:0;bottom:0;left:0;display:grid;height:68px;grid-template-columns:repeat(4,1fr);align-items:center;border-top:1px solid #e8ebef;background:rgba(255,255,255,.96)}.boot-nav i{display:block;width:28px;height:28px;margin:auto;border-radius:9px;background:#e2e7ee}
       html.dark,html.dark body,html.dark #root,html.dark #app-boot-shell{background:#21262f;color:#e5e7eb}html.dark .boot-card{border-color:#374151;background:#252e37;box-shadow:none}html.dark .boot-label{color:#9ca3af}html.dark .boot-value{background:#4b5563}html.dark .boot-user,html.dark .boot-updated,html.dark .boot-alert-line,html.dark .boot-tabs i,html.dark .boot-stat div,html.dark .boot-ring,html.dark .boot-lines i,html.dark .boot-nav i{background:#374151}html.dark .boot-chart{border-color:#374151}html.dark .boot-nav{border-color:#374151;background:rgba(37,46,55,.97)}
+      html.native-app #app-boot-shell{visibility:hidden}
       @media(min-width:640px){#app-boot-shell{display:none}}
     </style>
     <div id="root">
