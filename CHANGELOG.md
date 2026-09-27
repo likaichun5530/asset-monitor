@@ -1,5 +1,13 @@
 # 发布记录
 
+## 2.6.10 — 2026-09-27 已发布
+
+- 部署：dpl_FJhBhZpuzqynocfGRZ6mAECPDybb，READY，已绑定 https://asset.kenny5530.asia 。
+
+- Android 标题栏增加系统顶部安全区，修复新版 Android 边到边显示时与状态栏重叠。
+- 仅允许 Capacitor APK 的固定来源 `https://localhost` 跨域访问生产 API，修复登录时显示 `Failed to fetch`。
+- 用项目现有的“有数”图标重新生成 Android 全部分辨率的普通、圆形和自适应启动图标。
+
 ## 2.6.9 — 2026-09-27 已发布
 
 - 部署：dpl_Fvc4ZEJ2keUoYivu3q9wn5CsGjeS，READY，已绑定 https://asset.kenny5530.asia 。

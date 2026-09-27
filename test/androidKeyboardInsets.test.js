@@ -10,6 +10,7 @@ test('Android Capacitor 8 使用 IME resize 与 keyboard-aware safe area', () =>
   const capacitorConfig = JSON.parse(read('../capacitor.config.json'))
   const indexHtml = read('../index.html')
   const styles = read('../src/index.css')
+  const vercelConfig = JSON.parse(read('../vercel.json'))
 
   assert.match(manifest, /android:windowSoftInputMode="adjustResize"/)
   assert.match(variables, /targetSdkVersion = 36/)
@@ -17,4 +18,7 @@ test('Android Capacitor 8 使用 IME resize 与 keyboard-aware safe area', () =>
   assert.equal(capacitorConfig.plugins?.SystemBars?.insetsHandling, 'css')
   assert.match(indexHtml, /viewport-fit=cover/)
   assert.match(styles, /var\(--safe-area-inset-bottom, env\(safe-area-inset-bottom, 0px\)\)/)
+  assert.match(styles, /\.mobile-topbar\s*\{[^}]*var\(--safe-area-inset-top, env\(safe-area-inset-top, 0px\)\)/s)
+  const apiHeaders = vercelConfig.headers.find(({ source }) => source === '/api/(.*)')?.headers || []
+  assert.ok(apiHeaders.some(({ key, value }) => key === 'Access-Control-Allow-Origin' && value === 'https://localhost'))
 })

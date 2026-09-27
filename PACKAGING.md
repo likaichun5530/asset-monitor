@@ -39,6 +39,8 @@ cd android
 
 原生状态栏由 Capacitor 插件控制；键盘与安全区处理位于原生 MainActivity、全局 CSS 和弹窗组件。当前工程不使用 Google Services 构建插件，运行时依赖不包含 Google Play Services 或 Firebase；仍需要手机提供可用的 Android System WebView。没有执行 Gradle 构建或真机验证时，不应将前端构建成功表述为 APK 验证通过。
 
+Capacitor 页面来源固定为 `https://localhost`，生产 API 的 CORS 只额外允许这一来源；修改 `androidScheme` 或主机名时必须同步更新 `vercel.json` 并验证登录接口的 OPTIONS 响应。
+
 ## 已移除的平台遗留
 
 旧 Electron 主进程未配置依赖和打包入口，已从现行代码中移除。Git 历史仍可查找；被忽略的本机 `release/` 产物不属于当前发布流程。
