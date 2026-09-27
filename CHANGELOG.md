@@ -1,5 +1,12 @@
 # 发布记录
 
+## 2.6.8 — 2026-09-27 已发布
+
+- 部署：dpl_BFmXtserNizeB1GZxBx92K2bjEYq，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 按参考图调整暗夜页面为 #21262f、普通卡片为 #252e37；同步全局样式和启动骨架。
+- 状态栏跟随页面背景：暗夜 #21262f，白天 #f9fafb；同步首屏、运行时和原生配置调用。
+
 ## 2.6.7 — 2026-09-27 已发布
 
 - 部署：dpl_DmrMTJtwzy71kZb52jEbZU7Rwz9G，READY，已绑定 https://asset.kenny5530.asia 。

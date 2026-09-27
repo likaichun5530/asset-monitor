@@ -15,7 +15,7 @@
 }
 
 :root { color-scheme: light; background-color: #f9fafb; }
-html.dark { color-scheme: dark; background-color: #111827; }
+html.dark { color-scheme: dark; background-color: #21262f; }
 html, html *, html *::before, html *::after { transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
 
 html, body, #root { height: 100%; }
@@ -315,10 +315,10 @@ html.dark body {
     background: rgba(30,41,59,0.84);
   }
   html.dark .desktop-market-tile:hover {
-    background: #1e293b;
+    background: #252e37;
   }
   html.dark .home-hero-card {
-    background-color: #1e293b;
+    background-color: #252e37;
     background-image: radial-gradient(circle at 92% 12%, rgba(59, 130, 246, 0.16), transparent 18rem);
   }
   html.dark .card:hover { border-color: #475569; }
@@ -605,7 +605,7 @@ html.dark body {
   }
   html.dark .home-hero-composite {
     border-color: #374151;
-    background: #1f2937;
+    background: #252e37;
   }
   html.dark .home-hero-panel > .home-hero-card {
     background: transparent;
@@ -672,7 +672,7 @@ html.dark body {
   html.dark .mobile-home-content .home-hero-card,
   html.dark .mobile-home-content .home-hero-card:hover {
     border-color: transparent;
-    background: #111827;
+    background: #21262f;
     background-image: none;
     box-shadow: none;
   }
@@ -750,7 +750,7 @@ html.dark body {
   html.dark .settings-group,
   html.dark .settings-subpage-content > .about-app {
     border-color: #374151;
-    background: #1f2937;
+    background: #252e37;
   }
   html.dark .settings-choice,
   html.dark .settings-action-row,
@@ -791,7 +791,7 @@ html.dark body {
   }
   html.dark .target-reminder {
     border-color: #374151;
-    background: #1f2937;
+    background: #252e37;
   }
 }
 
@@ -813,16 +813,16 @@ html.dark .text-gray-500 { color: #9ca3af; }
 html.dark .text-gray-400 { color: #94a3b8; }
 
 /* 暗夜下背景色 */
-html.dark .bg-white { background-color: #1e293b; }
-html.dark .bg-gray-50 { background-color: #111827; }
-html.dark .bg-gray-100 { background-color: #1e293b; }
+html.dark .bg-white { background-color: #252e37; }
+html.dark .bg-gray-50 { background-color: #21262f; }
+html.dark .bg-gray-100 { background-color: #252e37; }
 
 /* 顶部栏使用半透明色时，明确覆盖暗夜背景，避免 WebView/PWA 合成出白底。 */
-html.dark .mobile-topbar { background-color: rgb(31 41 55 / 0.94); }
-html.dark .desktop-topbar { background-color: rgb(17 24 39 / 0.94); }
+html.dark .mobile-topbar { background-color: rgb(33 38 47 / 0.94); }
+html.dark .desktop-topbar { background-color: rgb(33 38 47 / 0.94); }
 
 /* 暗夜下 hover 背景 */
-html.dark .hover\:bg-gray-50:hover { background-color: #1e293b; }
+html.dark .hover\:bg-gray-50:hover { background-color: #252e37; }
 
 @layer components {
   .input-style {
@@ -840,7 +840,7 @@ html.dark .border-gray-50 { border-color: #334155; }
 html.dark .recharts-text { fill: #94a3b8 !important; }
 html.dark .recharts-cartesian-axis-line { stroke: #475569 !important; }
 html.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: #1e293b !important;
+  background-color: #252e37 !important;
   border-color: #475569 !important;
 }
 

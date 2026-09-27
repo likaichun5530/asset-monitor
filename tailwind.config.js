@@ -22,6 +22,7 @@ export default {
         wiggle: 'wiggle 0.3s ease-in-out infinite',
       },
       colors: {
+        gray: { 800: "#252e37", 900: "#21262f" },
         brand: {
           50: '#eff6ff',
           100: '#dbeafe',

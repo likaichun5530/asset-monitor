@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#f9fafb" />
     <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="有数" />
@@ -15,12 +15,12 @@
         try {
           var t = localStorage.getItem('youshu-theme')
           var isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-          document.querySelector('meta[name="theme-color"]').content = isDark ? '#1f2937' : '#ffffff'
+          document.querySelector('meta[name="theme-color"]').content = isDark ? '#21262f' : '#f9fafb'
           document.querySelector('meta[name="color-scheme"]').content = isDark ? 'dark' : 'light'
           document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
           if (isDark) {
             document.documentElement.classList.add('dark')
-            document.documentElement.style.backgroundColor = '#111827'
+            document.documentElement.style.backgroundColor = '#21262f'
           }
         } catch(e) {}
       })()
@@ -31,7 +31,7 @@
     <style>
       *{box-sizing:border-box;margin:0;padding:0}
       html,body,#root{min-height:100%;background:#f9fafb}
-      #app-boot-shell{min-height:100vh;padding-bottom:76px;background:#f9fafb;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+      #app-boot-shell{min-height:100vh;padding-bottom:76px;background:#f9fafb;color:#21262f;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
       .boot-topbar{display:flex;height:48px;align-items:center;justify-content:space-between;padding:0 16px;font-size:24px;font-weight:750}
       .boot-top-actions{display:flex;align-items:center;gap:12px}.boot-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}.boot-user{width:38px;height:16px;border-radius:8px;background:#e5e7eb}
       .boot-hero{padding:8px 16px 12px}.boot-label{height:19px;color:#6b7280;font-size:16px;line-height:19px}.boot-value{width:65%;height:42px;margin-top:9px;border-radius:10px;background:#dfe3e8}.boot-updated{width:112px;height:15px;margin-top:9px;border-radius:7px;background:#e5e7eb}
@@ -42,7 +42,7 @@
       .boot-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.boot-stat{height:104px;padding:16px 12px}.boot-stat div{height:16px;border-radius:7px;background:#e5e7eb}.boot-stat div+div{width:82%;height:23px;margin:17px auto 0}
       .boot-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.boot-half{height:188px;padding:17px 14px}.boot-ring{width:90px;height:90px;margin:22px auto;border:15px solid #e7eaf0;border-radius:50%}.boot-lines{display:grid;gap:12px;margin-top:27px}.boot-lines i{display:block;width:90%;height:15px;border-radius:7px;background:#e7eaf0}
       .boot-nav{position:fixed;right:0;bottom:0;left:0;display:grid;height:68px;grid-template-columns:repeat(4,1fr);align-items:center;border-top:1px solid #e8ebef;background:rgba(255,255,255,.96)}.boot-nav i{display:block;width:28px;height:28px;margin:auto;border-radius:9px;background:#e2e7ee}
-      html.dark,html.dark body,html.dark #root,html.dark #app-boot-shell{background:#111827;color:#e5e7eb}html.dark .boot-card{border-color:#374151;background:#1f2937;box-shadow:none}html.dark .boot-label{color:#9ca3af}html.dark .boot-value{background:#4b5563}html.dark .boot-user,html.dark .boot-updated,html.dark .boot-alert-line,html.dark .boot-tabs i,html.dark .boot-stat div,html.dark .boot-ring,html.dark .boot-lines i,html.dark .boot-nav i{background:#374151}html.dark .boot-chart{border-color:#374151}html.dark .boot-nav{border-color:#374151;background:rgba(31,41,55,.97)}
+      html.dark,html.dark body,html.dark #root,html.dark #app-boot-shell{background:#21262f;color:#e5e7eb}html.dark .boot-card{border-color:#374151;background:#252e37;box-shadow:none}html.dark .boot-label{color:#9ca3af}html.dark .boot-value{background:#4b5563}html.dark .boot-user,html.dark .boot-updated,html.dark .boot-alert-line,html.dark .boot-tabs i,html.dark .boot-stat div,html.dark .boot-ring,html.dark .boot-lines i,html.dark .boot-nav i{background:#374151}html.dark .boot-chart{border-color:#374151}html.dark .boot-nav{border-color:#374151;background:rgba(37,46,55,.97)}
       @media(min-width:640px){#app-boot-shell{display:none}}
     </style>
     <div id="root">

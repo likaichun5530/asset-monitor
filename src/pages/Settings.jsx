@@ -59,7 +59,7 @@ function SettingsLineIcon({ type, className = 'h-5 w-5' }) {
 
 function syncNativeStatusBar(isDark) {
   if (!Capacitor.isNativePlatform()) return
-  const color = isDark ? '#1f2937' : '#ffffff'
+  const color = isDark ? '#21262f' : '#f9fafb'
   const systemStyle = isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light
   const statusStyle = isDark ? StatusBarStyle.Dark : StatusBarStyle.Light
   Promise.allSettled([
@@ -74,10 +74,10 @@ function applyTheme(t) {
   const root = document.documentElement
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.classList.toggle('dark', isDark)
-  root.style.backgroundColor = isDark ? '#111827' : '#f9fafb'
+  root.style.backgroundColor = isDark ? '#21262f' : '#f9fafb'
   root.style.colorScheme = isDark ? 'dark' : 'light'
   const themeMeta = document.querySelector('meta[name="theme-color"]')
-  if (themeMeta) themeMeta.content = isDark ? '#1f2937' : '#ffffff'
+  if (themeMeta) themeMeta.content = isDark ? '#21262f' : '#f9fafb'
   const schemeMeta = document.querySelector('meta[name="color-scheme"]')
   if (schemeMeta) schemeMeta.content = isDark ? 'dark' : 'light'
   syncNativeStatusBar(isDark)
