@@ -1,5 +1,13 @@
 # 发布记录
 
+## 2.6.13 — 2026-09-27 已发布
+
+- 部署：dpl_GL6ChgVmRb52mSMvgYriiT19dXNh，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 手机总资产隐藏按钮改为脱离文档流定位，不再撑高标题行，使标题与数字、数字与更新时间的视觉间距一致。
+- 手机“总览”标题改为与“行情、持仓、目标”相同的字号和字重。
+- Android 启动图标在 2.6.12 基础上再缩小约 3%，重新生成各密度图标。
+
 ## 2.6.12 — 2026-09-27 已发布
 
 - 部署：dpl_A6cD1M2ztk2QwiuUcZGqeA4L7YTQ，READY，已绑定 https://asset.kenny5530.asia 。

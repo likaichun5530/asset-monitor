@@ -15,9 +15,9 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
     <div className="card home-hero-card flex min-h-[92px] flex-col justify-center overflow-hidden px-4 py-3 sm:min-h-[150px] sm:p-5">
       <div className="home-hero-main flex min-h-[68px] items-stretch justify-between gap-3 sm:min-h-[110px] sm:gap-8">
         <div className="home-hero-total flex min-w-0 flex-1 flex-col justify-center">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+          <div className="relative w-fit pr-8 text-xs font-medium text-gray-500 leading-4">
             <span>总资产（人民币）</span>
-            <button type="button" onClick={onToggleValuesHidden} aria-label={valuesHidden ? '显示资产金额' : '隐藏资产金额'} aria-pressed={valuesHidden} className="no-sort inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition duration-200 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 active:scale-90 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-gray-500 dark:focus-visible:ring-offset-gray-800">
+            <button type="button" onClick={onToggleValuesHidden} aria-label={valuesHidden ? '显示资产金额' : '隐藏资产金额'} aria-pressed={valuesHidden} className="no-sort absolute right-0 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-gray-400 transition duration-200 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 active:scale-90 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-gray-500 dark:focus-visible:ring-offset-gray-800">
               <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 {valuesHidden ? (
                   <>

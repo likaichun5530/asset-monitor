@@ -37,6 +37,7 @@ test('总资产标题、更新时间和今日盈亏标签使用同一文字灰�
   assert.match(heroSource, /text-xs font-medium text-gray-500[\s\S]*总资产（人民币）/)
   assert.match(heroSource, /font-num mt-2[\s\S]*font-num-regular mt-2 text-xs text-gray-500/)
   assert.match(heroSource, /text-xs font-medium text-gray-500">今日盈亏/)
+  assert.match(heroSource, /absolute right-0 top-1\/2[\s\S]*-translate-y-1\/2/)
 })
 
 test('首页隐私开关统一隐藏总资产和盈亏数据', () => {
@@ -138,6 +139,11 @@ test('手机首页顶部和卡片横向间距保持统一', () => {
   assert.match(homeSource, /home-card-slot-analysis mb-2 w-full px-1 lg:w-1\/2/)
   assert.match(homeSource, /home-card-slot-stat mb-2 w-1\/3 px-1 sm:w-1\/2 lg:w-1\/4/)
   assert.doesNotMatch(homeSource, /space-y-\[4px\]|space-y-3|mb-\[4px\]|mb-3|px-0\.5|px-1\.5/)
+})
+
+test('手机总览标题与其他一级页面使用相同字号和字重', () => {
+  assert.match(layoutSource, /<span className="text-xl font-semibold text-gray-800 dark:text-gray-200">\{pageTitle\}<\/span>/)
+  assert.doesNotMatch(layoutSource, /pagePath === '\/' \? 'text-2xl font-bold'/)
 })
 
 test('主要业务页面使用 8px 卡片间距', async () => {

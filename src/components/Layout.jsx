@@ -327,7 +327,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
             </div>
           ) : (
             <div className="px-4 h-12 flex items-center justify-between">
-              <span className={`${pagePath === '/' ? 'text-2xl font-bold' : 'text-xl font-semibold'} text-gray-800 dark:text-gray-200`}>{pageTitle}</span>
+              <span className="text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
               {mobileHeaderActions}
             </div>
           )}
