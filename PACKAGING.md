@@ -10,7 +10,7 @@
 - iPhone Safari：打开应用，分享 → 添加到主屏幕。
 - 桌面 Chrome：打开应用，通过浏览器安装入口安装。
 
-`public/manifest.webmanifest` 是唯一 manifest；未设置 theme_color 或 iOS 状态栏样式，系统栏交给系统与浏览器处理。页面可独立选择明暗模式。
+`public/manifest.webmanifest` 是唯一 manifest；以页面浅灰色作为首次启动回退，页面脚本随后按保存的主题同步状态栏。页面可独立选择明暗模式。
 
 Service Worker 使用 autoUpdate；网页缓存和 WebAPK 安装信息可能稍后才更新，部署成功不代表所有设备已经刷新。Android / iPhone 的实际状态栏效果仍需要真机验证。
 
@@ -18,12 +18,12 @@ Service Worker 使用 autoUpdate；网页缓存和 WebAPK 安装信息可能稍�
 
 前置条件：Android Studio、SDK 36，以及与项目 Gradle 兼容的 JDK。需要时设置 `ANDROID_HOME` 为本机 SDK 路径。原生应用加载打包进 APK 的 `dist`，没有配置远程 `server.url`；Vercel 发布不会替换已安装 APK。
 
-构建前将 `.env.local` 的 `VITE_API_BASE` 设置为可访问的服务端地址（生产使用 `https://asset.kenny5530.asia`），不要使用手机自身的 localhost。
+构建前通过 `VITE_API_BASE` 指定手机可访问的服务端地址（生产使用 `https://asset.kenny5530.asia`），不要使用手机自身的 localhost。
 
 ```bash
 npm ci
 npm run version:check
-npm run build
+VITE_API_BASE=https://asset.kenny5530.asia npm run build
 npx cap sync android
 npx cap open android
 ```
@@ -37,7 +37,7 @@ cd android
 
 调试 APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，可通过 USB 或文件传输到手机安装。正式分发需配置自己的签名，不将签名密钥提交到 Git。
 
-原生状态栏由 Capacitor 插件控制；键盘与安全区处理位于原生 MainActivity、全局 CSS 和弹窗组件。没有执行 Gradle 构建或真机验证时，不应将前端构建成功表述为 APK 验证通过。
+原生状态栏由 Capacitor 插件控制；键盘与安全区处理位于原生 MainActivity、全局 CSS 和弹窗组件。当前工程不使用 Google Services 构建插件，运行时依赖不包含 Google Play Services 或 Firebase；仍需要手机提供可用的 Android System WebView。没有执行 Gradle 构建或真机验证时，不应将前端构建成功表述为 APK 验证通过。
 
 ## 已移除的平台遗留
 

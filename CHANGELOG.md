@@ -1,5 +1,13 @@
 # 发布记录
 
+## 2.6.9 — 2026-09-27 已发布
+
+- 部署：dpl_Fvc4ZEJ2keUoYivu3q9wn5CsGjeS，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 生成独立运行的 Android 调试 APK；网页资源打包在应用内，接口固定连接生产地址，不经过 Chrome PWA 启动流程。
+- 移除 Android 工程中未使用的 Google Services 构建插件，并核对 APK 运行时依赖不包含 Google Play Services 或 Firebase。
+- 原生冷启动状态栏底色同步为当前暗夜页面背景 `#21262f`。
+
 ## 2.6.8 — 2026-09-27 已发布
 
 - 部署：dpl_BFmXtserNizeB1GZxBx92K2bjEYq，READY，已绑定 https://asset.kenny5530.asia 。
