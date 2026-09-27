@@ -1,9 +1,6 @@
 import { apiFetch, requestApiJson } from './api.js'
 
-export const AI_ENABLED_KEY = 'youshu-ai-enabled'
-export const AI_CONSENT_KEY = 'youshu-ai-consent'
 export const AI_MESSAGES_KEY = 'youshu-ai-messages'
-export const AI_SETTING_EVENT = 'youshu-ai-setting-changed'
 export const AI_MESSAGES_CLEARED_EVENT = 'youshu-ai-messages-cleared'
 export const AI_MODEL_KEY = 'youshu-ai-model'
 export const AI_MODEL_CHANGED_EVENT = 'youshu-ai-model-changed'
@@ -54,15 +51,6 @@ export function cacheAiModel(modelId) {
     window.dispatchEvent(new CustomEvent(AI_MODEL_CHANGED_EVENT, { detail: { model: normalized } }))
   }
   return normalized
-}
-
-export function isAiEnabled() {
-  try { return localStorage.getItem(AI_ENABLED_KEY) === 'true' } catch { return false }
-}
-
-export function setAiEnabled(enabled) {
-  localStorage.setItem(AI_ENABLED_KEY, enabled ? 'true' : 'false')
-  window.dispatchEvent(new CustomEvent(AI_SETTING_EVENT, { detail: { enabled } }))
 }
 
 export function loadAiMessages() {

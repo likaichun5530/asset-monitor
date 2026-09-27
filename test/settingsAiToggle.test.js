@@ -2,13 +2,15 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-test('薯薯 AI 助手开关正确定位滑块并表达实际可用状态', async () => {
+test('AI 助手默认启用且设置页不再提供开关', async () => {
   const source = await readFile(new URL('../src/pages/Settings.jsx', import.meta.url), 'utf8')
-  assert.match(source, /const aiControlEnabled = aiEnabled && isLoggedIn && !demoMode/)
-  assert.match(source, /role="switch"/)
-  assert.match(source, /aria-checked=\{aiControlEnabled\}/)
-  assert.match(source, /left-0\.5 top-0\.5/)
-  assert.match(source, /shrink-0/)
+  const layout = await readFile(new URL('../src/components/Layout.jsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(source, /role="switch"|handleAiToggle|aiControlEnabled/)
+  assert.match(source, /AI 助手默认在登录后的业务页面显示/)
+  assert.match(layout, /const showAiButton = auth\?\.isLoggedIn && !demoMode && AI_BUSINESS_PAGES\.has\(location\.pathname\)/)
+  assert.doesNotMatch(layout, /youshu-ai-enabled|isAiEnabled/)
+  assert.match(layout, /aria-label="返回持仓"[\s\S]*?\{pageTitle\}/)
+  assert.doesNotMatch(layout, /pointer-events-none absolute left-1\/2 max-w-\[30vw\]/)
 })
 
 test('设置页使用一级分类进入对应的二级设置', async () => {

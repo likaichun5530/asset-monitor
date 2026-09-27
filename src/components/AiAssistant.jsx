@@ -8,12 +8,10 @@ import {
   AI_MODEL_KEY,
   AI_MODEL_OPTIONS,
   AI_WEB_SEARCH_KEY,
-  AI_SETTING_EVENT,
   cacheAiModel,
   getAiModels,
   getAiModelOption,
   getCachedAiModel,
-  isAiEnabled,
   loadAiMessages,
   saveAiMessages,
   streamAiChat,
@@ -38,7 +36,6 @@ export const AI_BUSINESS_PAGES = new Set(Object.keys(PAGE_PROMPTS))
 
 export default function AiAssistant({ auth, openRequest = 0 } = {}) {
   const location = useLocation()
-  const [enabled, setEnabled] = useState(() => isAiEnabled())
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState(() => loadAiMessages())
   const [input, setInput] = useState('')
@@ -62,7 +59,7 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
   const copyFeedbackTimerRef = useRef(null)
   const currentPageRef = useRef(location.pathname)
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
-  const visible = enabled && auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
+  const visible = auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
   const prompts = useMemo(() => PAGE_PROMPTS[location.pathname] || PAGE_PROMPTS['/'], [location.pathname])
 
   const close = useCallback(() => {
@@ -82,17 +79,7 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
   }, [])
 
   useEffect(() => {
-    const onSetting = (event) => {
-      const nextEnabled = Boolean(event.detail?.enabled)
-      setEnabled(nextEnabled)
-      if (!nextEnabled) close()
-    }
     const onStorage = (event) => {
-      if (event.key === 'youshu-ai-enabled') {
-        const nextEnabled = event.newValue === 'true'
-        setEnabled(nextEnabled)
-        if (!nextEnabled) close()
-      }
       if (event.key === AI_MODEL_KEY) {
         setSelectedModel(getAiModelOption(event.newValue, aiModels).id)
       }
@@ -108,12 +95,10 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
     const onModelChanged = (event) => {
       setSelectedModel(getAiModelOption(event.detail?.model, aiModels).id)
     }
-    window.addEventListener(AI_SETTING_EVENT, onSetting)
     window.addEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
     window.addEventListener(AI_MODEL_CHANGED_EVENT, onModelChanged)
     window.addEventListener('storage', onStorage)
     return () => {
-      window.removeEventListener(AI_SETTING_EVENT, onSetting)
       window.removeEventListener(AI_MESSAGES_CLEARED_EVENT, onMessagesCleared)
       window.removeEventListener(AI_MODEL_CHANGED_EVENT, onModelChanged)
       window.removeEventListener('storage', onStorage)
@@ -332,13 +317,13 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
     <>
       {open && (
         <>
-          <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭薯薯AI助手" onClick={close} />
-          <section role="dialog" aria-modal="true" aria-label="薯薯AI助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
+          <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭 AI 助手" onClick={close} />
+          <section role="dialog" aria-modal="true" aria-label="AI 助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
             <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
               <div className="flex items-center gap-2.5">
                 <AiMark />
                 <div>
-                  <div className="text-base font-semibold text-gray-900 dark:text-gray-100">薯薯AI助手</div>
+                  <div className="text-base font-semibold text-gray-900 dark:text-gray-100">AI 助手</div>
                   <div className="text-[10px] text-gray-400">{actualModel ? `${actualModel}${dataAsOf ? ` · 数据截至 ${dataAsOf}` : ''}` : '发送问题时读取最新资产数据'}</div>
                 </div>
               </div>
@@ -359,7 +344,7 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
               {messages.length === 0 && (
                 <div>
                   <div className="rounded-xl bg-gray-50 p-3 text-xs leading-5 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
-                    我是薯薯，您的专属资产管理助手。薯薯数数，心中有数。有什么要求，您尽管吩咐。
+                    我是您的 AI 助手，可以结合当前资产数据提供分析和建议。有什么需要，您尽管吩咐。
                   </div>
                   <div className="mt-4 text-xs font-medium text-gray-500">你可以这样问</div>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -374,7 +359,7 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
                     <div className={`max-w-[88%] select-text whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${message.role === 'user' ? 'rounded-br-md bg-brand-600 text-white' : 'rounded-bl-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'}`}>
                       {message.content || (loading && index === messages.length - 1 ? <span className="inline-flex gap-1"><i className="h-1.5 w-1.5 animate-pulse rounded-full bg-gray-400" /><i className="h-1.5 w-1.5 animate-pulse rounded-full bg-gray-400 [animation-delay:150ms]" /><i className="h-1.5 w-1.5 animate-pulse rounded-full bg-gray-400 [animation-delay:300ms]" /></span> : '')}
                     </div>
-                    {message.content && <button type="button" onClick={() => copyMessage(message.content, index)} className="mt-1 px-1 text-[10px] text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200" aria-label={`复制${message.role === 'user' ? '我的问题' : '薯薯的回答'}`}>{copiedMessageIndex === index ? '已复制' : '复制'}</button>}
+                    {message.content && <button type="button" onClick={() => copyMessage(message.content, index)} className="mt-1 px-1 text-[10px] text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200" aria-label={`复制${message.role === 'user' ? '我的问题' : 'AI 助手的回答'}`}>{copiedMessageIndex === index ? '已复制' : '复制'}</button>}
                   </div>
                 ))}
               </div>

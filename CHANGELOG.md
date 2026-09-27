@@ -1,5 +1,14 @@
 # 发布记录
 
+## 2.6.12 — 2026-09-27 已发布
+
+- 部署：dpl_A6cD1M2ztk2QwiuUcZGqeA4L7YTQ，READY，已绑定 https://asset.kenny5530.asia 。
+
+- AI 助手改为登录后默认启用，移除设置开关及旧的本地启用状态，名称统一为“AI 助手”。
+- 手机资产详情页标题移到返回箭头右侧，保持原有字号。
+- 手机总资产区域统一标题、更新时间和今日盈亏标签颜色，并统一总资产数字上下间距。
+- Android 启动图标在上一版基础上再缩小约 3%，重新生成各密度普通、圆形与自适应图标。
+
 ## 2.6.11 — 2026-09-27 已发布
 
 - 部署：dpl_ALbmdBTRvXySXAuQmppXzkV4d6mb，READY，已绑定 https://asset.kenny5530.asia 。

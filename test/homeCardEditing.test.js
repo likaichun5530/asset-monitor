@@ -33,6 +33,12 @@ test('总资产头部使用纯数字并展示今日盈亏，不再提供手动�
   assert.doesNotMatch(heroSource, /SnapshotIcon|生成快照|onSnapshot/)
 })
 
+test('总资产标题、更新时间和今日盈亏标签使用同一文字灰度，数字上下间距一致', () => {
+  assert.match(heroSource, /text-xs font-medium text-gray-500[\s\S]*总资产（人民币）/)
+  assert.match(heroSource, /font-num mt-2[\s\S]*font-num-regular mt-2 text-xs text-gray-500/)
+  assert.match(heroSource, /text-xs font-medium text-gray-500">今日盈亏/)
+})
+
 test('首页隐私开关统一隐藏总资产和盈亏数据', () => {
   assert.match(heroSource, /aria-label=\{valuesHidden \? '显示资产金额' : '隐藏资产金额'\}/)
   assert.match(heroSource, /valuesHidden \? '\*\*\*\*\*\*' : formatNumber\(total\)/)

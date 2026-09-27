@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import AiAssistant, { AI_BUSINESS_PAGES } from './AiAssistant.jsx'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
-import { AI_SETTING_EVENT, isAiEnabled } from '../utils/ai.js'
 
 const navItems = [
   { type: 'label', label: '工作台' },
@@ -128,7 +127,6 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [assetMenuOpen, setAssetMenuOpen] = useState(() => assetRoutes.has(location.pathname))
-  const [aiEnabled, setAiEnabled] = useState(isAiEnabled)
   const [aiOpenRequest, setAiOpenRequest] = useState(0)
   const contentRef = useRef(null)
   const scrollRegionRef = useRef(null)
@@ -139,24 +137,11 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const MAX_PULL = 90
   const THRESHOLD = 50
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
-  const showAiButton = aiEnabled && auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
+  const showAiButton = auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
 
   useEffect(() => {
     if (assetRoutes.has(location.pathname)) setAssetMenuOpen(true)
   }, [location.pathname])
-
-  useEffect(() => {
-    const syncAiSetting = (event) => setAiEnabled(Boolean(event.detail?.enabled))
-    const syncAiStorage = (event) => {
-      if (event.key === 'youshu-ai-enabled') setAiEnabled(event.newValue === 'true')
-    }
-    window.addEventListener(AI_SETTING_EVENT, syncAiSetting)
-    window.addEventListener('storage', syncAiStorage)
-    return () => {
-      window.removeEventListener(AI_SETTING_EVENT, syncAiSetting)
-      window.removeEventListener('storage', syncAiStorage)
-    }
-  }, [])
 
   const openAiAssistant = () => setAiOpenRequest((request) => request + 1)
 
@@ -336,8 +321,8 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
                 <button type="button" onClick={() => navigate('/holdings')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回持仓">
                   <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
+                <span className="min-w-0 truncate text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
               </div>
-              <span className="pointer-events-none absolute left-1/2 max-w-[30vw] -translate-x-1/2 truncate text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
               {mobileHeaderActions}
             </div>
           ) : (

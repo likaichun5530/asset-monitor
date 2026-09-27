@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.6.11，已部署；固定手机底部导航、消除 APK 启动骨架闪动、调整默认卡片和图标边距 |
-| 最近已确认生产版本 | 2.6.11 |
-| 最近已确认部署 | dpl_ALbmdBTRvXySXAuQmppXzkV4d6mb，READY，已绑定生产域名 |
-| 最近已确认 Git 提交 | 本文件所在的 2.6.11 本地发布提交；最近已推送提交 756dd52 |
+| 本地版本 | 2.6.12，已部署；AI 默认启用、详情标题左移、总资产文字对齐、图标缩小 |
+| 最近已确认生产版本 | 2.6.12 |
+| 最近已确认部署 | dpl_A6cD1M2ztk2QwiuUcZGqeA4L7YTQ，READY，已绑定生产域名 |
+| 最近已确认 Git 提交 | 本文件所在的 2.6.12 本地发布提交；最近已推送提交 756dd52 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；本地 versionName 2.6.11 / versionCode 167；调试 APK 已重新构建，运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；本地 versionName 2.6.12 / versionCode 168；调试 APK 已重新构建，运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则
@@ -55,10 +55,10 @@
 
 - 手机视口、4 倍 CPU 限速和约 1.6 Mbps 网络的冷加载测试中，两阶段首页将首次内容绘制由 2.6.6 的约 2.0 秒提前至约 0.6 秒；完整 CSS 与 React 首页仍在随后加载并接管骨架。
 - 完整退出并重启浏览器进程、复用已安装 Service Worker 缓存的受控测试中，2.5.0 首屏约 228 ms，2.6.4 约 232 ms；未复现应用代码导致的数秒级冷启动回退。真机若仍长时间停留在启动画面，需要按等待期间显示的画面继续区分 Android / Chrome 启动层与网页首帧。
-- 全量 Node 测试 134 项通过；其中部分是源码回归检查，不能替代完整端到端测试。
+- 全量 Node 测试 144 项通过；其中部分是源码回归检查，不能替代完整端到端测试。
 - 版本一致性、生产构建通过；PWA 预缓存由 3282.65 KiB 降至约 2907 KiB，减少约 375 KiB（11.4%）。
 - 122 个 JS/JSX 模块导入与 README / 打包 / 状态文档链接检查通过。
 - 隔离 Chrome 演示模式在 390px 和 1280px 宽度下各验证 16 个页面均渲染，无未捕获浏览器异常；未验证真实联网业务操作。
 - 本地 API 在无实盘凭据的独立端口启动成功；健康检查及缺少 JWT 配置时拒绝私人请求通过。
-- 未执行实盘持仓 / 目标 / 密码写入、真实 AI 调用、APK 打包或手机真机测试。
+- 未执行实盘持仓 / 目标 / 密码写入、真实 AI 调用或手机真机测试；Android 调试 APK 已完成构建。
 - Vercel 生产部署返回 READY，已绑定正式域名；源码和发布记录随本批次提交。

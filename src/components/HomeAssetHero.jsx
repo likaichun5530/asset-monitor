@@ -33,15 +33,15 @@ export default function HomeAssetHero({ total, todayChange, todayChangePct, upda
               </svg>
             </button>
           </div>
-          <div className="font-num mt-1.5 whitespace-nowrap text-[28px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3">
+          <div className="font-num mt-2 whitespace-nowrap text-[28px] font-bold leading-none tracking-[-0.04em] text-gray-900 dark:text-gray-100 sm:mt-3">
             {valuesHidden ? '******' : formatNumber(total)}
           </div>
-          <div className="font-num-regular mt-1.5 text-xs text-gray-400 sm:mt-3">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
+          <div className="font-num-regular mt-2 text-xs text-gray-500 sm:mt-3">更新于 {updateDate ? formatDateLong(updateDate) : '--'}</div>
         </div>
 
         <div className="home-hero-today flex shrink-0 flex-col items-end justify-center text-right">
           <button type="button" onClick={onOpenTodayDetail} disabled={valuesHidden} aria-label={valuesHidden ? '资产金额已隐藏' : '查看今日盈亏明细'} className="home-today-button font-num flex flex-col items-end rounded-lg bg-transparent text-right transition-transform active:scale-[0.99] disabled:cursor-default disabled:active:scale-100">
-            <span className="text-xs font-medium text-gray-400">今日盈亏</span>
+            <span className="text-xs font-medium text-gray-500">今日盈亏</span>
             <span className={`mt-1 text-base font-medium leading-none ${changeColor}`}>
               {valuesHidden ? '******' : todayChange === null || todayChange === undefined ? '--' : formatChange(todayChange)}
             </span>

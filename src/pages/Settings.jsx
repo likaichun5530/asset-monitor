@@ -3,9 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Capacitor, SystemBars, SystemBarsStyle, SystemBarType } from '@capacitor/core'
 import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar'
 import { requestApiJson } from '../utils/api.js'
-import { AI_CONSENT_KEY, clearAiMessages, getAiRules, isAiEnabled, saveAiRules, setAiEnabled } from '../utils/ai.js'
+import { clearAiMessages, getAiRules, saveAiRules } from '../utils/ai.js'
 import packageJson from '../../package.json'
-import AiMark from '../components/AiMark.jsx'
 import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx'
 import AiModelSettingsDialog from '../components/AiModelSettingsDialog.jsx'
 import AppDialog from '../components/AppDialog.jsx'
@@ -113,8 +112,6 @@ export default function Settings({ auth } = {}) {
   const [pwdError, setPwdError] = useState('')
   const [pwdLoading, setPwdLoading] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
-  const [aiEnabled, setAiEnabledState] = useState(() => isAiEnabled())
-  const [showAiConsent, setShowAiConsent] = useState(false)
   const [showAiRules, setShowAiRules] = useState(false)
   const [showAiModels, setShowAiModels] = useState(false)
   const [aiRules, setAiRules] = useState('')
@@ -128,7 +125,6 @@ export default function Settings({ auth } = {}) {
   const latestAiRulesRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
   const activeSection = SETTINGS_SECTIONS.includes(section) && (section !== 'security' || isLoggedIn) ? section : null
-  const aiControlEnabled = aiEnabled && isLoggedIn && !demoMode
 
   function openSection(nextSection) {
     navigate(`/settings/${nextSection}`)
@@ -186,27 +182,6 @@ export default function Settings({ auth } = {}) {
     setShowPwdDialog(false)
     setPwd('')
     setPwdError('')
-  }
-
-  function handleAiToggle() {
-    if (aiEnabled) {
-      setAiEnabled(false)
-      setAiEnabledState(false)
-      return
-    }
-    if (localStorage.getItem(AI_CONSENT_KEY) === 'true') {
-      setAiEnabled(true)
-      setAiEnabledState(true)
-      return
-    }
-    setShowAiConsent(true)
-  }
-
-  function confirmAiConsent() {
-    localStorage.setItem(AI_CONSENT_KEY, 'true')
-    setAiEnabled(true)
-    setAiEnabledState(true)
-    setShowAiConsent(false)
   }
 
   async function openAiRules() {
@@ -274,7 +249,7 @@ export default function Settings({ auth } = {}) {
           {[
             ...(isLoggedIn ? [{ key: 'security', icon: 'security', title: '账户与安全', description: '修改密码、退出登录' }] : []),
             { key: 'appearance', icon: 'appearance', title: '数据与外观', description: '数据模式、界面主题' },
-            { key: 'ai', icon: 'ai', title: 'AI 与智能分析', description: '助手显示、回答规则、模型清单' },
+            { key: 'ai', icon: 'ai', title: 'AI 与智能分析', description: '回答规则、模型清单' },
             { key: 'about', icon: 'about', title: '关于应用', description: '应用信息', value: `v${packageJson.version}` },
           ].map((item) => (
             <button key={item.key} type="button" onClick={() => openSection(item.key)} className="settings-menu-row flex w-full items-center gap-3 px-4 py-4 text-left transition-all active:scale-[0.99] sm:hover:bg-gray-50 dark:sm:hover:bg-gray-700/50">
@@ -312,13 +287,9 @@ export default function Settings({ auth } = {}) {
       )}
 
       {activeSection === 'ai' && (
-        <SettingsSubpage title="AI 与智能分析" description="管理助手显示、回答规则和模型清单" onBack={returnToSettingsMenu}>
+        <SettingsSubpage title="AI 与智能分析" description="管理回答规则和模型清单" onBack={returnToSettingsMenu}>
           <SettingsGroup title="AI 资产助手" description="使用所选大模型分析 Holdings、History 和目标配置">
-          <button type="button" onClick={handleAiToggle} disabled={!isLoggedIn || demoMode} role="switch" aria-checked={aiControlEnabled} className={`settings-ai-toggle flex w-full items-center justify-between rounded-xl border px-4 py-3 transition-all active:scale-[0.99] ${aiControlEnabled ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10' : 'border-gray-100 dark:border-gray-700'} ${!isLoggedIn || demoMode ? 'cursor-not-allowed opacity-50' : ''}`}>
-            <span className="flex items-center gap-3 text-left"><AiMark /><span><span className="block text-sm font-normal text-gray-800 dark:text-gray-200">在业务页面显示薯薯AI助手</span><span className="mt-0.5 block text-xs font-normal text-gray-400">{demoMode ? '演示模式不可使用' : !isLoggedIn ? '登录后可以启用' : aiEnabled ? '已在业务页面显示' : '当前已关闭'}</span></span></span>
-            <span aria-hidden="true" className={`relative ml-3 h-6 w-11 shrink-0 rounded-full transition-colors ${aiControlEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600'}`}><span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${aiControlEnabled ? 'translate-x-5' : 'translate-x-0'}`} /></span>
-          </button>
-          <p className="mt-3 text-xs font-normal leading-[18px] text-gray-400">具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
+            <p className="text-xs font-normal leading-[18px] text-gray-400">AI 助手默认在登录后的业务页面显示。具体资产金额、账户、代码和备注会通过 Vercel 后端发送给所选模型服务商。</p>
           </SettingsGroup>
           <SettingsGroup title="助手配置" description="规则和模型配置会应用于后续对话">
             <button type="button" onClick={openAiRules} disabled={!isLoggedIn || demoMode} className="settings-action-row flex w-full items-center justify-between rounded-xl border border-gray-100 px-4 py-3 text-left text-sm font-normal text-gray-700 transition-all active:scale-[0.99] hover:border-brand-200 hover:text-brand-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"><span>回答规则</span><svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg></button>
@@ -359,13 +330,6 @@ export default function Settings({ auth } = {}) {
       )}>
         <input type="password" value={pwd} onChange={(e) => { setPwd(e.target.value); setPwdError('') }} onKeyDown={(e) => { if (e.key === 'Enter') handleVerify() }} placeholder="输入密码" className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" autoFocus />
         {pwdError && <p className="mt-3 text-xs text-red-500">{pwdError}</p>}
-      </AppDialog>
-
-      <AppDialog open={showAiConsent} onClose={() => setShowAiConsent(false)} title="启用 AI 资产助手" maxWidth="sm:max-w-sm" actions={(
-        <button type="button" onClick={confirmAiConsent} className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-medium text-white transition-all active:scale-95">同意并启用</button>
-      )}>
-        <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">系统会将 Holdings、History 和目标配置中的资产金额、账户、证券代码及备注发送给当前选择的模型服务商，用于回答你的资产分析问题。</p>
-        <p className="mt-2 text-xs leading-5 text-gray-400">Google 凭据、登录令牌、表格公式和模型 API Key 不会发送给模型。</p>
       </AppDialog>
 
       <AppDialog
