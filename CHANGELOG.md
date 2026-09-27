@@ -1,5 +1,15 @@
 # 发布记录
 
+## 2.6.15 — 2026-09-27 已发布
+
+- 部署：dpl_3pkmWwUBGYBquYdPefjPugNsD5p3，READY，已绑定 https://asset.kenny5530.asia 。
+
+- 新增 Android 应用内升级：启动时自动检查 Vercel 版本清单，设置“关于应用”支持手动检查。
+- 新增原生 APK 下载器，仅接受生产域名 HTTPS 地址；下载过程显示进度，完成后校验 SHA-256，再调起 Android 系统安装器。
+- 新增“允许安装未知应用”引导；普通应用不能静默安装，首次使用需在 Android 系统设置中授权有数作为安装来源。
+- 2.6.15 作为升级器引导版本仍需手工安装；后续保持相同应用 ID、签名和递增 versionCode，即可直接在 App 内升级。
+- Vercel 版本清单禁用缓存并允许 APK 固定来源跨域读取；版本化 APK 使用长期不可变缓存和 Android APK MIME 类型。
+
 ## 2.6.14 — 2026-09-27 已发布
 
 - 部署：dpl_9zxDWXX73JLz41gbud6Bs8Lfat94，READY，已绑定 https://asset.kenny5530.asia 。

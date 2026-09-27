@@ -37,6 +37,14 @@ cd android
 
 调试 APK 输出到 `android/app/build/outputs/apk/debug/app-debug.apk`，可通过 USB 或文件传输到手机安装。正式分发需配置自己的签名，不将签名密钥提交到 Git。
 
+### 应用内升级
+
+2.6.15 起，APK 会读取 `https://asset.kenny5530.asia/updates/android.json`，下载其中指定的版本化 APK，校验 SHA-256 后调起系统安装器。服务器 APK 位于 `public/downloads/`，该目录中的 APK 不提交 Git，但通过 `.vercelignore` 保留在 Vercel CLI 部署源中；版本清单提交 Git。
+
+每次发布 APK 的顺序必须是：先完成 Web 构建和 `cap sync`，再构建 APK；将 APK 复制到 `public/downloads/youshu-<version>.apk`，计算 SHA-256 和字节数并更新 `public/updates/android.json`；重新执行 Web 构建后部署。部署后同时校验 JSON、APK 响应、文件大小和 SHA-256。
+
+覆盖升级必须保持 `com.youshu.app`、相同签名证书和递增的 versionCode。当前测试 APK沿用本机 Android debug 签名，以便覆盖已安装的 2.6.x 调试版；签名密钥一旦丢失，已安装版本无法继续覆盖升级。Android 不允许普通应用静默安装，首次升级需要用户在系统设置中允许“有数”安装未知应用，每次安装仍由系统界面确认。
+
 原生状态栏由 Capacitor 插件控制；键盘与安全区处理位于原生 MainActivity、全局 CSS 和弹窗组件。当前工程不使用 Google Services 构建插件，运行时依赖不包含 Google Play Services 或 Firebase；仍需要手机提供可用的 Android System WebView。没有执行 Gradle 构建或真机验证时，不应将前端构建成功表述为 APK 验证通过。
 
 Capacitor 页面来源固定为 `https://localhost`，生产 API 的 CORS 只额外允许这一来源；修改 `androidScheme` 或主机名时必须同步更新 `vercel.json` 并验证登录接口的 OPTIONS 响应。

@@ -18,6 +18,7 @@ import { fetchTarget } from './utils/dataStore.js'
 import { refreshFuturesData, refreshMarketData } from './utils/quoteData.js'
 import { getPageRefreshPlan } from './utils/pageRefreshQueue.js'
 import { getNativeBackTarget, requestInPageBack } from './utils/nativeBack.js'
+import AppUpdater from './components/AppUpdater.jsx'
 
 const HOLDINGS_PAGES = new Set(['/', '/holdings', '/target', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash'])
 const HISTORY_PAGES = new Set(['/', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto'])
@@ -96,26 +97,29 @@ export default function App() {
 
   // 未登录且不是演示模式，重定向到全屏登录页
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route element={isAuthenticated ? <Layout source={source} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
-        <Route index element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
-        <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
-        <Route path="target" element={<Target />} />
-        <Route path="settings" element={<Settings auth={auth} />} />
-        <Route path="settings/:section" element={<Settings auth={auth} />} />
-        <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
-        <Route path="cn" element={<AssetDetail refreshKey={refreshKey} assetType="cn" />} />
-        <Route path="hk" element={<AssetDetail refreshKey={refreshKey} assetType="hk" />} />
-        <Route path="jp" element={<AssetDetail refreshKey={refreshKey} assetType="jp" />} />
-        <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
-        <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
-        <Route path="market" element={<Market />} />
-        <Route path="future" element={<Future refreshKey={refreshKey} />} />
-        <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
-        <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
-        <Route path="*" element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route element={isAuthenticated ? <Layout source={source} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
+          <Route index element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
+          <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
+          <Route path="target" element={<Target />} />
+          <Route path="settings" element={<Settings auth={auth} />} />
+          <Route path="settings/:section" element={<Settings auth={auth} />} />
+          <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
+          <Route path="cn" element={<AssetDetail refreshKey={refreshKey} assetType="cn" />} />
+          <Route path="hk" element={<AssetDetail refreshKey={refreshKey} assetType="hk" />} />
+          <Route path="jp" element={<AssetDetail refreshKey={refreshKey} assetType="jp" />} />
+          <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
+          <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
+          <Route path="market" element={<Market />} />
+          <Route path="future" element={<Future refreshKey={refreshKey} />} />
+          <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
+          <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
+          <Route path="*" element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
+        </Route>
+      </Routes>
+      <AppUpdater />
+    </>
   )
 }

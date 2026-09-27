@@ -18,6 +18,20 @@
       ]
     },
     {
+      "source": "/updates/android.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "Access-Control-Allow-Origin", "value": "https://localhost" }
+      ]
+    },
+    {
+      "source": "/downloads/(.*)\\.apk",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Content-Type", "value": "application/vnd.android.package-archive" }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "https://localhost" },

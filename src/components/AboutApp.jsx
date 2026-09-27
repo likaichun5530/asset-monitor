@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core'
+import { APP_UPDATE_CHECK_EVENT } from '../utils/appUpdater.js'
+
 const FEATURES = [
   {
     title: '资产总览',
@@ -50,6 +53,7 @@ export default function AboutApp({ version }) {
           <h3 className="mt-4 text-2xl font-bold tracking-[0.18em]">有数</h3>
           <p className="mt-1.5 text-[15px] font-medium tracking-[0.12em] text-gray-500 dark:text-gray-300">资产配置，心中有数</p>
           <span className="mt-4 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-[13px] font-medium text-gray-500 shadow-sm backdrop-blur dark:border-gray-600 dark:bg-gray-700/80 dark:text-gray-300">Version {version}</span>
+          {Capacitor.isNativePlatform() && <button type="button" onClick={() => window.dispatchEvent(new Event(APP_UPDATE_CHECK_EVENT))} className="mt-3 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-brand-600 shadow-sm transition-colors active:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-brand-400">检查更新</button>}
         </div>
       </section>
 
