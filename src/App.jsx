@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { App as CapacitorApp } from '@capacitor/app'
@@ -22,6 +22,32 @@ import AppUpdater from './components/AppUpdater.jsx'
 
 const HOLDINGS_PAGES = new Set(['/', '/holdings', '/target', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash'])
 const HISTORY_PAGES = new Set(['/', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto'])
+
+function StartupStage({ children }) {
+  const [phase, setPhase] = useState('hold')
+
+  useEffect(() => {
+    const revealTimer = window.setTimeout(() => setPhase('reveal'), 180)
+    const finishTimer = window.setTimeout(() => setPhase('done'), 480)
+    return () => {
+      window.clearTimeout(revealTimer)
+      window.clearTimeout(finishTimer)
+    }
+  }, [])
+
+  return (
+    <div className="startup-stage">
+      {phase !== 'done' && (
+        <div className="startup-splash" aria-hidden="true">
+          <img src="/Transparent-Chinese.png" alt="" className="startup-logo startup-logo-light" />
+          <img src="/white-Chinese.png" alt="" className="startup-logo startup-logo-dark" />
+        </div>
+      )}
+      <div className={`startup-content startup-content-${phase}`}>{children}</div>
+    </div>
+  )
+}
+
 export default function App() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -80,7 +106,7 @@ export default function App() {
       if (requestInPageBack()) return
       const parent = getNativeBackTarget(location.pathname)
       if (parent) {
-        navigate(parent, { replace: true })
+        navigate(parent, { replace: true, state: { pageTransition: 'back' } })
         return
       }
       CapacitorApp.exitApp()
@@ -98,27 +124,29 @@ export default function App() {
   // 未登录且不是演示模式，重定向到全屏登录页
   return (
     <>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route element={isAuthenticated ? <Layout source={source} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
-          <Route index element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
-          <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
-          <Route path="target" element={<Target />} />
-          <Route path="settings" element={<Settings auth={auth} />} />
-          <Route path="settings/:section" element={<Settings auth={auth} />} />
-          <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
-          <Route path="cn" element={<AssetDetail refreshKey={refreshKey} assetType="cn" />} />
-          <Route path="hk" element={<AssetDetail refreshKey={refreshKey} assetType="hk" />} />
-          <Route path="jp" element={<AssetDetail refreshKey={refreshKey} assetType="jp" />} />
-          <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
-          <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
-          <Route path="market" element={<Market />} />
-          <Route path="future" element={<Future refreshKey={refreshKey} />} />
-          <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
-          <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
-          <Route path="*" element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
-        </Route>
-      </Routes>
+      <StartupStage>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route element={isAuthenticated ? <Layout source={source} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
+            <Route index element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
+            <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
+            <Route path="target" element={<Target />} />
+            <Route path="settings" element={<Settings auth={auth} />} />
+            <Route path="settings/:section" element={<Settings auth={auth} />} />
+            <Route path="us" element={<AssetDetail refreshKey={refreshKey} assetType="us" />} />
+            <Route path="cn" element={<AssetDetail refreshKey={refreshKey} assetType="cn" />} />
+            <Route path="hk" element={<AssetDetail refreshKey={refreshKey} assetType="hk" />} />
+            <Route path="jp" element={<AssetDetail refreshKey={refreshKey} assetType="jp" />} />
+            <Route path="bond" element={<AssetDetail refreshKey={refreshKey} assetType="bond" />} />
+            <Route path="crypto" element={<AssetDetail refreshKey={refreshKey} assetType="crypto" />} />
+            <Route path="market" element={<Market />} />
+            <Route path="future" element={<Future refreshKey={refreshKey} />} />
+            <Route path="gold" element={<AssetDetail refreshKey={refreshKey} assetType="gold" />} />
+            <Route path="cash" element={<Cash refreshKey={refreshKey} />} />
+            <Route path="*" element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
+          </Route>
+        </Routes>
+      </StartupStage>
       <AppUpdater />
     </>
   )

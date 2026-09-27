@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import AiAssistant, { AI_BUSINESS_PAGES } from './AiAssistant.jsx'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
 
@@ -117,6 +117,7 @@ function AiTitleButton({ compact = false, onClick }) {
 export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const location = useLocation()
   const navigate = useNavigate()
+  const navigationType = useNavigationType()
   const pagePath = location.pathname.startsWith('/settings/') ? '/settings' : location.pathname
   const pageTitle = pageTitles[pagePath] || '有数'
   const pageDescription = pageDescriptions[pagePath] || '资产配置，心中有数'
@@ -128,6 +129,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [assetMenuOpen, setAssetMenuOpen] = useState(() => assetRoutes.has(location.pathname))
   const [aiOpenRequest, setAiOpenRequest] = useState(0)
+  const previousLocationKeyRef = useRef(location.key)
   const contentRef = useRef(null)
   const scrollRegionRef = useRef(null)
   const touchStartY = useRef(null)
@@ -138,6 +140,12 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const THRESHOLD = 50
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
   const showAiButton = auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
+  const pageChanged = previousLocationKeyRef.current !== location.key
+  const pageTransitionDirection = location.state?.pageTransition === 'back' || navigationType === 'POP' ? 'back' : 'forward'
+
+  useLayoutEffect(() => {
+    previousLocationKeyRef.current = location.key
+  }, [location.key])
 
   useEffect(() => {
     if (assetRoutes.has(location.pathname)) setAssetMenuOpen(true)
@@ -310,7 +318,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         <header className={`mobile-topbar ${pagePath === '/' ? 'mobile-home-topbar' : ''} sticky top-0 z-20 border-b border-transparent bg-gray-50 sm:hidden dark:bg-gray-900`}>
           {settingsSectionTitle ? (
             <div className="relative flex h-12 items-center justify-center px-4">
-              <NavLink to="/settings" replace className="absolute left-2 flex items-center rounded-lg p-2 text-gray-900 dark:text-gray-100" aria-label="返回设置一级菜单">
+              <NavLink to="/settings" replace state={{ pageTransition: 'back' }} className="absolute left-2 flex items-center rounded-lg p-2 text-gray-900 dark:text-gray-100" aria-label="返回设置一级菜单">
                 <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
               </NavLink>
               <span className="max-w-[58vw] truncate text-lg font-semibold text-gray-800 dark:text-gray-200">{settingsSectionTitle}</span>
@@ -318,7 +326,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
           ) : isMobileDetailPage ? (
             <div className="relative flex h-12 items-center justify-between gap-2 px-4">
               <div className="flex min-w-0 items-center">
-                <button type="button" onClick={() => navigate('/holdings')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回持仓">
+                <button type="button" onClick={() => navigate('/holdings', { state: { pageTransition: 'back' } })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回持仓">
                   <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
                 <span className="min-w-0 truncate text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
@@ -358,7 +366,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
             <main className={`desktop-content ${pagePath === '/' ? 'mobile-home-content' : ''} mx-auto px-3 pt-2 pb-24 w-full max-w-[1560px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pt-6`}>
-              <div className="desktop-page-shell"><Outlet /></div>
+              <div key={location.key} className={`desktop-page-shell ${pageChanged ? `page-transition page-transition-${pageTransitionDirection}` : ''}`}><Outlet /></div>
             </main>
           </div>
         </div>

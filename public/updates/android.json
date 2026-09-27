@@ -1,8 +1,8 @@
 {
-  "versionCode": 172,
-  "versionName": "2.6.16",
-  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.16.apk",
-  "sha256": "79e4091e06ac18936990f80a3522b39aebddacd467f09c469a6503e386885e14",
-  "size": 5291436,
-  "notes": "检查更新时，若已是最新版本或检查失败，仅显示短时轻量提示；只有发现新版本时才打开升级对话框。"
+  "versionCode": 173,
+  "versionName": "2.6.17",
+  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.17.apk",
+  "sha256": "202bc80102f38b7e1b94bb83c803ff43d72aec2a355ac7bac54de597af0db679",
+  "size": 5377140,
+  "notes": "新增黑白主题启动画面和居中 Logo；首页及页面导航使用 300ms 双向滑动；设置首页改为分割线式平面菜单。"
 }

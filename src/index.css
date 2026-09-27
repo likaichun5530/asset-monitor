@@ -31,6 +31,50 @@ body {
   user-select: none;
 }
 
+.startup-stage,
+.startup-content {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.startup-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+}
+
+.startup-logo {
+  width: min(58vw, 280px);
+  height: auto;
+  object-fit: contain;
+}
+
+.startup-logo-dark { display: none; }
+html.dark .startup-splash { background: #000; }
+html.dark .startup-logo-light { display: none; }
+html.dark .startup-logo-dark { display: block; }
+
+.startup-content-hold {
+  transform: translateX(100%);
+}
+
+.startup-content-reveal {
+  z-index: 90;
+  animation: startup-page-enter 300ms ease-out both;
+}
+
+@keyframes startup-page-enter {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 /* 按钮和链接可选中 */
 button, a, input, textarea, select {
   -webkit-user-select: auto;
@@ -651,28 +695,31 @@ html.dark body {
   }
 }
 
-@keyframes settings-panel-forward {
-  from { opacity: 0.72; transform: translateX(18%); }
+@keyframes page-transition-forward {
+  from { transform: translateX(100%); }
   to { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes settings-panel-back {
-  from { opacity: 0.72; transform: translateX(-18%); }
+@keyframes page-transition-back {
+  from { transform: translateX(-100%); }
   to { opacity: 1; transform: translateX(0); }
 }
 
-.settings-panel-forward {
-  animation: settings-panel-forward 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.settings-panel-back {
-  animation: settings-panel-back 220ms cubic-bezier(0.22, 1, 0.36, 1);
+@media (max-width: 639px) {
+  .page-transition-forward {
+    animation: page-transition-forward 300ms ease-out both;
+  }
+  .page-transition-back {
+    animation: page-transition-back 300ms ease-out both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .settings-panel-forward,
-  .settings-panel-back {
+  .startup-content-reveal,
+  .page-transition-forward,
+  .page-transition-back {
     animation: none;
+    transform: none;
   }
 }
 
@@ -725,7 +772,6 @@ html.dark body {
   .settings-root-menu {
     display: flex;
     flex-direction: column;
-    gap: 8px;
     overflow: visible;
     border: 0;
     background: transparent;
@@ -735,11 +781,11 @@ html.dark body {
     border-top-width: 1px;
   }
   .settings-menu-row {
-    min-height: 76px;
-    border: 1px solid #f1f5f9;
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, 0.34);
+    min-height: 72px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
   .settings-subpage-content {
     overflow: visible;
@@ -777,7 +823,6 @@ html.dark body {
     background-color: #eff6ff;
     box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.04);
   }
-  html.dark .settings-menu-row,
   html.dark .settings-group,
   html.dark .settings-subpage-content > .about-app {
     border-color: #374151;

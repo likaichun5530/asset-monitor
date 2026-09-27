@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Capacitor, SystemBars, SystemBarsStyle, SystemBarType } from '@capacitor/core'
+import { Capacitor, registerPlugin, SystemBars, SystemBarsStyle, SystemBarType } from '@capacitor/core'
 import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar'
 import { requestApiJson } from '../utils/api.js'
 import { clearAiMessages, getAiRules, saveAiRules } from '../utils/ai.js'
@@ -13,10 +13,11 @@ import AboutApp from '../components/AboutApp.jsx'
 
 const THEME_KEY = 'youshu-theme'
 const SETTINGS_SECTIONS = ['appearance', 'ai', 'security', 'about']
+const NativeTheme = registerPlugin('NativeTheme')
 
 function SettingsSubpage({ title, description, onBack, className = '', children }) {
   return (
-    <section className={`settings-subpage settings-panel-forward mx-auto w-full max-w-2xl space-y-3 sm:max-w-3xl ${className}`} aria-label={title}>
+    <section className={`settings-subpage mx-auto w-full max-w-2xl space-y-3 sm:max-w-3xl ${className}`} aria-label={title}>
       <header className="hidden items-center gap-3 px-1 sm:flex">
         <button type="button" onClick={onBack} className="flex shrink-0 items-center gap-1 rounded-lg px-1 py-2 text-sm text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10" aria-label="返回设置一级菜单">
           <svg className="h-[22px] w-[22px] text-gray-900 dark:text-gray-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
@@ -69,6 +70,11 @@ function syncNativeStatusBar(isDark) {
   ])
 }
 
+function syncNativeThemeMode(mode) {
+  if (!Capacitor.isNativePlatform()) return
+  NativeTheme.setMode({ mode }).catch(() => {})
+}
+
 function applyTheme(t) {
   const root = document.documentElement
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -80,6 +86,7 @@ function applyTheme(t) {
   const schemeMeta = document.querySelector('meta[name="color-scheme"]')
   if (schemeMeta) schemeMeta.content = isDark ? 'dark' : 'light'
   syncNativeStatusBar(isDark)
+  syncNativeThemeMode(t)
 }
 
 export function initTheme() {
@@ -131,7 +138,7 @@ export default function Settings({ auth } = {}) {
   }
 
   function returnToSettingsMenu() {
-    navigate('/settings', { replace: true })
+    navigate('/settings', { replace: true, state: { pageTransition: 'back' } })
   }
 
   function handleThemeChange(t) {
@@ -245,7 +252,7 @@ export default function Settings({ auth } = {}) {
   return (
     <div className="space-y-6">
       {!activeSection && (
-        <section aria-label="设置分类" className="settings-root-menu settings-panel-back card mx-auto w-full max-w-2xl divide-y divide-gray-100 overflow-hidden !p-0 dark:divide-gray-700 sm:max-w-3xl">
+        <section aria-label="设置分类" className="settings-root-menu mx-auto w-full max-w-2xl divide-y divide-gray-200 dark:divide-gray-700 sm:max-w-3xl">
           {[
             ...(isLoggedIn ? [{ key: 'security', icon: 'security', title: '账户与安全', description: '修改密码、退出登录' }] : []),
             { key: 'appearance', icon: 'appearance', title: '数据与外观', description: '数据模式、界面主题' },
