@@ -97,7 +97,7 @@ export default function AppDialog({ open, onClose, title, description, actions, 
     <div className="fixed inset-0 z-[86] flex items-end justify-center overflow-hidden overscroll-none sm:items-center sm:px-4" data-pull-refresh-ignore="true">
       <button type="button" className="fixed inset-0 touch-none bg-black/40" onClick={requestClose} aria-label={`关闭${ariaLabel || ''}`} />
       <section role="dialog" aria-modal="true" aria-label={ariaLabel} className={`relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:h-auto sm:max-h-[92dvh] sm:rounded-2xl ${maxWidth}`}>
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-5">
+        <header className="safe-area-top-12 flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 pb-3 dark:border-gray-700 dark:bg-gray-800 sm:px-5 sm:pt-3">
           <div className="min-w-0">
             <h3 className={`truncate text-base font-semibold text-gray-900 dark:text-gray-100 ${titleClassName}`}>{title}</h3>
             {description && <p className={`mt-0.5 truncate text-xs text-gray-400 ${descriptionClassName}`}>{description}</p>}

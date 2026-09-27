@@ -5,6 +5,7 @@ import { formatCurrency } from '../utils/format.js'
 import { getHistoryDayDetail } from '../utils/historyChanges.js'
 import { setCachedHistory } from '../utils/snapshot.js'
 import AppDialog from './AppDialog.jsx'
+import { NATIVE_BACK_EVENT } from '../utils/nativeBack.js'
 
 // 星期标题
 const WEEKDAY_HEADERS = ['日', '一', '二', '三', '四', '五', '六']
@@ -56,6 +57,16 @@ export default function CalendarHeatmap({ refreshKey = 0, openTodayRequest = 0 }
   const [noteSaving, setNoteSaving] = useState(false)
   const [noteError, setNoteError] = useState('')
   const [noteSuccess, setNoteSuccess] = useState('')
+
+  useEffect(() => {
+    if (!showMonthPicker) return undefined
+    const handleNativeBack = (event) => {
+      event.preventDefault()
+      setShowMonthPicker(false)
+    }
+    window.addEventListener(NATIVE_BACK_EVENT, handleNativeBack)
+    return () => window.removeEventListener(NATIVE_BACK_EVENT, handleNativeBack)
+  }, [showMonthPicker])
   // 显示模式（记忆上次选择）
   const [displayMode, setDisplayMode] = useState(() => {
     try { return localStorage.getItem('youshu-calendar-mode') || 'amount' } catch { return 'amount' }

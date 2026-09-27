@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
+import { App as CapacitorApp } from '@capacitor/app'
 import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
 import Holdings from './pages/Holdings.jsx'
@@ -15,11 +17,13 @@ import Settings, { initTheme } from './pages/Settings.jsx'
 import { fetchTarget } from './utils/dataStore.js'
 import { refreshFuturesData, refreshMarketData } from './utils/quoteData.js'
 import { getPageRefreshPlan } from './utils/pageRefreshQueue.js'
+import { getNativeBackTarget, requestInPageBack } from './utils/nativeBack.js'
 
 const HOLDINGS_PAGES = new Set(['/', '/holdings', '/target', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash'])
 const HISTORY_PAGES = new Set(['/', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto'])
 export default function App() {
   const location = useLocation()
+  const navigate = useNavigate()
   const auth = useAuth()
   const demoMode = localStorage.getItem('youshu-demo-mode') === 'true'
   const isAuthenticated = auth.isLoggedIn || demoMode
@@ -61,6 +65,34 @@ export default function App() {
   const canRefreshCurrentPage = !(location.pathname === '/settings' || location.pathname.startsWith('/settings/'))
 
   useEffect(() => initTheme(), [])
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined
+    let disposed = false
+    let listener = null
+
+    CapacitorApp.addListener('backButton', () => {
+      if (document.body.dataset.modalOpen === 'true') {
+        window.history.back()
+        return
+      }
+      if (requestInPageBack()) return
+      const parent = getNativeBackTarget(location.pathname)
+      if (parent) {
+        navigate(parent, { replace: true })
+        return
+      }
+      CapacitorApp.exitApp()
+    }).then((handle) => {
+      if (disposed) handle.remove()
+      else listener = handle
+    })
+
+    return () => {
+      disposed = true
+      listener?.remove()
+    }
+  }, [location.pathname, navigate])
 
   // 未登录且不是演示模式，重定向到全屏登录页
   return (

@@ -83,6 +83,10 @@ html.dark body {
   padding-bottom: calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px);
 }
 
+.safe-area-top-12 {
+  padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px);
+}
+
 /* Android 15+ edge-to-edge：标题栏内容必须避开系统状态栏。 */
 @media (max-width: 639px) {
   .app-shell {

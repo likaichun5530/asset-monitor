@@ -319,7 +319,7 @@ export default function AiAssistant({ auth, openRequest = 0 } = {}) {
         <>
           <button type="button" className="fixed inset-0 z-[65] bg-black/30 sm:bg-black/10" aria-label="关闭 AI 助手" onClick={close} />
           <section role="dialog" aria-modal="true" aria-label="AI 助手" className="fixed inset-0 z-[70] flex min-h-0 flex-col overflow-hidden overscroll-none bg-white shadow-2xl dark:bg-gray-800 sm:inset-x-auto sm:bottom-5 sm:left-auto sm:right-5 sm:top-20 sm:max-h-none sm:w-[400px] sm:rounded-2xl" style={keyboardInset > 0 ? { bottom: `${keyboardInset}px`, '--safe-area-inset-bottom': '0px' } : undefined} data-pull-refresh-ignore="true">
-            <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-700">
+            <header className="safe-area-top-12 flex items-center justify-between border-b border-gray-100 px-4 pb-3 dark:border-gray-700 sm:pt-3">
               <div className="flex items-center gap-2.5">
                 <AiMark />
                 <div>

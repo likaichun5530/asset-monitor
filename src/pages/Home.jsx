@@ -14,6 +14,7 @@ import {
 } from '../utils/asset.js'
 import { getPendingCount } from '../utils/dataStore.js'
 import { findBestCardOverlap, getCardInsertDirection, reorderCardIds } from '../utils/cardSort.js'
+import { NATIVE_BACK_EVENT } from '../utils/nativeBack.js'
 
 const CARD_KEY = 'youshu-home-cards'
 const ORDER_KEY = 'youshu-home-order'
@@ -138,6 +139,16 @@ export default function Home({ refreshKey, targetRefreshKey = 0, isRefreshing = 
     writeCardConfig(next)
   }
   function exitEditMode() { setEditMode(false) }
+
+  useEffect(() => {
+    if (!editMode) return undefined
+    const handleNativeBack = (event) => {
+      event.preventDefault()
+      exitEditMode()
+    }
+    window.addEventListener(NATIVE_BACK_EVENT, handleNativeBack)
+    return () => window.removeEventListener(NATIVE_BACK_EVENT, handleNativeBack)
+  }, [editMode])
   function togglePrivacyMode() {
     setValuesHidden((hidden) => {
       const next = !hidden
