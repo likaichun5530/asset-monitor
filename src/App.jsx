@@ -24,20 +24,26 @@ const HOLDINGS_PAGES = new Set(['/', '/holdings', '/target', '/us', '/cn', '/hk'
 const HISTORY_PAGES = new Set(['/', '/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto'])
 
 function StartupStage({ children }) {
-  const [phase, setPhase] = useState('hold')
+  const isNativeApp = Capacitor.isNativePlatform()
+  const [phase, setPhase] = useState(() => (isNativeApp ? 'reveal' : 'hold'))
 
   useEffect(() => {
+    if (isNativeApp) {
+      const finishTimer = window.setTimeout(() => setPhase('done'), 300)
+      return () => window.clearTimeout(finishTimer)
+    }
+
     const revealTimer = window.setTimeout(() => setPhase('reveal'), 180)
     const finishTimer = window.setTimeout(() => setPhase('done'), 480)
     return () => {
       window.clearTimeout(revealTimer)
       window.clearTimeout(finishTimer)
     }
-  }, [])
+  }, [isNativeApp])
 
   return (
     <div className="startup-stage">
-      {phase !== 'done' && (
+      {phase !== 'done' && !isNativeApp && (
         <div className="startup-splash" aria-hidden="true">
           <img src="/Transparent-Chinese.png" alt="" className="startup-logo startup-logo-light" />
           <img src="/white-Chinese.png" alt="" className="startup-logo startup-logo-dark" />

@@ -5,7 +5,7 @@ import { getNativeBackTarget } from '../src/utils/nativeBack.js'
 
 test('Android 系统返回键按页面层级返回', () => {
   for (const detail of ['/us', '/cn', '/hk', '/jp', '/gold', '/bond', '/crypto', '/future', '/cash']) {
-    assert.equal(getNativeBackTarget(detail), '/holdings')
+    assert.equal(getNativeBackTarget(detail), '/')
   }
   assert.equal(getNativeBackTarget('/settings/appearance'), '/settings')
   assert.equal(getNativeBackTarget('/settings/security'), '/settings')
@@ -37,10 +37,12 @@ test('Android 启动画面按应用主题切换黑白背景和 Logo', async () =
   const activity = await readFile(new URL('../android/app/src/main/java/com/youshu/app/MainActivity.java', import.meta.url), 'utf8')
   const plugin = await readFile(new URL('../android/app/src/main/java/com/youshu/app/ThemePlugin.java', import.meta.url), 'utf8')
   assert.match(styles, /windowSplashScreenBackground.*@color\/splash_background/)
-  assert.match(styles, /windowSplashScreenAnimatedIcon.*@drawable\/splash_logo/)
+  assert.match(styles, /windowSplashScreenAnimatedIcon.*@drawable\/splash_icon/)
   assert.match(styles, /postSplashScreenTheme.*@style\/AppTheme\.NoActionBar/)
+  assert.match(styles, /android:windowBackground.*@color\/splash_background/)
+  assert.doesNotMatch(styles, /android:windowBackground.*@drawable\/splash_screen/)
   assert.match(light, /#FFFFFF/)
-  assert.match(dark, /#000000/)
+  assert.match(dark, /#0D1017/)
   assert.match(activity, /registerPlugin\(ThemePlugin\.class\)/)
   assert.match(plugin, /setApplicationNightMode/)
 })

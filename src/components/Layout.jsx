@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react
 import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import AiAssistant, { AI_BUSINESS_PAGES } from './AiAssistant.jsx'
 import { shouldIgnorePullRefresh } from '../utils/pullRefresh.js'
+import useAvailableAppUpdate from '../hooks/useAvailableAppUpdate.js'
 
 const navItems = [
   { type: 'label', label: '工作台' },
@@ -125,6 +126,8 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const settingsSection = location.pathname.match(/^\/settings\/([^/]+)$/)?.[1]
   const settingsSectionTitle = settingsSectionTitles[settingsSection]
   const isMobileDetailPage = mobileDetailPages.has(location.pathname)
+  const availableAppUpdate = useAvailableAppUpdate()
+  const hasAvailableAppUpdate = Boolean(availableAppUpdate)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [assetMenuOpen, setAssetMenuOpen] = useState(() => assetRoutes.has(location.pathname))
@@ -141,7 +144,12 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const demoMode = typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true'
   const showAiButton = auth?.isLoggedIn && !demoMode && AI_BUSINESS_PAGES.has(location.pathname)
   const pageChanged = previousLocationKeyRef.current !== location.key
-  const pageTransitionDirection = location.state?.pageTransition === 'back' || navigationType === 'POP' ? 'back' : 'forward'
+  const pageTransitionDirection = location.state?.pageTransition === 'none'
+    ? 'none'
+    : location.state?.pageTransition === 'back' || navigationType === 'POP' ? 'back' : 'forward'
+  const pageTransitionClass = pageChanged && pageTransitionDirection !== 'none'
+    ? `page-transition page-transition-${pageTransitionDirection}`
+    : ''
 
   useLayoutEffect(() => {
     previousLocationKeyRef.current = location.key
@@ -249,7 +257,10 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         <span className={`h-[7px] w-[7px] rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
         {(typeof window !== 'undefined' && localStorage.getItem('youshu-demo-mode') === 'true') ? '演示' : displayLabel}
       </span>
-      <NavLink to="/settings" className="p-1 text-gray-500 dark:text-gray-400"><SettingsIcon className="h-6 w-6" /></NavLink>
+      <NavLink to="/settings" className="relative p-1 text-gray-500 dark:text-gray-400" aria-label={hasAvailableAppUpdate ? '设置，有新版本' : '设置'}>
+        <SettingsIcon className="h-6 w-6" />
+        {hasAvailableAppUpdate && <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-gray-50 dark:ring-[#0d1017]" aria-hidden="true" />}
+      </NavLink>
     </div>
   )
 
@@ -298,9 +309,10 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
             <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
             <span>{isRefreshing ? '刷新中' : '刷新数据'}</span>
           </button>
-          <NavLink to="/settings" className="desktop-sidebar-action" title="设置" aria-label="设置">
+          <NavLink to="/settings" className="desktop-sidebar-action relative" title={hasAvailableAppUpdate ? '设置（有新版本）' : '设置'} aria-label={hasAvailableAppUpdate ? '设置，有新版本' : '设置'}>
             <SettingsIcon className="h-4 w-4" />
             <span className="truncate">设置</span>
+            {hasAvailableAppUpdate && <span className="ml-auto h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />}
           </NavLink>
           <div className="mt-2 flex items-center justify-between gap-2 px-2 text-[13px] font-medium text-slate-500 dark:text-slate-400">
             <span className="inline-flex min-w-0 items-center gap-2">
@@ -326,7 +338,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
           ) : isMobileDetailPage ? (
             <div className="relative flex h-12 items-center justify-between gap-2 px-4">
               <div className="flex min-w-0 items-center">
-                <button type="button" onClick={() => navigate('/holdings', { state: { pageTransition: 'back' } })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回持仓">
+                <button type="button" onClick={() => navigate('/', { state: { pageTransition: 'back' } })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:text-gray-100" aria-label="返回首页">
                   <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
                 <span className="min-w-0 truncate text-xl font-semibold text-gray-800 dark:text-gray-200">{pageTitle}</span>
@@ -366,7 +378,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
               <span className="text-sm text-gray-700 font-medium tracking-wider">资产配置，心中有数</span>
             </div>
             <main className={`desktop-content ${pagePath === '/' ? 'mobile-home-content' : ''} mx-auto px-3 pt-2 pb-24 w-full max-w-[1560px] min-w-0 flex-1 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pt-6`}>
-              <div key={location.key} className={`desktop-page-shell ${pageChanged ? `page-transition page-transition-${pageTransitionDirection}` : ''}`}><Outlet /></div>
+              <div key={location.key} className={`desktop-page-shell ${pageTransitionClass}`}><Outlet /></div>
             </main>
           </div>
         </div>
@@ -375,7 +387,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       {/* 移动端底部导航 */}
       <nav className="mobile-bottom-nav safe-area-bottom absolute inset-x-0 bottom-0 z-20 flex border-t border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800 sm:hidden">
         {[["/", "总览", HomeIcon], ["/market", "行情", MarketIcon], ["/holdings", "持仓", ListIcon], ["/target", "目标", TargetIcon]].map(([to, label, Icon]) => (
-          <NavLink key={to} to={to} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
+          <NavLink key={to} to={to} state={{ pageTransition: 'none' }} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
             {({ isActive }) => <span className={`flex min-w-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><Icon className="h-5 w-5" /><span>{label}</span></span>}
           </NavLink>
         ))}

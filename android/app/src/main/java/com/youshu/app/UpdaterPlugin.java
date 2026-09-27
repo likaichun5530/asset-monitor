@@ -127,6 +127,7 @@ public class UpdaterPlugin extends Plugin {
                     install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
                     getContext().startActivity(install);
                     call.resolve();
+                    getActivity().finishAndRemoveTask();
                 } catch (Exception error) {
                     call.reject("无法打开系统安装器", error);
                 }

@@ -5,7 +5,7 @@ const PRIMARY_PAGES = new Set(['/market', '/holdings', '/target', '/settings'])
 
 export function getNativeBackTarget(pathname) {
   if (/^\/settings\/[^/]+$/.test(pathname)) return '/settings'
-  if (DETAIL_PAGES.has(pathname)) return '/holdings'
+  if (DETAIL_PAGES.has(pathname)) return '/'
   if (PRIMARY_PAGES.has(pathname)) return '/'
   return null
 }

@@ -10,10 +10,14 @@ import AiModelSettingsDialog from '../components/AiModelSettingsDialog.jsx'
 import AppDialog from '../components/AppDialog.jsx'
 import SaveButton from '../components/SaveButton.jsx'
 import AboutApp from '../components/AboutApp.jsx'
+import useAvailableAppUpdate from '../hooks/useAvailableAppUpdate.js'
 
 const THEME_KEY = 'youshu-theme'
 const SETTINGS_SECTIONS = ['appearance', 'ai', 'security', 'about']
 const NativeTheme = registerPlugin('NativeTheme')
+const DISPLAY_VERSION = Capacitor.isNativePlatform()
+  ? packageJson.version
+  : (import.meta.env.VITE_WEB_VERSION || packageJson.version)
 
 function SettingsSubpage({ title, description, onBack, className = '', children }) {
   return (
@@ -59,7 +63,7 @@ function SettingsLineIcon({ type, className = 'h-5 w-5' }) {
 
 function syncNativeStatusBar(isDark) {
   if (!Capacitor.isNativePlatform()) return
-  const color = isDark ? '#21262f' : '#f9fafb'
+  const color = isDark ? '#0d1017' : '#f9fafb'
   const systemStyle = isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light
   const statusStyle = isDark ? StatusBarStyle.Dark : StatusBarStyle.Light
   Promise.allSettled([
@@ -78,11 +82,12 @@ function syncNativeThemeMode(mode) {
 function applyTheme(t) {
   const root = document.documentElement
   const isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const darkBackground = Capacitor.isNativePlatform() ? '#0d1017' : '#21262f'
   root.classList.toggle('dark', isDark)
-  root.style.backgroundColor = isDark ? '#21262f' : '#f9fafb'
+  root.style.backgroundColor = isDark ? darkBackground : '#f9fafb'
   root.style.colorScheme = isDark ? 'dark' : 'light'
   const themeMeta = document.querySelector('meta[name="theme-color"]')
-  if (themeMeta) themeMeta.content = isDark ? '#21262f' : '#f9fafb'
+  if (themeMeta) themeMeta.content = isDark ? darkBackground : '#f9fafb'
   const schemeMeta = document.querySelector('meta[name="color-scheme"]')
   if (schemeMeta) schemeMeta.content = isDark ? 'dark' : 'light'
   syncNativeStatusBar(isDark)
@@ -131,6 +136,7 @@ export default function Settings({ auth } = {}) {
   const [aiRulesDirty, setAiRulesDirty] = useState(false)
   const latestAiRulesRef = useRef('')
   const isLoggedIn = auth?.isLoggedIn || false
+  const availableAppUpdate = useAvailableAppUpdate()
   const activeSection = SETTINGS_SECTIONS.includes(section) && (section !== 'security' || isLoggedIn) ? section : null
 
   function openSection(nextSection) {
@@ -257,10 +263,13 @@ export default function Settings({ auth } = {}) {
             ...(isLoggedIn ? [{ key: 'security', icon: 'security', title: '账户与安全', description: '修改密码、退出登录' }] : []),
             { key: 'appearance', icon: 'appearance', title: '数据与外观', description: '数据模式、界面主题' },
             { key: 'ai', icon: 'ai', title: 'AI 与智能分析', description: '回答规则、模型清单' },
-            { key: 'about', icon: 'about', title: '关于应用', description: '应用信息', value: `v${packageJson.version}` },
+            { key: 'about', icon: 'about', title: '关于应用', description: '应用信息', value: `v${DISPLAY_VERSION}` },
           ].map((item) => (
             <button key={item.key} type="button" onClick={() => openSection(item.key)} className="settings-menu-row flex w-full items-center gap-3 px-4 py-4 text-left transition-all active:scale-[0.99] sm:hover:bg-gray-50 dark:sm:hover:bg-gray-700/50">
-              <span className="settings-menu-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><SettingsLineIcon type={item.icon} /></span>
+              <span className="settings-menu-icon relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
+                <SettingsLineIcon type={item.icon} />
+                {item.key === 'about' && availableAppUpdate && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-[#0d1017]" aria-hidden="true" />}
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-base font-medium text-gray-800 dark:text-gray-200">{item.title}</span>
                 <span className="mt-0.5 block truncate text-xs font-normal text-gray-400">{item.description}</span>
@@ -316,7 +325,7 @@ export default function Settings({ auth } = {}) {
 
       {activeSection === 'about' && (
         <SettingsSubpage title="关于应用" description="了解有数及主要功能" onBack={returnToSettingsMenu}>
-          <AboutApp version={packageJson.version} />
+          <AboutApp version={DISPLAY_VERSION} />
         </SettingsSubpage>
       )}
 

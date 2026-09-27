@@ -39,7 +39,7 @@ export default function TargetDetailDialog({ open, row, detail, onClose, onEdit,
   const isDetailBalanced = hasConfiguredDetailTargets && attentionItems.length === 0
 
   return (
-    <AppDialog open={open} onClose={onClose} title={`${row.category}配置详情`} description={allocation ? `查看${row.category}内部配置目标与符合度` : `查看${row.category}目标与配置思路`} ariaLabel={`${row.category}配置详情`} maxWidth="sm:max-w-xl">
+    <AppDialog open={open} onClose={onClose} title={`${row.category}配置详情`} description={allocation ? `查看${row.category}内部配置目标与符合度` : `查看${row.category}目标与配置思路`} ariaLabel={`${row.category}配置详情`} maxWidth="sm:max-w-xl" panelClassName="target-detail-transition">
       <div className="space-y-4">
         {hasConfiguredDetailTargets && <section className="rounded-xl border border-gray-100 p-3.5 dark:border-gray-700">
           <div className="flex items-start justify-between gap-3">

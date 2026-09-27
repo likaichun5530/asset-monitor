@@ -43,7 +43,7 @@ const FEATURES = [
 export default function AboutApp({ version }) {
   return (
     <div className="about-app">
-      <section className="relative isolate overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100 px-6 py-8 text-center text-gray-900 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700 dark:text-gray-100 sm:px-10 sm:py-10">
+      <section className="about-app-hero relative isolate overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100 px-6 py-8 text-center text-gray-900 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700 dark:text-gray-100 sm:px-10 sm:py-10">
         <div aria-hidden="true" className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-amber-200/25 blur-3xl dark:bg-amber-300/5" />
         <div aria-hidden="true" className="absolute -bottom-20 -left-12 h-48 w-48 rounded-full bg-emerald-200/20 blur-3xl dark:bg-emerald-300/5" />
         <div className="relative mx-auto flex max-w-md flex-col items-center">

@@ -9,7 +9,7 @@ test('AI 助手默认启用且设置页不再提供开关', async () => {
   assert.match(source, /AI 助手默认在登录后的业务页面显示/)
   assert.match(layout, /const showAiButton = auth\?\.isLoggedIn && !demoMode && AI_BUSINESS_PAGES\.has\(location\.pathname\)/)
   assert.doesNotMatch(layout, /youshu-ai-enabled|isAiEnabled/)
-  assert.match(layout, /aria-label="返回持仓"[\s\S]*?\{pageTitle\}/)
+  assert.match(layout, /aria-label="返回首页"[\s\S]*?\{pageTitle\}/)
   assert.doesNotMatch(layout, /pointer-events-none absolute left-1\/2 max-w-\[30vw\]/)
 })
 
@@ -34,7 +34,8 @@ test('设置页使用一级分类进入对应的二级设置', async () => {
   assert.match(source, /activeSection === 'ai'/)
   assert.match(source, /activeSection === 'security'/)
   assert.match(source, /activeSection === 'about'/)
-  assert.match(source, /value: `v\$\{packageJson\.version\}`/)
+  assert.match(source, /value: `v\$\{DISPLAY_VERSION\}`/)
+  assert.match(source, /import\.meta\.env\.VITE_WEB_VERSION \|\| packageJson\.version/)
 
   const securityIndex = source.indexOf("key: 'security'")
   const appearanceIndex = source.indexOf("key: 'appearance'")

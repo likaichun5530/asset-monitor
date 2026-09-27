@@ -1,8 +1,8 @@
 {
-  "versionCode": 173,
-  "versionName": "2.6.17",
-  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.17.apk",
-  "sha256": "202bc80102f38b7e1b94bb83c803ff43d72aec2a355ac7bac54de597af0db679",
-  "size": 5377140,
-  "notes": "新增黑白主题启动画面和居中 Logo；首页及页面导航使用 300ms 双向滑动；设置首页改为分割线式平面菜单。"
+  "versionCode": 177,
+  "versionName": "2.6.21",
+  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.21.apk",
+  "sha256": "52e38f8d200034381bced3a4d447b09161668e8fcda295994384699ed8b63b6b",
+  "size": 5380254,
+  "notes": "每个新版本只自动弹出一次升级提示，关闭后不再重复打扰，手动检查仍可重新打开。\n发现新版本但尚未升级时，设置图标和设置菜单的关于应用会持续显示红点。\n原生暗夜模式下的导航栏、设置页、卡片和其他中性分割线统一加深。\n关于应用 Logo 区域使用卡片底色，收益日历金额固定在格子下方居中。"
 }

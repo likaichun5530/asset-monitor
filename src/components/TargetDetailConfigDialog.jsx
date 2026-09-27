@@ -79,7 +79,7 @@ export default function TargetDetailConfigDialog({ open, row, detail, onClose, o
   const action = <button form="target-detail-config-form" type="submit" disabled={saving || (allocation && !analysis.valid)} className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-medium text-white transition-all active:scale-95 disabled:scale-100 disabled:opacity-50">{saving ? '保存中…' : success ? '✓ 已保存' : '保存'}</button>
 
   return (
-    <AppDialog open={open} onClose={() => { if (!saving) onClose?.() }} title={allocation ? `调整${row.category}细分目标` : `编辑${row.category}配置思路`} description={allocation ? '细分目标按该类资产内部占比填写' : '记录该类资产的配置原则'} ariaLabel={allocation ? `调整${row.category}细分目标` : `编辑${row.category}配置思路`} maxWidth="sm:max-w-lg" closeDisabled={saving} actions={action}>
+    <AppDialog open={open} onClose={() => { if (!saving) onClose?.() }} title={allocation ? `调整${row.category}细分目标` : `编辑${row.category}配置思路`} description={allocation ? '细分目标按该类资产内部占比填写' : '记录该类资产的配置原则'} ariaLabel={allocation ? `调整${row.category}细分目标` : `编辑${row.category}配置思路`} maxWidth="sm:max-w-lg" closeDisabled={saving} actions={action} panelClassName="target-detail-transition">
       <form id="target-detail-config-form" onSubmit={submit} className="space-y-3">
         {allocation ? (
           <>

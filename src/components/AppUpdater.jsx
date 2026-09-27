@@ -1,7 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
+import { App as CapacitorApp } from '@capacitor/app'
+import packageJson from '../../package.json'
 import AppDialog from './AppDialog.jsx'
-import { APP_UPDATE_CHECK_EVENT, APP_UPDATE_MANIFEST_URL, isNewerAndroidVersion, NativeUpdater, validateUpdateManifest } from '../utils/appUpdater.js'
+import {
+  APP_UPDATE_AVAILABILITY_EVENT,
+  APP_UPDATE_CHECK_EVENT,
+  APP_UPDATE_MANIFEST_URL,
+  clearAvailableAndroidUpdate,
+  clearPendingAndroidUpdate,
+  installedUpdateNeedsReload,
+  isNewerAndroidVersion,
+  markAndroidUpdatePrompted,
+  NativeUpdater,
+  readPendingAndroidUpdate,
+  rememberAvailableAndroidUpdate,
+  rememberPendingAndroidUpdate,
+  shouldPromptAndroidUpdate,
+  splitUpdateNotes,
+  validateUpdateManifest,
+} from '../utils/appUpdater.js'
+
+function publishUpdateAvailability(update) {
+  window.dispatchEvent(new CustomEvent(APP_UPDATE_AVAILABILITY_EVENT, { detail: update }))
+}
+
+async function clearStaleNativeWebAssets() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registrations.map((registration) => registration.unregister()))
+    }
+    if ('caches' in window) {
+      const cacheNames = await window.caches.keys()
+      await Promise.all(cacheNames.map((cacheName) => window.caches.delete(cacheName)))
+    }
+  } catch {
+    // 缓存接口不可用时仍继续重载，不能阻断已安装的新版本。
+  }
+}
 
 export default function AppUpdater() {
   const [open, setOpen] = useState(false)
@@ -12,6 +49,8 @@ export default function AppUpdater() {
   const [message, setMessage] = useState('')
   const [toast, setToast] = useState('')
   const checkingRef = useRef(false)
+  const reloadingRef = useRef(false)
+  const resumeTimerRef = useRef(null)
   const toastTimerRef = useRef(null)
 
   const showToast = useCallback((text) => {
@@ -34,12 +73,21 @@ export default function AppUpdater() {
       if (!validateUpdateManifest(manifest)) throw new Error('服务器升级信息无效')
       setCurrent(version)
       if (isNewerAndroidVersion(version.versionCode, manifest)) {
+        const availableUpdate = rememberAvailableAndroidUpdate(manifest)
+        publishUpdateAvailability(availableUpdate)
         setUpdate(manifest)
-        setOpen(true)
-      } else if (manual) {
+        if (manual || shouldPromptAndroidUpdate(manifest.versionCode)) {
+          markAndroidUpdatePrompted(manifest.versionCode)
+          setOpen(true)
+        } else {
+          setOpen(false)
+        }
+      } else {
+        clearAvailableAndroidUpdate()
+        publishUpdateAvailability(null)
         setUpdate(null)
         setOpen(false)
-        showToast(`当前已是最新版本 ${version.versionName}`)
+        if (manual) showToast(`当前已是最新版本 ${version.versionName}`)
       }
     } catch (error) {
       if (manual) {
@@ -52,21 +100,53 @@ export default function AppUpdater() {
     }
   }, [showToast])
 
+  const reloadAfterInstalledUpdate = useCallback(async () => {
+    if (reloadingRef.current) return
+    const pendingVersionCode = readPendingAndroidUpdate()
+    if (!pendingVersionCode) return
+
+    try {
+      const installed = await NativeUpdater.getVersion()
+      if (Number(installed.versionCode) < pendingVersionCode) return
+      clearPendingAndroidUpdate()
+      if (!installedUpdateNeedsReload({
+        installedVersionCode: installed.versionCode,
+        installedVersionName: installed.versionName,
+        bundledVersionName: packageJson.version,
+        pendingVersionCode,
+      })) return
+      reloadingRef.current = true
+      await clearStaleNativeWebAssets()
+      window.location.reload()
+    } catch {
+      // 系统安装器仍在处理时保留标记，下次回到前台继续确认。
+    }
+  }, [])
+
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined
     const timer = window.setTimeout(() => checkForUpdate(), 1600)
     const manualCheck = () => checkForUpdate({ manual: true })
     window.addEventListener(APP_UPDATE_CHECK_EVENT, manualCheck)
     let progressListener
+    let appStateListener
+    reloadAfterInstalledUpdate()
     NativeUpdater.addListener('downloadProgress', ({ progress: nextProgress }) => setProgress(Number(nextProgress) || 0))
       .then((listener) => { progressListener = listener })
+    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive) return
+      window.clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = window.setTimeout(reloadAfterInstalledUpdate, 250)
+    }).then((listener) => { appStateListener = listener })
     return () => {
       window.clearTimeout(timer)
+      window.clearTimeout(resumeTimerRef.current)
       window.clearTimeout(toastTimerRef.current)
       window.removeEventListener(APP_UPDATE_CHECK_EVENT, manualCheck)
       progressListener?.remove()
+      appStateListener?.remove()
     }
-  }, [checkForUpdate])
+  }, [checkForUpdate, reloadAfterInstalledUpdate])
 
   async function installUpdate() {
     if (!update || downloading) return
@@ -80,9 +160,11 @@ export default function AppUpdater() {
         return
       }
       setDownloading(true)
+      rememberPendingAndroidUpdate(update.versionCode)
       await NativeUpdater.downloadAndInstall({ url: update.apkUrl, sha256: update.sha256 })
       setMessage('升级包已校验，正在打开系统安装界面。')
     } catch (error) {
+      clearPendingAndroidUpdate()
       setMessage(error.message || '升级失败，请稍后重试')
     } finally {
       setDownloading(false)
@@ -90,6 +172,8 @@ export default function AppUpdater() {
   }
 
   if (!Capacitor.isNativePlatform()) return null
+
+  const updateNotes = splitUpdateNotes(update?.notes)
 
   const actions = (
     <button type="button" onClick={installUpdate} disabled={downloading} className="h-10 rounded-lg bg-brand-600 px-5 text-sm font-medium text-white disabled:opacity-50">
@@ -112,7 +196,14 @@ export default function AppUpdater() {
       <AppDialog open={open && Boolean(update)} onClose={() => { if (!downloading) setOpen(false) }} closeDisabled={downloading} title={`发现新版本 ${update?.versionName || ''}`} description={current ? `当前版本 ${current.versionName}` : undefined} ariaLabel="应用升级" maxWidth="sm:max-w-md" actions={actions}>
         {update && (
           <div className="space-y-3">
-            <p className="text-sm leading-6 text-gray-600 dark:text-gray-300">{update.notes || '包含功能改进和问题修复。'}</p>
+            <ol className="space-y-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+              {updateNotes.map((note, index) => (
+                <li key={`${index}-${note}`} className="flex items-start gap-2">
+                  <span className="shrink-0 font-medium">{index + 1}.</span>
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ol>
             <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"><div className="h-full rounded-full bg-brand-600 transition-[width]" style={{ width: `${downloading ? progress : 0}%` }} /></div>
             <p className="text-xs text-gray-400">下载后会校验升级包，并由 Android 系统安装器确认覆盖安装。</p>
           </div>

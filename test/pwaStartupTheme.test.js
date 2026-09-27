@@ -12,8 +12,9 @@ test('PWA 首次启动使用浅色页面状态栏回退色', () => {
 })
 
 test('首屏和运行时都按应用主题同步状态栏颜色', () => {
-  assert.match(indexSource, /meta\[name="theme-color"\].*isDark \? '#21262f' : '#f9fafb'/s)
-  assert.match(settingsSource, /themeMeta\.content = isDark \? '#21262f' : '#f9fafb'/)
+  assert.match(indexSource, /darkBackground = isNativeApp \? '#0d1017' : '#21262f'/)
+  assert.match(settingsSource, /darkBackground = Capacitor\.isNativePlatform\(\) \? '#0d1017' : '#21262f'/)
+  assert.match(settingsSource, /themeMeta\.content = isDark \? darkBackground : '#f9fafb'/)
 })
 
 test('PWA 在 React 启动前按主题显示居中 Logo 启动画面', () => {
@@ -27,4 +28,5 @@ test('PWA 在 React 启动前按主题显示居中 Logo 启动画面', () => {
 test('原生 APK 首帧沿用与 PWA 相同的主题识别', () => {
   assert.match(indexSource, /location\.protocol === 'https:' && location\.hostname === 'localhost'/)
   assert.doesNotMatch(indexSource, /html\.native-app #app-boot-shell\{visibility:hidden\}/)
+  assert.match(indexSource, /html\.native-app #app-boot-shell img\{display:none!important\}/)
 })

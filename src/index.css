@@ -16,6 +16,7 @@
 
 :root { color-scheme: light; background-color: #f9fafb; }
 html.dark { color-scheme: dark; background-color: #21262f; }
+html.native-app.dark { background-color: #0d1017; }
 html, html *, html *::before, html *::after { transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
 
 html, body, #root { height: 100%; }
@@ -37,6 +38,14 @@ body {
   height: 100%;
   min-height: 100%;
   overflow: hidden;
+}
+
+html.native-app .startup-stage {
+  background: #fff;
+}
+
+html.native-app.dark .startup-stage {
+  background: #000;
 }
 
 .startup-splash {
@@ -712,12 +721,16 @@ html.dark body {
   .page-transition-back {
     animation: page-transition-back 300ms ease-out both;
   }
+  .target-detail-transition {
+    animation: page-transition-forward 300ms ease-out both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .startup-content-reveal,
   .page-transition-forward,
-  .page-transition-back {
+  .page-transition-back,
+  .target-detail-transition {
     animation: none;
     transform: none;
   }
@@ -899,6 +912,88 @@ html.dark .desktop-topbar { background-color: rgb(33 38 47 / 0.94); }
 
 /* 暗夜下 hover 背景 */
 html.dark .hover\:bg-gray-50:hover { background-color: #252e37; }
+
+/* APK 暗夜主题独立使用纯黑页面与更深卡片；浏览器/PWA 继续沿用原配色。 */
+html.native-app.dark body,
+html.native-app.dark .app-shell,
+html.native-app.dark .desktop-workspace,
+html.native-app.dark .bg-gray-50,
+html.native-app.dark .dark\:bg-gray-900 {
+  background-color: #0d1017 !important;
+}
+html.native-app.dark .card,
+html.native-app.dark .bg-white,
+html.native-app.dark .bg-gray-100,
+html.native-app.dark .dark\:bg-gray-800,
+html.native-app.dark .settings-group,
+html.native-app.dark .settings-subpage-content > .about-app,
+html.native-app.dark .target-reminder {
+  background-color: #151820 !important;
+}
+html.native-app.dark .mobile-topbar,
+html.native-app.dark .desktop-topbar {
+  background-color: rgb(13 16 23 / 0.94) !important;
+}
+html.native-app.dark .mobile-topbar.mobile-home-topbar,
+html.native-app.dark .mobile-home-content .home-hero-card,
+html.native-app.dark .mobile-home-content .home-hero-card:hover {
+  border-color: transparent !important;
+  background: #0d1017 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+html.native-app.dark .market-group-card > .border-b,
+html.native-app.dark .market-quote-tile {
+  border-color: #242832 !important;
+}
+html.native-app.dark .mobile-bottom-nav {
+  border-top-color: #242832 !important;
+}
+/* 原生暗夜中的中性分割线统一使用同一深灰，保留品牌与风险状态边框。 */
+html.native-app.dark [class~="border-gray-50"],
+html.native-app.dark [class~="border-gray-100"],
+html.native-app.dark [class~="border-gray-200"],
+html.native-app.dark [class~="border-gray-200/70"],
+html.native-app.dark [class~="border-gray-300"],
+html.native-app.dark [class~="border-gray-600"],
+html.native-app.dark [class~="border-gray-700"],
+html.native-app.dark [class~="border-gray-800"],
+html.native-app.dark [class~="border-slate-100"],
+html.native-app.dark [class~="border-slate-200/60"],
+html.native-app.dark [class~="border-slate-200/80"],
+html.native-app.dark [class~="dark:border-gray-600"],
+html.native-app.dark [class~="dark:border-gray-700"],
+html.native-app.dark [class~="dark:border-gray-700/80"],
+html.native-app.dark [class~="dark:border-gray-800"],
+html.native-app.dark [class~="dark:border-slate-800"],
+html.native-app.dark .settings-group,
+html.native-app.dark .settings-subpage-content > .about-app,
+html.native-app.dark .target-reminder,
+html.native-app.dark .home-hero-composite {
+  border-color: #242832 !important;
+}
+html.native-app.dark [class~="divide-gray-100"] > :not([hidden]) ~ :not([hidden]),
+html.native-app.dark [class~="divide-gray-200"] > :not([hidden]) ~ :not([hidden]),
+html.native-app.dark [class~="dark:divide-gray-700"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #242832 !important;
+}
+html.native-app.dark .about-app-hero {
+  background: #151820 !important;
+  background-image: none !important;
+}
+html.native-app .calendar-date {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  line-height: 1;
+}
+html.native-app .calendar-change {
+  position: absolute;
+  right: 2px;
+  bottom: 4px;
+  left: 2px;
+  text-align: center;
+}
 
 @layer components {
   .input-style {

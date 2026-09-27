@@ -8,13 +8,29 @@ test('启动后的首页和页面导航使用 300ms 双向滑动', async () => {
   const styles = await readFile(new URL('../src/index.css', import.meta.url), 'utf8')
 
   assert.match(app, /startup-content startup-content-\$\{phase\}/)
+  assert.match(app, /isNativeApp \? 'reveal' : 'hold'/)
+  assert.doesNotMatch(app, /isNativeApp \? 80 : 180/)
   assert.match(styles, /startup-content-reveal[\s\S]*startup-page-enter 300ms ease-out/)
   assert.match(styles, /@keyframes page-transition-forward[\s\S]*translateX\(100%\)/)
   assert.match(styles, /@keyframes page-transition-back[\s\S]*translateX\(-100%\)/)
   assert.match(styles, /page-transition-forward[\s\S]*300ms ease-out/)
   assert.match(styles, /page-transition-back[\s\S]*300ms ease-out/)
   assert.match(layout, /location\.state\?\.pageTransition === 'back'/)
-  assert.match(layout, /key=\{location\.key\}[\s\S]*page-transition-\$\{pageTransitionDirection\}/)
+  assert.match(layout, /pageTransitionClass = pageChanged && pageTransitionDirection !== 'none'/)
+  assert.match(layout, /state=\{\{ pageTransition: 'none' \}\}/)
+  assert.match(layout, /key=\{location\.key\}[\s\S]*pageTransitionClass/)
+})
+
+test('目标配置明细沿用 300ms 前进动画', async () => {
+  const dialog = await readFile(new URL('../src/components/AppDialog.jsx', import.meta.url), 'utf8')
+  const detail = await readFile(new URL('../src/components/TargetDetailDialog.jsx', import.meta.url), 'utf8')
+  const config = await readFile(new URL('../src/components/TargetDetailConfigDialog.jsx', import.meta.url), 'utf8')
+  const styles = await readFile(new URL('../src/index.css', import.meta.url), 'utf8')
+
+  assert.match(dialog, /panelClassName/)
+  assert.match(detail, /panelClassName="target-detail-transition"/)
+  assert.match(config, /panelClassName="target-detail-transition"/)
+  assert.match(styles, /target-detail-transition[\s\S]*page-transition-forward 300ms ease-out/)
 })
 
 test('设置首页使用平面列表和淡灰分割线', async () => {
