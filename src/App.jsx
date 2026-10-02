@@ -25,9 +25,11 @@ const HISTORY_PAGES = new Set(['/', '/us', '/cn', '/hk', '/jp', '/gold', '/bond'
 
 function StartupStage({ children }) {
   const isNativeApp = Capacitor.isNativePlatform()
-  const [phase, setPhase] = useState(() => (isNativeApp ? 'reveal' : 'hold'))
+  const isDesktopWeb = !isNativeApp && window.matchMedia('(min-width: 640px)').matches
+  const [phase, setPhase] = useState(() => (isDesktopWeb ? 'done' : isNativeApp ? 'reveal' : 'hold'))
 
   useEffect(() => {
+    if (isDesktopWeb) return undefined
     if (isNativeApp) {
       const finishTimer = window.setTimeout(() => setPhase('done'), 300)
       return () => window.clearTimeout(finishTimer)
@@ -39,7 +41,7 @@ function StartupStage({ children }) {
       window.clearTimeout(revealTimer)
       window.clearTimeout(finishTimer)
     }
-  }, [isNativeApp])
+  }, [isNativeApp, isDesktopWeb])
 
   return (
     <div className="startup-stage">

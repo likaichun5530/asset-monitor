@@ -87,8 +87,6 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
 
   const sumMarketValue = rows.reduce((s, r) => s + r.marketValueCNY, 0)
   const accounts = useMemo(() => Array.from(new Set(holdings.map((h) => h.account).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'zh-CN')), [holdings])
-  const currencyCount = useMemo(() => new Set(holdings.map((h) => h.currency).filter(Boolean)).size, [holdings])
-  const largestHolding = rows.reduce((largest, row) => !largest || row.marketValueCNY > largest.marketValueCNY ? row : largest, null)
   const filteredRatio = total ? (sumMarketValue / total) * 100 : 0
 
   function openCreate() {
@@ -118,28 +116,7 @@ export default function Holdings({ refreshKey, onRefresh, source = 'empty', isLo
 
   return (
     <div className="flex flex-col gap-2">
-      <section className="hidden grid-cols-2 gap-2 sm:grid xl:grid-cols-4">
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">资产总额</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(total)}</div>
-          <div className="mt-2 text-xs text-slate-400">全部有效持仓</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">当前筛选</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(sumMarketValue)}</div>
-          <div className="mt-2 text-xs text-slate-400">占总资产 {filteredRatio.toFixed(1)}%</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">账户与币种</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{accounts.length} <span className="text-sm font-normal text-slate-400">个账户</span></div>
-          <div className="mt-2 text-xs text-slate-400">覆盖 {currencyCount} 种币种</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">筛选内最大持仓</div>
-          <div className="mt-2 truncate text-2xl font-semibold text-slate-900 dark:text-gray-100">{largestHolding?.name || '—'}</div>
-          <div className="mt-2 text-xs text-slate-400">{largestHolding ? `${largestHolding.ratio.toFixed(1)}% · ${formatCurrency(largestHolding.marketValueCNY)}` : '暂无持仓'}</div>
-        </div>
-      </section>
+
 
       <div className="card">
         <div className="flex items-center justify-between mb-3 sm:mb-5">

@@ -89,27 +89,10 @@ export default function Market({ refreshKey = 0 }) {
     return ordered
   }, [data])
 
-  const quotedCount = data.filter((item) => item.price !== null && item.price !== undefined).length
 
   return (
     <div className="market-page flex flex-col gap-2">
-      <section className="hidden grid-cols-3 gap-2 sm:grid">
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">行情分组</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{groups.length} <span className="text-sm font-normal text-slate-400">组</span></div>
-          <div className="mt-2 text-xs text-slate-400">按资产市场分类展示</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">关注标的</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{data.length} <span className="text-sm font-normal text-slate-400">项</span></div>
-          <div className="mt-2 text-xs text-slate-400">汇率、指数、币种与期货</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">有效报价</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{quotedCount} <span className="text-sm font-normal text-slate-400">项</span></div>
-          <div className="mt-2 text-xs text-green-600">{loading ? '正在更新行情' : '行情数据已载入'}</div>
-        </div>
-      </section>
+
       {groups.map((group, gi) => (
         <section key={gi} className="market-group-card desktop-market-group card overflow-hidden p-0">
           <div className="flex items-center border-b border-gray-100 px-3.5 py-2.5 dark:border-gray-700 sm:px-6 sm:py-4">

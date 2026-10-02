@@ -282,12 +282,12 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         <nav className="flex-1 space-y-1 px-3 pb-5 pt-2">
           {navItems.map((item, i) => {
             if (item.type === 'label' && item.label === '资产账户') return (
-              <button key={`${item.label}-${i}`} type="button" onClick={() => setAssetMenuOpen((open) => !open)} aria-expanded={assetMenuOpen} className="mt-3 flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold tracking-[0.12em] text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-white/[0.04] dark:hover:text-slate-400">
+              <button key={`${item.label}-${i}`} type="button" onClick={() => setAssetMenuOpen((open) => !open)} aria-expanded={assetMenuOpen} className="mt-3 flex w-full items-center justify-between rounded-lg px-3 py-2 text-[14px] font-semibold tracking-[0.02em] text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-white/[0.04] dark:hover:text-slate-400">
                 <span>{item.label}</span>
                 <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${assetMenuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
               </button>
             )
-            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-5 text-[11px] font-semibold tracking-[0.12em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
+            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-5 text-[14px] font-semibold tracking-[0.02em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
             if (item.group === 'assets' && !assetMenuOpen) return null
             const Icon = item.icon
             return (
@@ -304,23 +304,24 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
           })}
         </nav>
         <div className="desktop-sidebar-footer shrink-0 px-3 pb-4 pt-3">
-          <div id="desktop-sidebar-page-actions" />
-          <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-sidebar-action" title="刷新数据" aria-label="刷新数据">
-            <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
-            <span>{isRefreshing ? '刷新中' : '刷新数据'}</span>
-          </button>
-          <NavLink to="/settings" className="desktop-sidebar-action relative" title={hasAvailableAppUpdate ? '设置（有新版本）' : '设置'} aria-label={hasAvailableAppUpdate ? '设置，有新版本' : '设置'}>
-            <SettingsIcon className="h-4 w-4" />
-            <span className="truncate">设置</span>
-            {hasAvailableAppUpdate && <span className="ml-auto h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />}
-          </NavLink>
-          <div className="mt-2 flex items-center justify-between gap-2 px-2 text-[13px] font-medium text-slate-500 dark:text-slate-400">
-            <span className="inline-flex min-w-0 items-center gap-2">
-              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-              <span>{displayLabel}</span>
-            </span>
-            {auth?.isLoggedIn && <span className="min-w-0 truncate text-slate-700 dark:text-slate-300">{auth.username}</span>}
-          </div>
+          <details className="desktop-user-menu relative">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+              <span className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400"><span className={`h-1.5 w-1.5 rounded-full ${source === 'online' ? 'bg-green-500' : source === 'cache' ? 'bg-yellow-500' : 'bg-gray-400'}`} />{displayLabel}</span>
+              <span className="truncate">{auth?.username || '账户菜单'}</span>
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 15 6-6 6 6" /></svg>
+            </summary>
+            <div className="absolute bottom-full left-0 right-0 z-30 mb-2 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-[#252e37]" onClick={(event) => { if (event.target.closest('button,a')) event.currentTarget.closest('details').open = false }}>
+              <div id="desktop-sidebar-page-actions" />
+              <button type="button" onClick={handleDesktopRefresh} disabled={isRefreshing || !onRefresh} className="desktop-sidebar-action" aria-label="刷新数据">
+                <svg className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5" /></svg>
+                <span>{isRefreshing ? '刷新中' : '刷新数据'}</span>
+              </button>
+              <NavLink to="/settings" className="desktop-sidebar-action relative" aria-label={hasAvailableAppUpdate ? '设置，有新版本' : '设置'}>
+                <SettingsIcon className="h-4 w-4" /><span>设置</span>
+                {hasAvailableAppUpdate && <span className="ml-auto h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />}
+              </NavLink>
+            </div>
+          </details>
         </div>
       </aside>
 
@@ -354,7 +355,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         </header>
 
         {/* PC 顶部栏 */}
-        <header className="desktop-topbar sticky top-0 z-20 hidden border-b border-slate-200/60 bg-[#f5f7fa]/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 sm:flex">
+        <header className="desktop-topbar sticky top-0 z-20 hidden border-b border-transparent bg-[#f5f7fa] dark:border-transparent dark:bg-[#21262f] sm:flex">
           <div className="flex h-20 flex-1 items-center justify-between px-6 lg:px-8">
             <div>
               <h1 className="text-[25px] font-semibold leading-none tracking-[-0.035em] text-slate-950 dark:text-gray-100">{pageTitle}</h1>

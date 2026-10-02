@@ -42,6 +42,7 @@
       html.dark #app-boot-shell .boot-logo-dark{display:block}
       html.native-app #app-boot-shell img{display:none!important}
       html.native-app.dark,html.native-app.dark body,html.native-app.dark #root,html.native-app.dark #app-boot-shell{background:#0d1017}
+      @media(min-width:640px){html:not(.native-app) #app-boot-shell{display:none}html:not(.native-app),html:not(.native-app) body,html:not(.native-app) #root{background:#f5f7fa}html.dark:not(.native-app),html.dark:not(.native-app) body,html.dark:not(.native-app) #root{background:#21262f}}
     </style>
     <div id="root">
       <div id="app-boot-shell" aria-hidden="true">

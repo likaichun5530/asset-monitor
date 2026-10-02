@@ -40,6 +40,15 @@ body {
   overflow: hidden;
 }
 
+/* 桌面使用文档滚动，启动容器不能将超出首屏的页面裁掉。 */
+@media (min-width: 640px) {
+  .startup-stage,
+  .startup-content {
+    height: auto;
+    overflow: visible;
+  }
+}
+
 html.native-app .startup-stage {
   background: #fff;
 }
@@ -1028,4 +1037,20 @@ html.dark .bg-gray-100.rounded-lg button.bg-white { background-color: #475569; c
   outline: none !important;
   outline-color: transparent !important;
   outline-style: none !important;
+}
+
+/* 桌面标题与页面融为一体，日历内容按上下两行独立定位。 */
+@media (min-width: 640px) {
+  html:not(.native-app) .startup-splash { display: none; }
+  html:not(.native-app) .startup-content,
+  html:not(.native-app) .page-transition,
+  html:not(.native-app) .target-detail-transition {
+    animation: none;
+    transform: none;
+  }
+  .desktop-topbar { background-color: #f5f7fa; box-shadow: none; }
+  html.dark .desktop-topbar { background-color: #21262f; }
+  .desktop-user-menu > summary::-webkit-details-marker { display: none; }
+  .calendar-date { position: absolute; top: 4px; right: 4px; line-height: 1; }
+  .calendar-change { position: absolute; bottom: 4px; left: 2px; right: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; line-height: 12px; }
 }

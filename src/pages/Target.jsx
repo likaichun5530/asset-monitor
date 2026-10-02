@@ -142,28 +142,7 @@ export default function Target({ refreshKey = 0 }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <section className="hidden grid-cols-2 gap-2 sm:grid xl:grid-cols-4">
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">配置资产总额</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{formatCurrency(totalRow?.marketValue || 0)}</div>
-          <div className="mt-2 text-xs text-slate-400">共 {rows.length} 个资产类别</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">配置正常</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{normalWeight} <span className="text-sm font-normal text-slate-400">项</span></div>
-          <div className="mt-2 text-xs text-green-600">处于目标范围</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">需要调整</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{overWeight.length + underWeight.length} <span className="text-sm font-normal text-slate-400">项</span></div>
-          <div className="mt-2 text-xs text-slate-400">超配 {overWeight.length} · 低配 {underWeight.length}</div>
-        </div>
-        <div className="desktop-metric-card">
-          <div className="text-xs font-medium text-slate-400">未设目标</div>
-          <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-gray-100">{noTarget.length} <span className="text-sm font-normal text-slate-400">项</span></div>
-          <div className="mt-2 text-xs text-slate-400">建议补充目标比例</div>
-        </div>
-      </section>
+
 
       <section className="target-mobile-summary card overflow-hidden px-4 pb-3 pt-4 sm:hidden" aria-label="实际配置与计划目标的差距">
         <div className="flex items-start justify-between gap-4">
