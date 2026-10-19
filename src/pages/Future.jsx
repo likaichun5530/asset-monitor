@@ -1,3 +1,4 @@
+import { calculateIcQuote } from '../../shared/futuresQuotes.js'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { getActiveHoldings, holdingMarketValue, totalMarketValue } from '../utils/asset.js'
 import { formatCurrency } from '../utils/format.js'
@@ -59,27 +60,7 @@ export default function Future({ refreshKey = 0 }) {
   // 期货合约数据（前端自行计算年化率，保留正负号）
   const contracts = useMemo(() => {
     if (!futuresData || futuresData.length < 2) return []
-    return futuresData.slice(1).map((d) => {
-      const code = d.code
-      const price = d.price
-      const spread = spot != null ? spot - price : null
-      // 按交割日动态计算剩余天数（避免后端/缓存固定值过期）
-      const daysToSettle = d.settleDate
-        ? Math.max(0, Math.ceil((new Date(d.settleDate) - new Date()) / 86400000))
-        : (d.daysToSettle ?? null)
-      // 年化率 = (贴水/价格) * (365/到期天数)，贴水正、升水负
-      const annualRate = spread !== null && daysToSettle && daysToSettle > 0
-        ? (spread / price) * (365 / daysToSettle) * 100
-        : null
-      return {
-        name: code,
-        price,
-        spread,
-        daysToSettle,
-        settleDate: d.settleDate ?? null,
-        annualRate,
-      }
-    })
+    return futuresData.slice(1).map((item) => calculateIcQuote(item, spot))
   }, [futuresData, spot])
 
   return (
@@ -182,7 +163,7 @@ export default function Future({ refreshKey = 0 }) {
                       <td className="py-2.5 px-2 sm:px-6">
                         <span className="text-gray-600">{item.name}</span>
                       </td>
-                      <td className="py-2.5 px-2 text-right text-gray-600">{Math.round(item.price)}</td>
+                      <td className="py-2.5 px-2 text-right text-gray-600">{item.price !== null ? Math.round(item.price) : '—'}</td>
                       <td className={`py-2.5 px-2 text-right font-semibold ${isDiscount ? 'text-red-500' : isPremium ? 'text-green-600' : 'text-gray-500'}`}>
                         {item.spread !== null ? Math.round(item.spread) : '—'}
                       </td>

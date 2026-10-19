@@ -195,7 +195,7 @@ export default function TrendChart({ refreshKey = 0, embedded = false, hideYAxis
               formatter={(value, _name, props) => {
                 const note = props?.payload?.note
                 const text = formatCurrency(value)
-                return [note ? `${text}（${note}）` : text, '资产总额']
+                return [note ? <span>{text}<span className="trend-tooltip-note">（{note}）</span></span> : text, '资产总额']
               }}
             />
             <Area

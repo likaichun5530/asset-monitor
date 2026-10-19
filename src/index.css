@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+.trend-tooltip-note {
+  display: block;
+  max-width: min(260px, 65vw);
+  margin-top: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /*
  * 只接管数字与金融常用符号，避免改变中文和普通文案字体。
  * 所有请求字重均映射到 Medium，使未单独标记的数字也统一为 500 字重。

@@ -1,6 +1,6 @@
 # 项目现状与审查记录
 
-更新日期：2026-09-27。最近一次完整项目审查覆盖前后端引用、依赖、静态资源、原生工程遗留、构建与部署配置、自动化测试和项目文档；本次 PWA 启动优化未访问实盘表格或执行资产数据写入。
+更新日期：2026-10-20。最近一次完整项目审查覆盖前后端引用、依赖、静态资源、原生工程遗留、构建与部署配置、自动化测试和项目文档；本次 PWA 启动优化未访问实盘表格或执行资产数据写入。
 
 ## 版本与环境
 
@@ -9,12 +9,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.6.24，桌面网页版取消启动画面和进出滑动，网页版已发布；App 升级通道保持 2.6.21 |
-| 最近已确认生产版本 | 网页版 2.6.24；App 升级通道 2.6.21 |
-| 最近已确认部署 | App 升级通道 dpl_5aaZf7rdkUSHZpE4M9f2eFDDu2eK，READY；网页版 dpl_8qSp3xwCZX5ft1Cjfyt8x6t9Pt6F，READY；均已绑定生产域名 |
+| 本地版本 | 2.6.26，全部 IC 合约按 Market 名称展示，贴水和年化统一计算；App 升级包已发布，网页版展示版本保持 2.6.25；未提交 Git |
+| 最近已确认生产版本 | 网页版 2.6.25；App 升级通道 2.6.26 |
+| 最近已确认部署 | App 升级通道 dpl_9AjEnM49jYXmNJjF9zsrs4T6Tuyy，READY；网页版 dpl_6YhtfWJfka2T8HregUBtXyhcn7bp，READY；均已绑定生产域名 |
 | 最近已确认 Git 提交 | 本文件所在的 2.6.24 桌面修复发布提交；包含 2.6.22～2.6.24 的累计桌面改动 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；本地 versionName 2.6.21 / versionCode 177；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；本地 versionName 2.6.26 / versionCode 182；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则
