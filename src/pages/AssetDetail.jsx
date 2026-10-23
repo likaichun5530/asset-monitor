@@ -138,6 +138,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
 
   return (
     <div className="space-y-2">
+      <div className={`asset-detail-hero space-y-2 ${categoryHistory.length ? 'asset-detail-hero-with-trend' : ''}`}>
       <div className="desktop-asset-summary card flex items-end justify-between gap-4 px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:min-h-[148px] sm:items-center sm:px-7 sm:py-6">
         <div className="min-w-0">
           <div className="text-xs text-gray-500 dark:text-gray-400">{config.label}总市值</div>
@@ -159,7 +160,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
 
       {/* 各类资产趋势卡片 */}
       {categoryHistory.length >= 1 && (
-        <div className="card dark:bg-gray-800 dark:border-gray-700 sm:p-6">
+        <div className="asset-detail-trend card dark:bg-gray-800 dark:border-gray-700 sm:p-6">
           <div className="flex items-center justify-between mb-2 flex-wrap gap-2 px-3 sm:px-0">
             <div>
               <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">趋势</h3>
@@ -181,7 +182,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
               ))}
             </div>
           </div>
-          <div className="w-full h-[140px] sm:h-[280px]">
+          <div className="asset-detail-trend-canvas w-full h-[140px] sm:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
                 <defs>
@@ -234,6 +235,7 @@ export default function AssetDetail({ refreshKey = 0, assetType }) {
           </div>
         </div>
       )}
+      </div>
 
       <div className="card dark:bg-gray-800 dark:border-gray-700 sm:p-0 sm:overflow-hidden">
         <div className="flex items-center justify-between mb-3 sm:mb-0 sm:px-6 sm:py-5 sm:border-b sm:border-slate-100 dark:sm:border-gray-700">

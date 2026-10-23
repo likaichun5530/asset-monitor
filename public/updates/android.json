@@ -1,8 +1,8 @@
 {
-  "versionCode": 182,
-  "versionName": "2.6.26",
-  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.6.26.apk",
-  "sha256": "993ef2a26e561d9b37f8ccc1f7fdea720c7a1c63fea97385bc284ac2e1b736e9",
-  "size": 5379774,
-  "notes": "期货页面直接展示 Market 中的名称，显示全部 IC 合约，不再限制当月、近月、远月。\n统一贴水点数和年化计算，升水显示负值，无效报价或已到期不显示年化。\n到期天数按上海自然日计算。"
+  "versionCode": 195,
+  "versionName": "2.7.0",
+  "apkUrl": "https://asset.kenny5530.asia/downloads/youshu-2.7.0.apk",
+  "sha256": "30d113f6954343e259159d6baf91977248936d27beee0b8a25f2296761c2ed40",
+  "size": 5382454,
+  "notes": "网页与手机版本统一升级为 2.7.0，手机端沿用现有功能。\nPC 资产账户菜单默认展开，仍支持手动折叠。\n汇总 PC 侧栏、资产卡片、日历及品牌区域调整。"
 }

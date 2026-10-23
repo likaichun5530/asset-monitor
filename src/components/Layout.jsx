@@ -130,7 +130,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
   const hasAvailableAppUpdate = Boolean(availableAppUpdate)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [assetMenuOpen, setAssetMenuOpen] = useState(() => assetRoutes.has(location.pathname))
+  const [assetMenuOpen, setAssetMenuOpen] = useState(true)
   const [aiOpenRequest, setAiOpenRequest] = useState(0)
   const previousLocationKeyRef = useRef(location.key)
   const contentRef = useRef(null)
@@ -269,34 +269,31 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
       {/* PC 侧栏 */}
       <aside className="desktop-sidebar sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col overflow-y-auto border-r border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 sm:flex">
         <div className="desktop-brand flex h-20 items-center px-5">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="desktop-brand-mark flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-0.5 dark:bg-slate-900">
-              <img src="/icon.png" alt="有数 App Logo" className="h-full w-full object-contain" />
+          <NavLink to="/" end state={{ pageTransition: 'none' }} aria-label="有数，返回首页" className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500">
+            <span className="desktop-brand-mark flex h-11 w-11 shrink-0 items-center justify-center">
+              <img src="/icon.png" alt="" className="h-full w-full object-contain" />
             </span>
-            <div className="min-w-0">
-              <div className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-slate-950 dark:text-white">有数</div>
-              <div className="mt-1.5 text-[10px] font-semibold tracking-[0.16em] text-slate-400 dark:text-slate-500">ASSET MONITOR</div>
-            </div>
-          </div>
+            <span className="text-[21px] font-semibold leading-none text-slate-950 dark:text-white">有数</span>
+          </NavLink>
         </div>
-        <nav className="flex-1 space-y-1 px-3 pb-5 pt-2">
+        <nav aria-label="侧栏导航" className="desktop-navigation flex-1 space-y-1 px-3 pb-5 pt-2">
           {navItems.map((item, i) => {
             if (item.type === 'label' && item.label === '资产账户') return (
-              <button key={`${item.label}-${i}`} type="button" onClick={() => setAssetMenuOpen((open) => !open)} aria-expanded={assetMenuOpen} className="mt-3 flex w-full items-center justify-between rounded-lg px-3 py-2 text-[14px] font-semibold tracking-[0.02em] text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-white/[0.04] dark:hover:text-slate-400">
+              <button key={`${item.label}-${i}`} type="button" onClick={() => setAssetMenuOpen((open) => !open)} aria-expanded={assetMenuOpen} className="desktop-nav-section desktop-assets-toggle mt-3 flex w-full items-center justify-between rounded-lg px-3 py-2 text-[14px] font-semibold tracking-[0.02em] text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-white/[0.04] dark:hover:text-slate-400">
                 <span>{item.label}</span>
                 <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${assetMenuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
               </button>
             )
-            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="px-3 pb-1.5 pt-5 text-[14px] font-semibold tracking-[0.02em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
+            if (item.type === 'label') return <div key={`${item.label}-${i}`} className="desktop-nav-section px-3 pb-1.5 pt-5 text-[14px] font-semibold tracking-[0.02em] text-slate-400 first:pt-2 dark:text-slate-600">{item.label}</div>
             if (item.group === 'assets' && !assetMenuOpen) return null
             const Icon = item.icon
             return (
-              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 ${item.group === 'assets' ? 'ml-1' : ''} ${isActive ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800 dark:text-white dark:ring-white/10' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
+              <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `desktop-nav-item ${item.group === 'assets' ? 'desktop-nav-asset' : 'desktop-nav-primary'} group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-all duration-200 ${item.group === 'assets' ? 'ml-1' : ''} ${isActive ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-800 dark:text-white dark:ring-white/10' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white'}`}>
                 {({ isActive }) => (
                   <>
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400' : 'bg-slate-200/55 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 dark:bg-white/[0.05] dark:text-slate-500'}`}><Icon className="h-[17px] w-[17px] shrink-0" /></span>
+                    <span className={`desktop-nav-icon flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400' : 'bg-slate-200/55 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 dark:bg-white/[0.05] dark:text-slate-500'}`}><Icon className="h-[17px] w-[17px] shrink-0" /></span>
                     <span className="truncate">{item.label}</span>
-                    {isActive && <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true" />}
+                    {isActive && <span className="desktop-nav-active-dot absolute right-3 h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true" />}
                   </>
                 )}
               </NavLink>
@@ -355,7 +352,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         </header>
 
         {/* PC 顶部栏 */}
-        <header className="desktop-topbar sticky top-0 z-20 hidden border-b border-transparent bg-[#f5f7fa] dark:border-transparent dark:bg-[#21262f] sm:flex">
+        <header className={`desktop-topbar ${(['/', '/holdings', '/market', '/target'].includes(pagePath) || mobileDetailPages.has(pagePath)) ? 'desktop-primary-topbar' : ''} sticky top-0 z-20 hidden border-b border-transparent bg-[#f5f7fa] dark:border-transparent dark:bg-[#21262f] sm:flex`}>
           <div className="flex h-20 flex-1 items-center justify-between px-6 lg:px-8">
             <div>
               <h1 className="text-[25px] font-semibold leading-none tracking-[-0.035em] text-slate-950 dark:text-gray-100">{pageTitle}</h1>

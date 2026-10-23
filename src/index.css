@@ -1062,3 +1062,309 @@ html.dark .bg-gray-100.rounded-lg button.bg-white { background-color: #475569; c
   .calendar-date { position: absolute; top: 4px; right: 4px; line-height: 1; }
   .calendar-change { position: absolute; bottom: 4px; left: 2px; right: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; line-height: 12px; }
 }
+
+/* PC 信息界面：统一字阶、表面和密度；不覆盖手机/平板断点。 */
+@media (min-width: 1024px) {
+  .desktop-workspace,
+  html.dark .desktop-workspace { background-image: none; }
+
+  .desktop-workspace .card,
+  .desktop-workspace .card:hover,
+  .desktop-workspace .desktop-metric-card,
+  .desktop-workspace .desktop-metric-card:hover {
+    border-radius: 12px;
+    box-shadow: none;
+    background-image: none;
+    transform: none;
+  }
+  .desktop-workspace .card { border-color: #e2e8f0; }
+  html.dark .desktop-workspace .card { border-color: #39434e; }
+  .desktop-topbar > div { height: 64px; }
+  .desktop-topbar h1 { font-size: 26px; line-height: 32px; letter-spacing: 0; }
+  .desktop-topbar p { display: none; }
+  .desktop-content { padding-top: 16px; }
+  .desktop-brand-mark { box-shadow: none; }
+
+  /* 金额使用正常字宽，辅助标签也保持足够对比度。 */
+  .desktop-workspace,
+  .desktop-sidebar {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  }
+  .desktop-workspace .font-num,
+  .desktop-workspace .font-num-regular,
+  .desktop-workspace .card .font-num,
+  .desktop-workspace .card .font-num-regular {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-stretch: normal;
+    letter-spacing: 0;
+  }
+  .desktop-workspace .card .text-gray-400,
+  .desktop-workspace .card .text-slate-400 { color: #64748b; }
+  html.dark .desktop-workspace .card .text-gray-400,
+  html.dark .desktop-workspace .card .text-slate-400 { color: #a8b3c2; }
+  .desktop-workspace .desktop-section-title { font-size: 17px; line-height: 24px; letter-spacing: 0; }
+
+  .home-hero-composite {
+    height: 220px;
+    min-height: 220px;
+    border-radius: 12px;
+    box-shadow: none;
+  }
+  .home-hero-panel,
+  .home-hero-trend,
+  .home-hero-panel > .card,
+  .home-hero-trend > .card,
+  .home-hero-panel > .card:hover,
+  .home-hero-trend > .card:hover {
+    height: 220px;
+    min-height: 220px;
+    max-height: 220px;
+    border: 0;
+    border-radius: 0;
+  }
+  .home-hero-total .font-num { font-size: clamp(32px, 2.65vw, 40px); }
+  .desktop-workspace .home-stat-card,
+  html.dark .desktop-workspace .home-stat-card { background-image: none; }
+  .home-stat-card { min-height: 126px; padding: 18px 22px; }
+  .home-stat-card > .relative { justify-content: flex-start; }
+  .home-stat-card .home-stat-label { text-align: left; }
+  .home-stat-card > .relative > span { display: none; }
+  .home-stat-card .home-stat-value { margin-top: 8px; font-size: 24px !important; line-height: 30px !important; }
+  .desktop-workspace .home-stat-badge,
+  html.dark .desktop-workspace .home-stat-badge {
+    background: transparent;
+    padding: 0;
+    font-size: 14px !important;
+    line-height: 20px !important;
+  }
+  .home-stat-badge > span { display: none; }
+
+  /* 同排分析卡保留，卡片高度由最需要空间的内容决定。 */
+  .home-card-key-currency > div > .card,
+  .home-card-key-health > div > .card,
+  .home-card-key-calendar > div > .card {
+    height: 100%;
+    min-height: 360px;
+    max-height: none;
+    overflow: visible;
+  }
+  .home-card-key-calendar .calendar-grid { gap: 4px; }
+  .home-card-key-calendar .calendar-day-cell,
+  .home-card-key-calendar .calendar-grid[data-calendar-rows="6"] .calendar-day-cell {
+    height: 44px;
+    min-height: 44px;
+    aspect-ratio: auto;
+    padding: 0;
+  }
+  .home-card-key-calendar .calendar-weekday { font-size: 12px; line-height: 18px; }
+  .home-card-key-calendar .calendar-date { top: 4px; right: 5px; font-size: 12px; line-height: 14px; }
+  .home-card-key-calendar .calendar-change { bottom: 4px; font-size: 12px; line-height: 14px; padding: 0; }
+  .home-card-key-health .health-score { font-weight: 600; }
+
+  .desktop-workspace .desktop-market-tile,
+  .desktop-workspace .desktop-market-tile:hover {
+    min-height: 100px;
+    padding: 16px 20px;
+    transform: none;
+    box-shadow: none;
+    background: transparent;
+  }
+  html.dark .desktop-workspace .desktop-market-tile { background: transparent; }
+  .desktop-market-tile > div:first-child { font-size: 14px; line-height: 20px; }
+  .desktop-market-tile > .font-num { margin-top: 8px; font-size: 22px; line-height: 28px; font-weight: 600; }
+  .desktop-workspace table { font-variant-numeric: tabular-nums; }
+  .desktop-workspace table thead th { font-size: 13px; font-weight: 500; letter-spacing: 0; }
+  .desktop-workspace table tbody td { font-size: 14px; line-height: 22px; }
+}
+
+/* PC 分析卡：自然高度避免日历裁切，内容按卡片空间展开。 */
+@media (min-width: 1024px) {
+  .desktop-topbar.desktop-primary-topbar { display: none !important; }
+  .home-card-key-currency > div,
+  .home-card-key-health > div,
+  .home-card-key-calendar > div { display: flex; height: auto; min-width: 0; }
+  .home-card-key-currency > div > .card,
+  .home-card-key-health > div > .card,
+  .home-card-key-calendar > div > .card {
+    flex: 1;
+    height: auto;
+    min-height: 320px;
+    max-height: none;
+    min-width: 0;
+    overflow: visible;
+  }
+  .home-card-key-calendar .calendar-grid { gap: 4px; }
+  .home-card-key-calendar .calendar-day-cell,
+  .home-card-key-calendar .calendar-grid[data-calendar-rows="6"] .calendar-day-cell { height: 44px; min-height: 44px; }
+  .home-card-key-calendar .calendar-change {
+    left: 1px;
+    right: 1px;
+    max-width: none;
+    font-size: clamp(10px, .85vw, 12px);
+    letter-spacing: -.3px;
+    text-overflow: clip;
+    overflow: visible;
+    white-space: nowrap;
+  }
+  .home-card-key-calendar .calendar-card > div:first-child { gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .home-card-key-calendar .calendar-card > div:first-child > div { margin-left: auto; }
+  .home-card-key-calendar .calendar-card > div:first-child button { font-size: 12px; }
+  .home-card-key-currency .currency-card-content { justify-content: space-evenly; gap: 16px; padding-top: 12px; }
+  .home-card-key-currency .currency-ring { width: clamp(160px, 13vw, 200px); height: clamp(160px, 13vw, 200px); }
+  .home-card-key-currency .currency-legend { width: 100%; margin: 0; column-gap: 16px; row-gap: 8px; }
+  .home-card-key-currency .currency-legend-item { height: auto; font-size: 16px; line-height: 24px; }
+  .home-card-key-health .health-score { font-size: 52px; }
+  .home-card-key-health .health-score-unit { font-size: 16px; }
+  .home-card-key-health .health-card-content { justify-content: space-between; gap: 12px; margin-top: 20px; font-size: 17px; line-height: 26px; }
+  .home-card-key-health .health-allocation-row { line-height: 26px; }
+  .home-card-key-health .health-card-content > .border-t { margin: 0; }
+  .home-card-key-health .health-card-content > .flex { transform: none; }
+  .home-card-key-health .margin-risk-labels { margin-top: 10px; font-size: 12px; line-height: 18px; }
+  .home-card-key-currency { grid-column: span 3; }
+  .home-card-key-health { grid-column: span 4; }
+  .home-card-key-calendar { grid-column: span 5; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .home-card-key-currency,
+  .home-card-key-health { grid-column: span 6; }
+  .home-card-key-calendar { grid-column: 1 / -1; }
+  .home-card-key-calendar .calendar-change { font-size: 13px; }
+}
+
+/* PC 侧栏：主功能、资产子列表、账户操作三个层级。 */
+@media (min-width: 1024px) {
+  .desktop-sidebar { background: #f8fafc; box-shadow: none; }
+  .desktop-sidebar .desktop-brand { height: 88px; min-height: 88px; background: #f8fafc; }
+  .desktop-sidebar .desktop-brand-mark { width: 38px; height: 38px; border-radius: 10px; }
+  .desktop-sidebar .desktop-brand-mark + div > div:first-child { font-size: 21px; }
+  .desktop-sidebar .desktop-brand-mark + div > div:last-child { font-size: 9px; letter-spacing: .1em; font-weight: 500; }
+  .desktop-sidebar .desktop-navigation { padding: 4px 16px 20px; }
+  .desktop-navigation .desktop-nav-section {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 8px 12px;
+  }
+  .desktop-navigation .desktop-assets-toggle {
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0;
+    margin-top: 20px;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    background: transparent;
+  }
+  .desktop-navigation .desktop-nav-item {
+    margin-left: 0;
+    gap: 10px;
+    padding: 0 12px;
+    border-radius: 7px;
+    color: #475569;
+    box-shadow: none;
+    --tw-ring-shadow: 0 0 #0000;
+    background: transparent;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .desktop-navigation .desktop-nav-primary { min-height: 44px; font-size: 15px; font-weight: 600; }
+  .desktop-navigation .desktop-nav-asset { min-height: 36px; padding-left: 24px; font-size: 14px; font-weight: 400; }
+  .desktop-sidebar .desktop-nav-icon {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    color: #64748b;
+    border-radius: 0;
+  }
+  .desktop-navigation .desktop-nav-asset .desktop-nav-icon svg { width: 16px; height: 16px; }
+  .desktop-navigation .desktop-nav-item:hover { background: #eaf0f6; color: #1e293b; }
+  .desktop-navigation .desktop-nav-item[aria-current="page"] { background: #e8f0ff; color: #1d4ed8; box-shadow: none; font-weight: 600; }
+  .desktop-navigation .desktop-nav-item[aria-current="page"] .desktop-nav-icon { color: #2563eb; }
+  .desktop-nav-item[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 11px; bottom: 11px; width: 3px; border-radius: 3px; background: #2563eb; }
+  .desktop-nav-active-dot { display: none; }
+  .desktop-sidebar .desktop-sidebar-footer { padding: 10px 16px 14px; background: #f8fafc; backdrop-filter: none; }
+  .desktop-user-menu > summary:hover { background: #eaf0f6; }
+  html.dark .desktop-sidebar,
+  html.dark .desktop-sidebar .desktop-brand,
+  html.dark .desktop-sidebar .desktop-sidebar-footer { background: #1b2029; border-color: #323b49; }
+  html.dark .desktop-navigation .desktop-nav-section,
+  html.dark .desktop-sidebar .desktop-nav-icon { color: #9caec3; }
+  html.dark .desktop-navigation .desktop-assets-toggle { border-top-color: #323b49; }
+  html.dark .desktop-navigation .desktop-nav-item { color: #c0cbd9; }
+  html.dark .desktop-navigation .desktop-nav-item:hover,
+  html.dark .desktop-user-menu > summary:hover { background: #293240; }
+  html.dark .desktop-navigation .desktop-nav-item[aria-current="page"] { background: #243956; color: #b6d3ff; }
+  html.dark .desktop-navigation .desktop-nav-item[aria-current="page"] .desktop-nav-icon { color: #93c5fd; }
+  html.dark .desktop-nav-item[aria-current="page"]::before { background: #93c5fd; }
+}
+
+/* PC 在工作区内滚动，避免文档内容滚入 Safari 半透明工具栏背后。 */
+@media (min-width: 1024px) {
+  html, body, #root { height: 100%; overflow: hidden; }
+  .startup-stage, .startup-content { height: 100%; min-height: 0; overflow: hidden; }
+  .app-shell { height: 100dvh; min-height: 0; overflow: hidden; }
+  .desktop-workspace { height: 100%; min-height: 0; overflow: hidden; }
+  .desktop-topbar { flex-shrink: 0; }
+  .desktop-workspace > .mobile-scroll-region { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+}
+
+/* PC 子资产：左侧市值、右侧趋势共用一张卡片，手机仍上下分卡。 */
+@media (min-width: 1024px) {
+  .asset-detail-hero-with-trend {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: stretch;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+  }
+  html.dark .asset-detail-hero-with-trend { background: #252e37; border-color: #39434e; }
+  .asset-detail-hero-with-trend > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
+  .desktop-workspace .asset-detail-hero-with-trend > .card {
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+  }
+  .asset-detail-hero-with-trend > .desktop-asset-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px 28px;
+  }
+  .asset-detail-hero-with-trend .desktop-asset-summary > .text-right { text-align: left; }
+  .asset-detail-hero-with-trend .asset-detail-trend { padding: 20px 24px 12px; }
+  .asset-detail-hero-with-trend .asset-detail-trend > div:first-child { justify-content: flex-end; }
+  .asset-detail-hero-with-trend .asset-detail-trend > div:first-child > div:first-child { display: none; }
+  .asset-detail-hero-with-trend .asset-detail-trend-canvas { height: 170px; }
+}
+
+/* 品牌图不使用边框、底板和阴影。 */
+.desktop-sidebar .desktop-brand-mark,
+html.dark .desktop-sidebar .desktop-brand-mark {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+@media (min-width: 1024px) {
+  .desktop-sidebar .desktop-brand-mark { width: 48px; height: 48px; }
+  .desktop-sidebar .desktop-brand > a { gap: 14px; }
+  .desktop-sidebar .desktop-brand > a > span:last-child { font-size: 26px; line-height: 32px; font-weight: 600; }
+}
+
+@media (min-width: 1024px) {
+  .desktop-sidebar .desktop-brand { height: 72px; min-height: 72px; }
+  .desktop-navigation > :not([hidden]) ~ :not([hidden]) { margin-top: 3.8px; }
+  .desktop-navigation .desktop-nav-primary { min-height: 42px; }
+  .desktop-navigation .desktop-nav-asset { min-height: 34px; }
+  .desktop-navigation .desktop-assets-toggle { margin-top: 19px; padding-top: 19px; }
+}
+
+@media (min-width: 1024px) {
+  .desktop-sidebar .desktop-brand > a { transform: translateY(4px); }
+}
