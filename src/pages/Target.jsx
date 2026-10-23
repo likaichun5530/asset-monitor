@@ -234,12 +234,14 @@ export default function Target({ refreshKey = 0 }) {
 
         {/* 桌面端表格 */}
         <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="target-allocation-table min-w-full text-sm">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-100">
                 <th className="py-2 px-6 font-medium">类别</th>
                 <th className="py-2 px-2 font-medium text-right">当前金额</th>
-                <th className="py-2 px-2 font-medium text-right">当前占比</th>
+                <th className="py-2 px-2 font-medium text-right">当前占比
+                  <div className="target-scale-legend"><span><i className="target-legend-point" />当前</span><span><i className="target-legend-line" />目标</span><span><i className="target-legend-range" />合理区间</span></div>
+                </th>
                 <th className="py-2 px-2 font-medium text-right">目标比例</th>
                 <th className="py-2 px-2 font-medium text-right">差值</th>
                 <th className="py-2 px-2 font-medium text-center">状态</th>
@@ -272,7 +274,7 @@ export default function Target({ refreshKey = 0 }) {
                     <td className="py-2.5 px-2 text-right text-gray-700">{formatCurrency(r.marketValue)}</td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       <div>{(r.currentRatio * 100).toFixed(2)}%</div>
-                      <div className="relative ml-auto mt-2 h-2 w-32 rounded-full bg-slate-100 dark:bg-gray-700">
+                      <div className="target-current-track relative ml-auto mt-2 h-2 w-32 rounded-full bg-slate-100 dark:bg-gray-700">
                         {rangeStart !== null && rangeEnd !== null && <span className="absolute inset-y-0 rounded-full bg-blue-100 ring-1 ring-inset ring-blue-300/80 dark:bg-blue-400/25 dark:ring-blue-300/35" style={{ left: `${rangeStart}%`, width: `${Math.max(rangeEnd - rangeStart, 1)}%` }} />}
                         {targetPosition !== null && <span className="absolute -top-1 h-4 w-0.5 rounded-full bg-slate-700 dark:bg-white" style={{ left: `${targetPosition}%` }} />}
                         <span className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} />

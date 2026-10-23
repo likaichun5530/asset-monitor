@@ -1368,3 +1368,27 @@ html.dark .desktop-sidebar .desktop-brand-mark {
 @media (min-width: 1024px) {
   .desktop-sidebar .desktop-brand > a { transform: translateY(4px); }
 }
+
+/* 目标表让配置范围尺成为主列，金额和类别按内容收紧。 */
+@media (min-width: 640px) {
+  .target-allocation-table { width: 100%; min-width: 820px; table-layout: fixed; }
+  .target-allocation-table th:nth-child(1) { width: 12%; }
+  .target-allocation-table th:nth-child(2) { width: 18%; }
+  .target-allocation-table th:nth-child(3) { width: 40%; }
+  .target-allocation-table th:nth-child(4) { width: 12%; }
+  .target-allocation-table th:nth-child(5) { width: 10%; }
+  .target-allocation-table th:nth-child(6) { width: 8%; }
+  .target-allocation-table td { white-space: nowrap; }
+  .target-allocation-table th:first-child,
+  .target-allocation-table td:first-child { padding-left: 20px; padding-right: 8px; }
+  .target-allocation-table th:nth-child(3),
+  .target-allocation-table td:nth-child(3) { padding-left: 28px; padding-right: 28px; }
+  .target-allocation-table .target-current-track { width: 100%; }
+  .target-scale-legend { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 12px; font-weight: 400; }
+  .target-scale-legend > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .target-scale-legend i { display: inline-block; flex-shrink: 0; }
+  .target-legend-point { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+  .target-legend-line { width: 2px; height: 12px; background: #334155; }
+  .target-legend-range { width: 18px; height: 8px; border-radius: 4px; background: #dbeafe; border: 1px solid #93c5fd; }
+  html.dark .target-legend-line { background: #e2e8f0; }
+}
