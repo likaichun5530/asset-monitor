@@ -11,7 +11,7 @@
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
 | 本地版本 | 2.7.0，资产账户默认展开，网页和 Android 升级包统一版本并发布 |
 | 最近已确认生产版本 | 网页版与 App 升级通道均为 2.7.0 |
-| 最近已确认部署 | 网页 dpl_HzgSsa98W7s29Hp6bZ7pTxvBVh51，READY；App 更新沿用 dpl_VCLXrmLjfh7bQ53qj6N4Wcht1AHg 的 2.7.0 升级包 |
+| 最近已确认部署 | 网页 dpl_9H3vFkx1BMaroC6KazHA1hdZ2Pho，READY；App 更新沿用 dpl_VCLXrmLjfh7bQ53qj6N4Wcht1AHg 的 2.7.0 升级包 |
 | 最近已确认 Git 提交 | 本文件所在的 2.7.0 发布提交；包含 2.6.27～2.6.38 PC 累计调整 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
 | Android 原生 | Capacitor 8；本地 versionName 2.7.0 / versionCode 195；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |

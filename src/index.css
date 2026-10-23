@@ -1384,11 +1384,11 @@ html.dark .desktop-sidebar .desktop-brand-mark {
   .target-allocation-table th:nth-child(3),
   .target-allocation-table td:nth-child(3) { padding-left: 28px; padding-right: 28px; }
   .target-allocation-table .target-current-track { width: 100%; }
-  .target-scale-legend { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; font-size: 12px; font-weight: 400; }
-  .target-scale-legend > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .target-scale-legend i { display: inline-block; flex-shrink: 0; }
-  .target-legend-point { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
-  .target-legend-line { width: 2px; height: 12px; background: #334155; }
-  .target-legend-range { width: 18px; height: 8px; border-radius: 4px; background: #dbeafe; border: 1px solid #93c5fd; }
-  html.dark .target-legend-line { background: #e2e8f0; }
+}
+
+@media (min-width: 640px) {
+  .target-track-labels { position: relative; height: 38px; margin-top: 8px; color: #64748b; font-size: 12px; line-height: 17px; }
+  .target-track-labels > span { position: absolute; top: 0; width: 25%; transform: translateX(-50%); text-align: center; white-space: nowrap; }
+  .target-track-labels strong { display: block; font-weight: 500; font-variant-numeric: tabular-nums; }
+  html.dark .target-track-labels { color: #a8b3c2; }
 }

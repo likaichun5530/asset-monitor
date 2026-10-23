@@ -239,9 +239,7 @@ export default function Target({ refreshKey = 0 }) {
               <tr className="text-left text-gray-400 border-b border-gray-100">
                 <th className="py-2 px-6 font-medium">类别</th>
                 <th className="py-2 px-2 font-medium text-right">当前金额</th>
-                <th className="py-2 px-2 font-medium text-right">当前占比
-                  <div className="target-scale-legend"><span><i className="target-legend-point" />当前</span><span><i className="target-legend-line" />目标</span><span><i className="target-legend-range" />合理区间</span></div>
-                </th>
+                <th className="py-2 px-2 font-medium text-right">当前占比</th>
                 <th className="py-2 px-2 font-medium text-right">目标比例</th>
                 <th className="py-2 px-2 font-medium text-right">差值</th>
                 <th className="py-2 px-2 font-medium text-center">状态</th>
@@ -279,7 +277,11 @@ export default function Target({ refreshKey = 0 }) {
                         {targetPosition !== null && <span className="absolute -top-1 h-4 w-0.5 rounded-full bg-slate-700 dark:bg-white" style={{ left: `${targetPosition}%` }} />}
                         <span className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm dark:border-gray-800" style={{ left: `${currentPosition}%`, backgroundColor: progressColor }} />
                       </div>
-                      {allowedRange && <div className="mt-1 whitespace-nowrap text-[10px] text-slate-400">范围 {(allowedRange.lower * 100).toFixed(1)}–{(allowedRange.upper * 100).toFixed(1)}%</div>}
+                      {allowedRange && <div className="target-track-labels">
+                        <span style={{ left: `${rangeStart}%` }}>下限<strong>{(allowedRange.lower * 100).toFixed(1)}%</strong></span>
+                        <span style={{ left: `${targetPosition}%` }}>目标<strong>{(r.targetRatio * 100).toFixed(1)}%</strong></span>
+                        <span style={{ left: `${rangeEnd}%` }}>上限<strong>{(allowedRange.upper * 100).toFixed(1)}%</strong></span>
+                      </div>}
                     </td>
                     <td className="py-2.5 px-2 text-right text-gray-600">
                       {hasTarget ? `${(r.targetRatio * 100).toFixed(2)}%` : <span className="text-gray-300">—</span>}
