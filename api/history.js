@@ -3,6 +3,7 @@ import { isConfigured, readSheet, toNumber, updateRows } from './_google.js'
 import { readJsonBody, setPrivateResponseHeaders } from './_http.js'
 import { requireAuth } from './_auth.js'
 import { invalidateAiDataCache } from './_ai-data-cache.js'
+import incomeHandler from '../lib/income-handler.js'
 
 function normalizeDate(s) {
   if (!s) return null
@@ -36,6 +37,8 @@ function json(res, status, body) {
 const CATEGORY_KEYS = ['us', 'crypto', 'bond', 'future', 'cn', 'gold', 'jp', 'hk', 'cash']
 
 export default async function handler(req, res) {
+  // Reuse this function for the read-only annual income snapshot on Hobby.
+  if (req.query?.resource === 'income') return incomeHandler(req, res)
   setPrivateResponseHeaders(res)
   if (req.method === 'OPTIONS') {
     res.writeHead(204)

@@ -9,6 +9,7 @@ import {
   ReferenceDot,
 } from 'recharts'
 import { getHistory, getPeak } from '../utils/asset.js'
+import { TREND_MARGIN, TREND_X_AXIS, TREND_Y_AXIS, TREND_CARD_CLASS, toWanNum } from './trendChartStyle.js'
 import { formatCurrency, formatDateShort, formatDateMid } from '../utils/format.js'
 
 const RANGES = [
@@ -19,10 +20,6 @@ const RANGES = [
   { key: 'all', label: '全部', days: Infinity },
 ]
 
-// 把数值格式化为「万」的纯数字（不带单位）
-function toWanNum(v) {
-  return (Number(v) / 10000).toFixed(0)
-}
 
 export default function TrendChart({ refreshKey = 0, embedded = false, hideYAxis = embedded }) {
   const [range, setRange] = useState('1m')
@@ -127,7 +124,7 @@ export default function TrendChart({ refreshKey = 0, embedded = false, hideYAxis
   }, [yTicks])
 
   return (
-    <div className="card pb-[1px] sm:pb-6 px-[1px] sm:px-6">
+    <div className={TREND_CARD_CLASS}>
       <div className={`flex items-center ${embedded ? 'justify-end' : 'justify-between'} mb-[1px] flex-wrap gap-2 px-3 sm:px-0`}>
         {!embedded && <div>
           <h3 className="text-base font-semibold text-gray-800">资产趋势</h3>
@@ -151,7 +148,7 @@ export default function TrendChart({ refreshKey = 0, embedded = false, hideYAxis
       </div>
       <div className="trend-chart-canvas w-full h-[160px] lg:h-[255px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 24, right: 12, bottom: 0, left: 0 }}>
+          <AreaChart data={chartData} margin={TREND_MARGIN}>
             <defs>
               <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
@@ -159,27 +156,22 @@ export default function TrendChart({ refreshKey = 0, embedded = false, hideYAxis
               </linearGradient>
             </defs>
             <XAxis
+              {...TREND_X_AXIS}
               dataKey="timestamp"
               type="number"
               scale="time"
               domain={['dataMin', 'dataMax']}
               ticks={xTicks.length ? xTicks : undefined}
               tickFormatter={(ts) => formatDateShort(new Date(ts).toISOString().slice(0, 10))}
-              tick={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', fontSize: 12, fontWeight: 500, fill: '#94a3b8' }}
-              tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
             />
             {hideYAxis ? (
               <YAxis hide domain={yDomain} width={0} />
             ) : (
               <YAxis
+                {...TREND_Y_AXIS}
                 ticks={yTicks}
                 domain={yDomain}
                 tickFormatter={toWanNum}
-                tick={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', fontSize: 12, fontWeight: 500, fill: '#94a3b8' }}
-                tickLine={false}
-                axisLine={false}
-                width={44}
               />
             )}
             <Tooltip

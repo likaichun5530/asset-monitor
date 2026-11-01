@@ -4,6 +4,9 @@
       "maxDuration": 180
     }
   },
+  "rewrites": [
+    { "source": "/api/income", "destination": "/api/history?resource=income" }
+  ],
   "crons": [
     {
       "path": "/api/snapshot-auto",

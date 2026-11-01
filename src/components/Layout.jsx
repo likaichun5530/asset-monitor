@@ -9,6 +9,7 @@ const navItems = [
   { to: '/', label: '总览', icon: HomeIcon, end: true },
   { to: '/market', label: '行情', icon: MarketIcon },
   { to: '/holdings', label: '持仓', icon: ListIcon },
+  { to: '/income', label: '收入', icon: WalletIcon },
   { to: '/target', label: '目标', icon: TargetIcon },
   { type: 'label', label: '资产账户' },
   { to: '/us', label: '美股', icon: StockUpIcon, group: 'assets' },
@@ -27,6 +28,7 @@ const assetRoutes = new Set(navItems.filter((item) => item.group === 'assets').m
 const pageTitles = {
   '/': '总览',
   '/holdings': '持仓',
+  '/income': '收入',
   '/target': '目标',
   '/market': '行情',
   '/settings': '设置',
@@ -72,6 +74,7 @@ const sourceLabels = {
 const pageDescriptions = {
   '/': '资产总览与组合表现',
   '/holdings': '查看和维护全部资产明细',
+  '/income': '年度收入、趋势与月度录入',
   '/target': '跟踪当前配置与目标偏差',
   '/market': '关注汇率、指数与主要标的',
   '/settings': '数据模式、外观与账户管理',
@@ -352,7 +355,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
         </header>
 
         {/* PC 顶部栏 */}
-        <header className={`desktop-topbar ${(['/', '/holdings', '/market', '/target'].includes(pagePath) || mobileDetailPages.has(pagePath)) ? 'desktop-primary-topbar' : ''} sticky top-0 z-20 hidden border-b border-transparent bg-[#f5f7fa] dark:border-transparent dark:bg-[#21262f] sm:flex`}>
+        <header className={`desktop-topbar ${(['/', '/holdings', '/income', '/market', '/target'].includes(pagePath) || mobileDetailPages.has(pagePath)) ? 'desktop-primary-topbar' : ''} sticky top-0 z-20 hidden border-b border-transparent bg-[#f5f7fa] dark:border-transparent dark:bg-[#21262f] sm:flex`}>
           <div className="flex h-20 flex-1 items-center justify-between px-6 lg:px-8">
             <div>
               <h1 className="text-[25px] font-semibold leading-none tracking-[-0.035em] text-slate-950 dark:text-gray-100">{pageTitle}</h1>
@@ -384,7 +387,7 @@ export default function Layout({ source = 'empty', onRefresh, auth } = {}) {
 
       {/* 移动端底部导航 */}
       <nav className="mobile-bottom-nav safe-area-bottom absolute inset-x-0 bottom-0 z-20 flex border-t border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800 sm:hidden">
-        {[["/", "总览", HomeIcon], ["/market", "行情", MarketIcon], ["/holdings", "持仓", ListIcon], ["/target", "目标", TargetIcon]].map(([to, label, Icon]) => (
+        {[["/", "总览", HomeIcon], ["/market", "行情", MarketIcon], ["/holdings", "持仓", ListIcon], ["/income", "收入", WalletIcon], ["/target", "目标", TargetIcon]].map(([to, label, Icon]) => (
           <NavLink key={to} to={to} state={{ pageTransition: 'none' }} end={to === '/'} className="flex flex-1 items-center justify-center py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300">
             {({ isActive }) => <span className={`flex min-w-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-colors ${isActive ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'}`}><Icon className="h-5 w-5" /><span>{label}</span></span>}
           </NavLink>

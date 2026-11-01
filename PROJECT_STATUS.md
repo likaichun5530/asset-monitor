@@ -1,6 +1,10 @@
 # 项目现状与审查记录
 
-更新日期：2026-10-24。最近一次完整项目审查覆盖前后端引用、依赖、静态资源、原生工程遗留、构建与部署配置、自动化测试和项目文档；本次 PWA 启动优化未访问实盘表格或执行资产数据写入。
+2.9.1 本批已发布（dpl_2z2XosShvkzYRk5JgZt8hwj44E1P，READY / production；正式域名 HTTP 200，实际 JS 2.9.1，匿名收入 GET/PUT 401 private, no-store）：收入页11项精简、动态年份录入弹窗和真实表头分类已完成；13年总额保持原值。相关测试21/21、全量180/182（两项已有无关断言失败），版本检查/构建通过，390/1280px合成数据截图及年份/只读/取消返回交互通过；无真实写入验收。Android versionName 2.9.1 / versionCode 200（仅同步版本，未构建APK）。
+
+前批次状态：2.9.0 收入录入和实时源已发布（dpl_9D8HseWb4PFDRvMRyHRwT15L9Zwr，READY / production）；相关测试 17/17、全量 176/178（两项已有失败）、版本检查与构建通过；正式域名 HTTP 200 和实际 JS 2.9.0 已核验，匿名 GET/PUT 401；390/1280px 合成数据交互验证通过；真实表首次保存未验收。未生成 APK、未更新 App 通道、未提交、未推送。上一批次：2.8.2 收入图表坐标和左边距修复已发布（dpl_3Fjh8CUfvF34QRxtCgqmyWxZki7x，READY / production；正式域名 HTTP 200，实际前端 JS 核验 2.8.2，匿名收入 API 401）；相关测试 12/12，版本检查与 Web 构建通过，隔离 Chromium 合成数据完成手机/桌面截图。未修改生产私有快照与 JWT；未生成 APK、未提交、未推送。2.8.1 已生产发布由上游交接确认，旧版记录保留用于追溯。
+
+历史审查更新日期：2026-10-24。最近一次完整项目审查覆盖前后端引用、依赖、静态资源、原生工程遗留、构建与部署配置、自动化测试和项目文档；本次 PWA 启动优化未访问实盘表格或执行资产数据写入。
 
 ## 版本与环境
 
@@ -9,12 +13,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.7.0，资产账户默认展开，网页和 Android 升级包统一版本并发布 |
-| 最近已确认生产版本 | 网页版与 App 升级通道均为 2.7.0 |
-| 最近已确认部署 | 网页 dpl_9H3vFkx1BMaroC6KazHA1hdZ2Pho，READY；App 更新沿用 dpl_VCLXrmLjfh7bQ53qj6N4Wcht1AHg 的 2.7.0 升级包 |
-| 最近已确认 Git 提交 | 本文件所在的 2.7.0 发布提交；包含 2.6.27～2.6.38 PC 累计调整 |
+| 本地版本 | 2.9.1，收入页精简与按年弹窗录入；已部署，本次完整源码纳入 Git 同步 |
+| 最近已确认生产版本 | 网页版 2.9.1，HTTP 与实际 JS 已核验；App 通道仍为 2.7.0，本批未更新 |
+| 最近已确认部署 | 网页 dpl_2z2XosShvkzYRk5JgZt8hwj44E1P，READY / production，正式域名已绑定；App 升级通道未更新 |
+| Git 同步批次 | 本次提交包含 2.8.0～2.9.1 完整源码、测试和文档；历史条目中的未提交/未推送仅描述当时状态 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；本地 versionName 2.7.0 / versionCode 195；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；本地 versionName 2.9.1 / versionCode 200（未生成新 APK）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则

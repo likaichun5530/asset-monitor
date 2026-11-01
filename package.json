@@ -1,7 +1,7 @@
 {
   "name": "asset-monitor",
   "private": true,
-  "version": "2.7.0",
+  "version": "2.9.1",
   "type": "module",
   "scripts": {
     "version": "node scripts/sync-version.mjs",

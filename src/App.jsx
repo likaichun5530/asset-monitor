@@ -6,6 +6,7 @@ import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
 import Holdings from './pages/Holdings.jsx'
 import Target from './pages/Target.jsx'
+import Income from './pages/Income.jsx'
 import Cash from './pages/Cash.jsx'
 import Future from './pages/Future.jsx'
 import Market from './pages/Market.jsx'
@@ -97,6 +98,7 @@ export default function App() {
     return request
   }, [location.pathname, refreshSource])
 
+  const [incomeRefreshKey, setIncomeRefreshKey] = useState(0)
   const canRefreshCurrentPage = !(location.pathname === '/settings' || location.pathname.startsWith('/settings/'))
 
   useEffect(() => initTheme(), [])
@@ -135,9 +137,10 @@ export default function App() {
       <StartupStage>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route element={isAuthenticated ? <Layout source={source} onRefresh={canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
+          <Route element={isAuthenticated ? <Layout source={source} onRefresh={location.pathname === '/income' ? () => setIncomeRefreshKey(v => v + 1) : canRefreshCurrentPage ? refreshCurrentPage : undefined} auth={auth} /> : <Navigate to="/login" replace />}>
             <Route index element={<Home refreshKey={refreshKey} isRefreshing={isRefreshing} />} />
             <Route path="holdings" element={<Holdings refreshKey={refreshKey} onRefresh={() => refreshHoldings(true)} source={source} isLoggedIn={auth.isLoggedIn} />} />
+            <Route path="income" element={<Income isLoggedIn={auth.isLoggedIn && !demoMode} refreshKey={incomeRefreshKey} />} />
             <Route path="target" element={<Target />} />
             <Route path="settings" element={<Settings auth={auth} />} />
             <Route path="settings/:section" element={<Settings auth={auth} />} />

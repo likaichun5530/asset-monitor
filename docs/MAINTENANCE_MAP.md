@@ -24,6 +24,7 @@ node --test test/对应测试.test.js
 | --- | --- | --- |
 | `#/` | `src/pages/Home.jsx` | `HomeAssetHero.jsx`、`HomeOverviewCards.jsx`、`TrendChart.jsx`、`SubscriptionTicker.jsx`、`AllocationChart.jsx`、`HoldingsOverview.jsx`、`CalendarHeatmap.jsx` |
 | `#/holdings` | `src/pages/Holdings.jsx` | `HoldingEditor.jsx`、`holdingEditorDraft.js`、`holdingScope.js` |
+| `#/income` | `src/pages/Income.jsx` | `shared/income.js`、`lib/income-handler.js`（`/api/income` 经 rewrite 复用 `api/history.js?resource=income`）；本地真实源刷新：`scripts/refresh-income-snapshot.mjs` → `shared/income-source.js`；按年选择弹窗 `IncomeEntryDialog.jsx` → 金额弹窗 `IncomeEditor.jsx`、真实源及写入 `lib/income-google.js` / `lib/income-service.js`；写入边界见 `docs/INCOME_WRITE.md`（旧快照说明 `docs/INCOME_READONLY.md`） |
 | `#/target` | `src/pages/Target.jsx` | `TargetAllocationScale.jsx`、三个 `Target*Dialog.jsx`、`targetAllocation.js` |
 | `#/market` | `src/pages/Market.jsx` | `quoteData.js`、`api/market.js` |
 | `#/us`、`#/cn`、`#/hk`、`#/jp`、`#/gold`、`#/bond`、`#/crypto` | `src/pages/AssetDetail.jsx` | 文件内 `ASSET_CONFIG`、`asset.js`、`holdingScope.js` |
@@ -60,7 +61,7 @@ node --test test/对应测试.test.js
 | 首页卡片顺序错误或不能拖动 | `Home.jsx` | `cardSort.js`、`test/cardSort.test.js`、`test/homeCardEditing.test.js` |
 | 首页切页后闪动 | 对应卡片组件的初始 state / 模块缓存 | `useAssetData.js`、`dataStore.js`、`snapshot.js` |
 | 总资产、盈亏、回撤错误 | `asset.js` | `snapshot.js`、`test/todayChange.test.js` |
-| 趋势坐标、范围、峰值错误 | `TrendChart.jsx` | `asset.js`、`index.css` |
+| 趋势坐标、范围、峰值错误 | `TrendChart.jsx`；收入 `Income.jsx` | 共用 `src/components/trendChartStyle.js`（轴、万元格式、margin、容器 padding）；`asset.js`、`index.css` |
 | 收益日历重叠或日期错误 | `CalendarHeatmap.jsx` | `index.css` 的 `.calendar-*`、`historyChanges.js` |
 | 评分或建议错误 | `healthScore.js`、`HomeOverviewCards.jsx` | `targetAllocation.js`、`test/healthScore.test.js` |
 | 目标比例、细分目标或建议金额错误 | `Target.jsx`、`targetAllocation.js` | `shared/allocation.js`、`api/target.js`、`api/_target-config.js` |
@@ -103,6 +104,7 @@ node --test test/对应测试.test.js
 | 持仓 | `api/holdings.js` | `_holdings-service.js`、`_holdings-schema.js`、`_holdings-formulas.js` |
 | 历史 / 备注 | `api/history.js` | `_google.js`、`_http.js` |
 | 快照 / 定时快照 | `api/snapshot.js`、`snapshot-auto.js` | `_snapshot.js`、`_allocation.js` |
+| 收入（只读） | `lib/income-handler.js`（`/api/income` 经 rewrite 复用 `api/history.js?resource=income`） | `shared/income.js`；服务端私有年度快照，沿用现有 JWT |
 | 目标 | `api/target.js` | `_target-config.js`、`shared/` |
 | 行情 / 打新 | `api/market.js` | `_subscription-data.js`、`_google.js` |
 | 期货 | `api/futures.js` | `_google.js` |
