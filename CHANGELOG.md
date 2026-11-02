@@ -1,14 +1,14 @@
 # 发布记录
 
-## 2.9.5 — 收入首屏紧凑与金额格式（本地待发布）
+## 2.9.5 — 收入首屏紧凑与金额格式（网页已发布，APK 未发布）
 
 - 收入首屏去掉金额副标题；同期模式标题追加“同期”；金额保留千位及两位小数，不显示人民币符号。
 - 首屏移除普通卡片背景、边框和阴影，横向 16px、纵向 8px，跟随明暗/原生页面底色；年份、柱图、分类月度钻取及录入逻辑保持。
 - 相关测试 36/36、版本检查、生产 Web 构建与 Capacitor 同步通过。390/1280px × 明暗 × 原生/浏览器八组合合成 Chromium 验证通过，首屏实测 84px、透明/无边框/无阴影，未真实写入，不等同真机验收。
 - 版本 2.9.5 / Android 204；此批新增运行代码故按规范只升版一次。Java 21 / SDK 36 / Build Tools 35、36 / Gradle 8.14.3 已在当前工作区实际准备；`assembleRelease` 成功（203 tasks）。aapt 核验 com.youshu.app / 2.9.5 / 204；产物为 unsigned，不能冒充可安装升级包。
 - 已发布 2.7.0 APK 原签名证书 SHA-256 为 `a987681785d44bd9b1ee6d432f6b1f57823527899c428251ba7fda5f2d45ecb3`（Android Debug）。当前账号/授权工作区未找到原 keystore，必须提供原私钥才能兼容覆盖；未生成新签名、未更改升级清单。
-- 当前生产旧 APK URL 实测 404；已从历史部署 `asset-monitor-irzowvalc-li-kai-chun.vercel.app` 恢复原 2.7.0 到忽略目录 public/downloads，大小 5382454，SHA-256 与清单完全一致，apksigner 验证通过。尚未重新部署恢复线上下载。
-- 全量测试 190/192，仍为既有桌面导航及设置页源码断言两项失败；相关 36 项全过。未部署、未提交/推送；待独立审查与签名来源确认。
+- 此前生产旧 APK URL 实测 404；已从历史部署 `asset-monitor-irzowvalc-li-kai-chun.vercel.app` 恢复原 2.7.0 到忽略目录 public/downloads，大小 5382454，SHA-256 与清单完全一致，apksigner 验证通过。本次部署后线上 HTTP 200，实际下载大小与 SHA-256 均与原清单一致，旧通道恢复。
+- 全量测试 190/192，仍为既有桌面导航及设置页源码断言两项失败；相关 36 项全过。网页已部署 `dpl_Avdw2wuFjH6YQwgf28pYmx2M63Tj`（READY / production）；正式域名 HTTP 200，实际 `/assets/index-C2LjG-eE.js` 含 2.9.5，匿名收入 API 401 / private, no-store。源码已本地提交 `f0ed062`；GitHub 推送因凭据缺失失败，远端 main 仍为 `435b4b1`。未发布新 APK、未更新升级清单。
 
 ## 2.9.4 — 收入页文案与布局细节（已发布）
 
