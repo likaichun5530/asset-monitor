@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { getApiJson, getCachedIncome, cacheIncome } from '../utils/api.js'
 import IncomeEntryDialog from '../components/IncomeEntryDialog.jsx'
+import TargetEditButton from '../components/TargetEditButton.jsx'
+import { formatDateLong } from '../utils/format.js'
 import { incomeView, incomeSamePeriod, incomeMonthDetail, incomeCalendar } from '../../shared/income.js'
 import { TREND_MARGIN, TREND_X_AXIS, TREND_Y_AXIS, TREND_CARD_CLASS, toWanNum } from '../components/trendChartStyle.js'
 const money = cents => (cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -22,7 +24,7 @@ export default function Income({ isLoggedIn, refreshKey = 0 }) {
   if(editing)return()=>{active=false}
   const cached=getCachedIncome()
   setData(cached);setError('');setLoading(!cached)
-  getApiJson('income',{forceRefresh:true}).then(result=>{if(active)setData(result)}).catch(e=>{if(active)setError(e.message||'收入读取失败')}).finally(()=>{if(active)setLoading(false)})
+  getApiJson('income',{forceRefresh:true}).then(()=>{if(active)setData(getCachedIncome())}).catch(e=>{if(active)setError(e.message||'收入读取失败')}).finally(()=>{if(active)setLoading(false)})
   return()=>{active=false}
  },[isLoggedIn,refreshKey,attempt,editing])
  if(!isLoggedIn)return <div className="card p-6 text-sm text-slate-500">收入为私人数据，请登录后查看。演示模式不展示真实收入。</div>
@@ -40,13 +42,15 @@ export default function Income({ isLoggedIn, refreshKey = 0 }) {
  const chooseYear=value=>{setYear(Number(value));setCategory(null)}
  const selectBar=row=>{if(row?.year)chooseYear(row.year)}
  return <div className="space-y-2">
+
  {error&&<p role="alert" className="text-xs text-amber-600">收入更新失败，保留上次数据。<button className="ml-2 text-brand-500" onClick={()=>setAttempt(v=>v+1)}>重试</button></p>}
  <section className="income-hero px-4 py-2 space-y-2">
   <div className="flex items-center justify-between gap-3">
    <h2 className="font-semibold">{selected.year}年{samePeriod?'同期':''}</h2>
-   <button className="text-sm text-brand-500" onClick={()=>{setSaved(false);setEditing(true)}}>录入</button>
+   <TargetEditButton onClick={()=>{setSaved(false);setEditing(true)}}>录入</TargetEditButton>
   </div>
   <p className="text-3xl font-bold tabular-nums" data-testid="income-year-total">{selected.amount===null?'暂无完整月度数据':money(selected.amount)}</p>
+  {data.snapshotAt&&<p className="font-num-regular text-xs text-gray-500">更新于 {formatDateLong(data.snapshotAt.slice(0,10))}</p>}
  </section>
  <section className={TREND_CARD_CLASS}>
   <div className="flex items-center justify-between gap-3 mb-2 px-3 sm:px-0"><h2 className="font-semibold">历年趋势</h2><button type="button" aria-pressed={samePeriod} onClick={()=>setSamePeriod(value=>!value)} className={`rounded-lg px-2.5 py-1.5 text-xs transition-colors ${samePeriod?'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400':'bg-slate-100 text-slate-500 dark:bg-slate-700/50 dark:text-slate-400'}`}>往年同期</button></div>

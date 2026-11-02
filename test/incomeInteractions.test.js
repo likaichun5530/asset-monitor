@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 const page=readFileSync(new URL('../src/pages/Income.jsx',import.meta.url),'utf8')
 test('income has compact entry/year control, synchronized year selection and category drilldown',()=>{
- assert.match(page,/>录入<\/button>/)
+ assert.match(page,/>录入<\/TargetEditButton>/)
  assert.doesNotMatch(page,/income-year-select/)
  assert.match(page, /\{selected.year\}年/)
  assert.doesNotMatch(page,/>录入收入<\/button>/)

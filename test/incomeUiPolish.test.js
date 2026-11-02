@@ -25,7 +25,7 @@ test('income card gaps match actual home page spacing',()=>{
 })
 test('selected year heads overview with entry right and dialog year selection preserved',()=>{
  const page=read('src/pages/Income.jsx')
- assert.match(page,/<h2 className="font-semibold">\{selected.year\}年\{samePeriod\?'同期':''\}<\/h2>\s*<button/)
+ assert.match(page,/<h2 className="font-semibold">\{selected.year\}年\{samePeriod\?'同期':''\}<\/h2>\s*<TargetEditButton/)
  assert.doesNotMatch(page,/aria-label="收入年度"|income-year-select|年度总览/)
  assert.match(page,/onClick=\{selectBar\}/)
  assert.match(page,/initialYear=\{selected.year\}/)

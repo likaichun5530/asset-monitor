@@ -5,18 +5,46 @@ let cacheEpoch = 0
 let privateSessionToken = null
 let privateSessionId = 0
 let incomeSnapshot = null
+let incomeRevision = 0
 
-// Session-memory only: never persist private income in public/offline caches.
+// Same origin-local storage standard as holdings; never use HTTP/SW caches.
+// A single owner-tagged record avoids token keys and accumulating old accounts.
+const INCOME_STORAGE_KEY = 'asset-monitor:income:v1'
+function incomeOwner(token) {
+  try {
+    const encoded = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(decodeURIComponent(Array.from(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')), c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join('')))
+    return Number.isFinite(payload.exp) && payload.exp * 1000 > Date.now() && typeof payload.username === 'string' && payload.username ? payload.username : null
+  } catch { return null }
+}
+function clearStoredIncome() {
+  try { localStorage.removeItem(INCOME_STORAGE_KEY) } catch { /* storage unavailable */ }
+}
 export function getCachedIncome() {
   const token = readAuthToken()
   privateScope(token)
-  return token ? incomeSnapshot : null
+  if (!token) { clearStoredIncome(); return null }
+  if (incomeSnapshot) return incomeSnapshot
+  const owner = incomeOwner(token)
+  try {
+    const stored = JSON.parse(localStorage.getItem(INCOME_STORAGE_KEY) || 'null')
+    if (owner && stored?.owner === owner && Array.isArray(stored.data?.years)) {
+      incomeSnapshot = stored.data
+      return incomeSnapshot
+    }
+    clearStoredIncome()
+  } catch { clearStoredIncome() }
+  return null
 }
 
 export function cacheIncome(data) {
   const token = readAuthToken()
   privateScope(token)
-  if (token) incomeSnapshot = data
+  if (token) { incomeSnapshot = data; incomeRevision += 1 }
+  const owner = incomeOwner(token)
+  if (owner && Array.isArray(data?.years)) {
+    try { localStorage.setItem(INCOME_STORAGE_KEY, JSON.stringify({ owner, data, cachedAt: new Date().toISOString() })) } catch { /* keep memory on quota/security errors */ }
+  }
 }
 
 const GET_CACHE_TTL_MS = Object.freeze({
@@ -73,7 +101,8 @@ function deleteMatchingEntries(predicate) {
   }
 }
 
-export function clearPrivateApiCache() {
+export function clearPrivateApiCache({ preserveIncome = false } = {}) {
+  if (!preserveIncome) clearStoredIncome()
   incomeSnapshot = null
   cacheEpoch += 1
   privateSessionToken = null
@@ -90,7 +119,7 @@ export function invalidateApiCache(resources) {
 
 function privateScope(token) {
   if (token !== privateSessionToken) {
-    clearPrivateApiCache()
+    clearPrivateApiCache({ preserveIncome: true })
     privateSessionToken = token
   }
   return `private:${privateSessionId}`
@@ -175,8 +204,9 @@ export function getApiJson(endpoint, {
   const requestEpoch = cacheEpoch
   const requestSession = privateSessionId
   const snapshotToken = readAuthToken()
+  const requestIncomeRevision = incomeRevision
   const request = requestApiJson(endpoint, { ...options, method: 'GET' }).then((data) => {
-    if (context.resource === 'income' && context.private && requestSession === privateSessionId && snapshotToken === readAuthToken()) cacheIncome(data)
+    if (context.resource === 'income' && context.private && requestSession === privateSessionId && snapshotToken === readAuthToken() && requestIncomeRevision === incomeRevision) cacheIncome(data)
     if (cacheTtlMs > 0 && requestEpoch === cacheEpoch) {
       getCache.set(context.key, { ...context, data, expiresAt: Date.now() + cacheTtlMs })
     }

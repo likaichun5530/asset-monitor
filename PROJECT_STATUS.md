@@ -1,5 +1,33 @@
 # 项目现状与审查记录
 
+## 当前发布：2.9.8 三项 UI 调整与同签名升级
+
+- 收入金额下显示“更新于 YYYY年M月D日”，移除原重复更新时间行；录入按钮直接复用目标页 TargetEditButton，导航标签不变。
+- Home 仅资产主区后间距增加 8px，不改全页 gap。390/1280px × 明暗 × 原生/浏览器八组合合成 Chromium 实测均 +8px；金额下日期唯一、目标/录入按钮计算样式一致，未溢出，无页面异常。截图与量测结果在工作区 ui298-*.png / ui298-results.json。
+- 保留上一批 2.9.7 所有源码及账户隔离持久缓存，冷重载/失败保留/编辑保护/换账户/401 再重载合成回归通过；无真实财务写入或统计更改。收入/升级通道相关测试通过；全量 197/199 项通过、2 项原有导航断言失败，原始 af687d12 复现，未借本批更改不相关导航。
+- Web 与 App 2.9.8 / Android 207；版本检查、Web build、Capacitor sync、Gradle release 通过。正式签名保持 `9ea9719dce4588c14d0b236b4c6d522035f62b09795baed2701a01711156db8e`，由 2.9.6/2.9.7 可覆盖升级，未真机安装验收。
+- 部署 `dpl_9UQedb955E56xqkY1JPTWFq7ghdG` READY / production，正式域名绑定。清单与 APK 实下载匹配：4,261,760 字节，SHA-256 `faadb7fb99c97089e3bd9716db32407c2332fe19d3c65b06954b5249e24c49e1`；在线下载包 apksigner 已验证。仅当前 APK 上线，旧包留仓库忽略的 release 归档，不删除历史部署；原生包排除静态下载 APK，防止嵌套打包膨胀。
+- 本批与 2.9.7 缓存源码按用户授权完整提交推送 main；提交号以 Git 历史/远端核验为准。APK、密钥、凭据、私人财务不入 Git。
+
+## 上次发布：2.9.7 收入冷启动缓存与线上升级
+
+Web 与 App 均 2.9.7 / Android 206，部署 `dpl_FfXbbnseJrDFHRXoCwkp8cthRKQR`，READY / production，正式域名已绑定。用户最新要求使用线上升级，已恢复活动清单和当前版本 APK，未重新上传历史 APK，不额外复制 AI 目录。由已装 2.9.6 / 205 使用相同正式证书覆盖升级，不需卸载（未真机安装验收）。线上 HTML、含 2.9.7 与持久缓存逻辑的实际 JS `/assets/index-pgJZ1NRi.js`、清单及 APK 均 HTTP 200；实下载 4,261,156 字节，SHA-256 `e043a01fe6b2862a8928448abd07940ddf26448adfafb7f98988fde25b9426af`，签名证书为既有 `9ea9719dce4588c14d0b236b4c6d522035f62b09795baed2701a01711156db8e`，aapt 核验 com.youshu.app / 206 / 2.9.7。清单 no-store；匿名收入 API 仍 401 private, no-store。
+
+收入缓存从模块内存扩展到同源 localStorage（与现有资产缓存相同保护标准，并非硬件加密），单份记录按稳定 username 归属，不保存 token 到缓存 key；登录冷启动先展示再后台刷新，失败保留与提示/源更新时间，无缓存首次加载。登出/401 清理、换账户隔离、旧请求防回填与编辑防覆盖已验证；不新增权限、不让 SW 缓存私人 API、不真实写表。相关测试 38/38；全量仍仅原有桌面导航与设置页两项源码断言失败。合成 Chromium 实际 page.reload/挂起请求、刷新失败、编辑保护、换账户、401 后二次重载通过。Web/Android release 构建与在线证书验证通过；本批未 commit、未 push。
+
+以下迁出与旧版发布均为历史记录，当前状态以本节为准。
+
+## APK 迁出线上 — 静态托管清理（已部署）
+
+- 按用户要求，APK 已转存 `/vol1/1000/AI/youshu-2.9.6.apk`（9,221,798 字节，SHA-256 `2ab31cf00902f89e8d744f115e81c4bc740b93de4251f0b99818370019cfd359`）及 `youshu-2.7.0.apk`（5,382,454 字节，SHA-256 `30d113f6954343e259159d6baf91977248936d27beee0b8a25f2296761c2ed40`）；逐一与原文件校验一致。最新安装版原始清单保存在同目录 `youshu-2.9.6-update-metadata.json`。
+- 当前生产部署移除 public/downloads 的两个 APK（共 14,604,252 字节）及在线 android.json，dist 不含 APK。不删除源码、Android 构建产物或正式签名，不改私人财务。
+- 既有客户端没有暂停通道开关；保留原清单会让旧版提示下载不存在的 APK，因此撤下活动清单。新检查不会获得可升级清单，手动检查会提示“检查更新失败（404）”；客户端可能仍保留此前缓存红点，本批未改客户端代码，不能声称已清除所有旧提示。
+- 这是用户明确要求的静态二进制/清单撤除，不是新应用发布：不改运行代码或公开配置，不升应用版本，不新生成或发布 APK；安装版仍 2.9.6 / 205，Web 仍 2.9.5，JS 文件仍 index-iWnOuudk.js。
+- 部署 `dpl_8PnDJCvjnauQeMhjiPznGZuHz31H`，READY / production，已绑定正式域名。实测首页及原 JS 200，两个 APK 和活动清单均 404，匿名持仓/收入 API 均 401 private, no-store。版本检查、升级器测试 7/7、Web 构建通过。
+- 未删除 Vercel 历史部署，因此历史快照仍可能保留 APK；本次只从当前生产部署移除，不能视为历史存储已彻底回收。未 commit、未 push。
+
+以下 2.9.6 上线记录为迁出前历史状态；当前 APK/升级通道以本节为准。
+
 ## 当前发布：2.9.6 正式签名 Android
 
 App 2.9.6 / 205 已发布，网页版保持 2.9.5。部署 `dpl_5yind6cLWeSvvUv2vDB3r8xgoq73` 为 READY / production，正式域名已绑定。线上清单与 APK HTTP 200，实际下载 9,221,798 字节，SHA-256 `2ab31cf00902f89e8d744f115e81c4bc740b93de4251f0b99818370019cfd359`，与本地完全一致。apksigner、aapt、版本检查、相关测试、Web/Android 构建通过，未真机验收、未真实财务写入。固定非 debug 正式签名与私有备份位置见 PACKAGING.md，后续不得重建密钥。旧签名版先卸载再安装，可能丢失本地设置，Google 原表不受影响。前批已推送 a71138eb；本批亦按授权提交并推送 main（精确 SHA 见 Git 历史）。
@@ -27,12 +55,12 @@ App 2.9.6 / 205 已发布，网页版保持 2.9.5。部署 `dpl_5yind6cLWeSvvUv2
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.9.6 / Android 205；正式签名与通道发布完成 |
-| 最近已确认生产版本 | 网页版 2.9.5；App 通道 2.9.6 / 205，实际下载哈希/大小核验一致 |
-| 最近已确认部署 | dpl_5yind6cLWeSvvUv2vDB3r8xgoq73，READY / production，正式域名已绑定 |
+| 本地版本 | 2.9.8 / Android 207；固定正式签名，源码完整提交推送 main |
+| 最近已确认生产版本 | 网页版 2.9.8；App 通道 2.9.8 / 207，实际下载哈希/大小/签名核验一致 |
+| 最近已确认部署 | dpl_9UQedb955E56xqkY1JPTWFq7ghdG，READY / production，正式域名已绑定 |
 | Git 同步批次 | 前批已推送 a71138eb；本批正式签名引用、测试、发布配置和文档按授权提交推送 main；历史条目仅描述当时状态 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；versionName 2.9.6 / versionCode 205（正式签名 APK 已发布，未真机验收）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；versionName 2.9.8 / versionCode 207（正式签名 APK 已发布，未真机验收）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则

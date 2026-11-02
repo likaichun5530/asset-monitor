@@ -901,6 +901,17 @@ html.dark body {
   }
 }
 
+/* Only the gap after the asset hero grows; keep all other page gaps unchanged. */
+.home-hero-composite {
+  padding-bottom: 8px;
+}
+@media (min-width: 1024px) {
+  .home-hero-composite {
+    padding-bottom: 0;
+    margin-bottom: 8px;
+  }
+}
+
 /* 阻止移动端浏览器默认的下拉刷新（黑色圆圈） */
 html {
   overscroll-behavior: none;
