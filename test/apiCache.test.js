@@ -158,3 +158,32 @@ test('当前会话 401 会清理 token，旧会话迟到的 401 不影响新登�
   await oldRequest
   assert.equal(storage.get(AUTH_STORAGE_KEY), 'session-new')
 })
+
+test('income stale snapshot survives refresh failure but clears on logout and account change', async () => {
+  const api = await import('../src/utils/api.js')
+  resetCache()
+  globalThis.fetch = async () => jsonResponse({ years: [{ year: 2026, total: 123 }] })
+  await getApiJson('income', { forceRefresh: true })
+  assert.equal(api.getCachedIncome()?.years[0].total, 123)
+  globalThis.fetch = async () => { throw new Error('offline') }
+  await assert.rejects(getApiJson('income', { forceRefresh: true }))
+  assert.equal(api.getCachedIncome()?.years[0].total, 123)
+  storage.set(AUTH_STORAGE_KEY, 'session-b')
+  assert.equal(api.getCachedIncome(), null)
+  api.cacheIncome({ years: [] })
+  clearPrivateApiCache()
+  assert.equal(api.getCachedIncome(), null)
+})
+
+test('late income response cannot repopulate a logged out session', async () => {
+  const api = await import('../src/utils/api.js')
+  resetCache()
+  let release
+  globalThis.fetch = () => new Promise(resolve => { release = resolve })
+  const request = getApiJson('income', { forceRefresh: true })
+  clearPrivateApiCache()
+  storage.delete(AUTH_STORAGE_KEY)
+  release(jsonResponse({ years: [{ year: 2026 }] }))
+  await request
+  assert.equal(api.getCachedIncome(), null)
+})

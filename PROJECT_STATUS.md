@@ -1,5 +1,13 @@
 # 项目现状与审查记录
 
+2.9.5 本地待发布 / Android 204：收入首屏去掉副标题和人民币符号，保留千位/两位小数；同期标题追加“同期”；移除首屏卡片外观、压缩为 8px 纵向留白、背景跟随页面。相关测试 36/36、版本检查、生产 Web 构建、Capacitor 同步通过，390/1280px × 明暗 × 原生/浏览器八组合合成 Chromium 验证通过（84px 首屏、透明/无边框/无阴影），未真实写入、未真机验收。Java 21 / SDK 36 / Build Tools 35、36 / Gradle 8.14.3 已实际准备，release 构建成功（203 tasks）；aapt 核验 com.youshu.app / 2.9.5 / 204，产物未签名。原 2.7.0 Android Debug 证书 SHA-256 为 a987681785d44bd9b1ee6d432f6b1f57823527899c428251ba7fda5f2d45ecb3，当前账号与授权范围未找到对应 keystore，故不能冒充覆盖升级。生产旧 APK URL 为 404，已从历史部署恢复原包到忽略目录 public/downloads，SHA-256/大小与清单一致且 apksigner 通过，待后续部署修复下载。全量测试190/192（既有两项失败），升级通道仍为2.7.0，未发布2.9.5。此前 2.9.2～2.9.4 源码完整保留；未 commit/push，待父代理独立审查与推送。
+
+2.9.4 已发布（`dpl_7aLoydVtoYXyCXrmhJpTsyjHekRG`，READY / production，正式域名 HTTP 200，实际 `/assets/index-BUPjm82Z.js` 2.9.4，匿名收入 GET 401 private, no-store）：收入月份区间“～”、单位行精简、卡片间距与首页同为 8px、所选年份标题及右侧录入完成。相关测试 35/35、版本检查与构建通过，390/1280px 合成浏览器四项及柱图年份/分类/录入联动通过，无真实写入；保留所有原有未提交源码，不生成 APK、不 commit/push。
+
+2.9.3 已发布（`dpl_6jnzXvRWqgLWqboj2xw1YrgpZSLf`，READY / production，正式域名 HTTP 200，实际 JS 2.9.3，匿名收入 GET/PUT 401 private, no-store；相关测试 31/31，全量 185/187 两项既有失败，版本检查/构建通过）：同期模式当年显示截至目前实际累计（11 月仅录 1—10 月仍展示），历史年按当前月份完整数据比较，分类/月度联动；收入使用认证会话内存缓存先展示再更新，失败保留旧值、编辑期间不替换、登出/401 清理和 token 隔离。整页重载不持久化收入缓存。390/1280px 合成 Chromium 导航/同期/编辑/退出隔离验证通过；未真实写表，不代表真机验收。仅网页部署，不生成 APK、不 commit/push。
+
+2.9.2 本批网页已发布（`dpl_5EGGg5T2FwjJtsZiQCg1mshfodBu`，READY / production，正式域名 HTTP 200，实际 JS 2.9.2，匿名收入 GET/PUT 401 private, no-store）：收入页六项交互（录入短标签、紧凑年度、点击柱图联动、奋斗/双薪、月度钻取返回、往年同期）完成。13 年源表已只读实核：历史 12 年月度完整，2026 仅 1—10 月；当前上海 11 月同期不纳入 2026，缺月不补零。相关测试 24/24，全量 183/185（两项既有无关断言失败），版本检查/构建通过；390/1280px 合成数据点击与截图通过，无浏览器异常和写请求。本地 2.9.2 / Android 201，仅网页发布，不生成 APK、不更新 App 通道、不 commit/push。
+
 2.9.1 本批已发布（dpl_2z2XosShvkzYRk5JgZt8hwj44E1P，READY / production；正式域名 HTTP 200，实际 JS 2.9.1，匿名收入 GET/PUT 401 private, no-store）：收入页11项精简、动态年份录入弹窗和真实表头分类已完成；13年总额保持原值。相关测试21/21、全量180/182（两项已有无关断言失败），版本检查/构建通过，390/1280px合成数据截图及年份/只读/取消返回交互通过；无真实写入验收。Android versionName 2.9.1 / versionCode 200（仅同步版本，未构建APK）。
 
 前批次状态：2.9.0 收入录入和实时源已发布（dpl_9D8HseWb4PFDRvMRyHRwT15L9Zwr，READY / production）；相关测试 17/17、全量 176/178（两项已有失败）、版本检查与构建通过；正式域名 HTTP 200 和实际 JS 2.9.0 已核验，匿名 GET/PUT 401；390/1280px 合成数据交互验证通过；真实表首次保存未验收。未生成 APK、未更新 App 通道、未提交、未推送。上一批次：2.8.2 收入图表坐标和左边距修复已发布（dpl_3Fjh8CUfvF34QRxtCgqmyWxZki7x，READY / production；正式域名 HTTP 200，实际前端 JS 核验 2.8.2，匿名收入 API 401）；相关测试 12/12，版本检查与 Web 构建通过，隔离 Chromium 合成数据完成手机/桌面截图。未修改生产私有快照与 JWT；未生成 APK、未提交、未推送。2.8.1 已生产发布由上游交接确认，旧版记录保留用于追溯。
@@ -13,12 +21,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.9.1，收入页精简与按年弹窗录入；已部署，本次完整源码纳入 Git 同步 |
-| 最近已确认生产版本 | 网页版 2.9.1，HTTP 与实际 JS 已核验；App 通道仍为 2.7.0，本批未更新 |
-| 最近已确认部署 | 网页 dpl_2z2XosShvkzYRk5JgZt8hwj44E1P，READY / production，正式域名已绑定；App 升级通道未更新 |
+| 本地版本 | 2.9.4，收入页文案与布局细节；已部署，未提交/未推送 |
+| 最近已确认生产版本 | 网页版 2.9.4，HTTP 与实际 JS 已核验；App 通道仍为 2.7.0，本批未更新 |
+| 最近已确认部署 | 网页 dpl_7aLoydVtoYXyCXrmhJpTsyjHekRG，READY / production，正式域名已绑定；App 升级通道未更新 |
 | Git 同步批次 | 本次提交包含 2.8.0～2.9.1 完整源码、测试和文档；历史条目中的未提交/未推送仅描述当时状态 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；本地 versionName 2.9.1 / versionCode 200（未生成新 APK）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；本地 versionName 2.9.4 / versionCode 203（未生成新 APK）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则

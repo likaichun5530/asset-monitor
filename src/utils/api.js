@@ -4,6 +4,20 @@ const getCache = new Map()
 let cacheEpoch = 0
 let privateSessionToken = null
 let privateSessionId = 0
+let incomeSnapshot = null
+
+// Session-memory only: never persist private income in public/offline caches.
+export function getCachedIncome() {
+  const token = readAuthToken()
+  privateScope(token)
+  return token ? incomeSnapshot : null
+}
+
+export function cacheIncome(data) {
+  const token = readAuthToken()
+  privateScope(token)
+  if (token) incomeSnapshot = data
+}
 
 const GET_CACHE_TTL_MS = Object.freeze({
   holdings: 15_000,
@@ -60,6 +74,7 @@ function deleteMatchingEntries(predicate) {
 }
 
 export function clearPrivateApiCache() {
+  incomeSnapshot = null
   cacheEpoch += 1
   privateSessionToken = null
   privateSessionId += 1
@@ -158,7 +173,10 @@ export function getApiJson(endpoint, {
   }
 
   const requestEpoch = cacheEpoch
+  const requestSession = privateSessionId
+  const snapshotToken = readAuthToken()
   const request = requestApiJson(endpoint, { ...options, method: 'GET' }).then((data) => {
+    if (context.resource === 'income' && context.private && requestSession === privateSessionId && snapshotToken === readAuthToken()) cacheIncome(data)
     if (cacheTtlMs > 0 && requestEpoch === cacheEpoch) {
       getCache.set(context.key, { ...context, data, expiresAt: Date.now() + cacheTtlMs })
     }
