@@ -32,6 +32,10 @@ npm run build
 
 本地构建用于在占用云构建前发现错误。构建已通过且源码未再变化时，不重复执行。
 
+## Android 正式签名（2.9.6 起）
+
+正式 release 固定读取用户私有目录的签名，路径、证书 SHA-256、备份与构建入口见 `PACKAGING.md`。禁止重新生成签名或改回 debug；缺少配置时应停止发布。旧签名版首次需要卸载重装，新版之后沿用正式签名升级。打包后必须以 apksigner 和 aapt 核验签名、包名、versionName/versionCode，计算 APK 哈希更新清单并实下载比对。仅 App 发布时保留 Web 版本覆盖，本批使用 `--build-env VITE_WEB_VERSION=2.9.5`。
+
 ## Vercel 部署
 
 ```bash

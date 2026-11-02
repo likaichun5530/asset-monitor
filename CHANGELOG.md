@@ -1,5 +1,14 @@
 # 发布记录
 
+## 2.9.6 — 固定正式 Android 签名与安装包（App 通道已发布）
+
+- 按用户授权新建持久 RSA 3072 release 签名；从本版起后续使用同一签名，无需用户签名。私钥与随机强密码保存在当前用户仓库外 0700/0600 私有目录，附受限备份；位置和证书指纹见 PACKAGING.md，不进入 Git/APK/公开目录。
+- 旧 debug 版不能覆盖安装本版，首次需先卸载旧 App 再手动安装；本地设置/登录/缓存可能丢失，Google 原表不受影响。后续保持 com.youshu.app 与同一证书，递增 versionCode 即可覆盖升级。
+- 本批只升一次为 2.9.6 / 205；Web UI 保持 2.9.5，未新增业务交互与真实财务写入。版本检查、相关 Android/升级器测试、Web 构建、Capacitor 同步及 Gradle assembleRelease 通过；apksigner 验证 v2 签名，aapt 核验包名和版本。不是手机真机验收。
+- APK：`public/downloads/youshu-2.9.6.apk`，9,221,798 字节，SHA-256 `2ab31cf00902f89e8d744f115e81c4bc740b93de4251f0b99818370019cfd359`。线上升级清单和 APK 均 HTTP 200，实际下载大小/哈希与本地和清单一致；清单 no-store。二进制按规则不提交 Git。
+- 部署 `dpl_5yind6cLWeSvvUv2vDB3r8xgoq73`，READY / production，正式域名已绑定；实际 JS `/assets/index-iWnOuudk.js` 核验网页覆盖版本 2.9.5 与原生包版本 2.9.6。
+- GitHub：前批已推送至 a71138eb；本批源码、签名引用配置、版本清单和维护文档按用户授权提交并推送 main，精确提交号以 Git 历史为准。未提交密钥、密码、APK、私人数据。
+
 ## 2.9.5 — 收入首屏紧凑与金额格式（网页已发布，APK 未发布）
 
 - 收入首屏去掉金额副标题；同期模式标题追加“同期”；金额保留千位及两位小数，不显示人民币符号。

@@ -1,5 +1,11 @@
 # 项目现状与审查记录
 
+## 当前发布：2.9.6 正式签名 Android
+
+App 2.9.6 / 205 已发布，网页版保持 2.9.5。部署 `dpl_5yind6cLWeSvvUv2vDB3r8xgoq73` 为 READY / production，正式域名已绑定。线上清单与 APK HTTP 200，实际下载 9,221,798 字节，SHA-256 `2ab31cf00902f89e8d744f115e81c4bc740b93de4251f0b99818370019cfd359`，与本地完全一致。apksigner、aapt、版本检查、相关测试、Web/Android 构建通过，未真机验收、未真实财务写入。固定非 debug 正式签名与私有备份位置见 PACKAGING.md，后续不得重建密钥。旧签名版先卸载再安装，可能丢失本地设置，Google 原表不受影响。前批已推送 a71138eb；本批亦按授权提交并推送 main（精确 SHA 见 Git 历史）。
+
+## 以下为历史批次记录（以当前发布及下方环境表为准）
+
 2.9.5 网页已生产部署（`dpl_Avdw2wuFjH6YQwgf28pYmx2M63Tj`，READY / production，绑定正式域名，HTTP 200；实际 `/assets/index-C2LjG-eE.js` 含 2.9.5）；源码已本地提交 `f0ed062`，推送因当前环境缺 GitHub 凭据失败，远端 main 仍为 `435b4b19fdec314c9b748745279e2983ec2cbcbf`，不得描述为已推送。Android 204：收入首屏去掉副标题和人民币符号，保留千位/两位小数；同期标题追加“同期”；移除首屏卡片外观、压缩为 8px 纵向留白、背景跟随页面。相关测试 36/36、版本检查、生产 Web 构建、Capacitor 同步通过，390/1280px × 明暗 × 原生/浏览器八组合合成 Chromium 验证通过（84px 首屏、透明/无边框/无阴影），未真实写入、未真机验收。Java 21 / SDK 36 / Build Tools 35、36 / Gradle 8.14.3 已实际准备，release 构建成功（203 tasks）；aapt 核验 com.youshu.app / 2.9.5 / 204，产物未签名。原 2.7.0 Android Debug 证书 SHA-256 为 a987681785d44bd9b1ee6d432f6b1f57823527899c428251ba7fda5f2d45ecb3，当前账号与授权范围未找到对应 keystore，故不能冒充覆盖升级。生产旧 APK URL 原为 404，已从历史部署恢复原包到忽略目录 public/downloads，本次部署后 HTTP 200、下载 SHA-256/大小与 2.7.0 清单一致；未更新 android.json。全量测试190/192（既有两项失败），升级通道仍为2.7.0，未发布2.9.5。此前 2.9.2～2.9.4 源码完整保留并随本批提交。原签名需从原打包 Mac 的 ~/.android/debug.keystore 安全迁移并核验证书，不生成替代密钥。
 
 2.9.4 已发布（`dpl_7aLoydVtoYXyCXrmhJpTsyjHekRG`，READY / production，正式域名 HTTP 200，实际 `/assets/index-BUPjm82Z.js` 2.9.4，匿名收入 GET 401 private, no-store）：收入月份区间“～”、单位行精简、卡片间距与首页同为 8px、所选年份标题及右侧录入完成。相关测试 35/35、版本检查与构建通过，390/1280px 合成浏览器四项及柱图年份/分类/录入联动通过，无真实写入；保留所有原有未提交源码，不生成 APK、不 commit/push。
@@ -21,12 +27,12 @@
 | 应用 | 有数 / Asset Monitor |
 | 生产地址 | https://asset.kenny5530.asia |
 | Git | https://github.com/likaichun5530/asset-monitor.git ，main |
-| 本地版本 | 2.9.5，收入交互与首屏 UI；已部署、已本地提交，GitHub 认证缺失暂未推送 |
-| 最近已确认生产版本 | 网页版 2.9.5，HTTP 与实际 JS 已核验；App 通道仍为 2.7.0，旧包下载已恢复，无新 APK 发布 |
-| 最近已确认部署 | 网页 dpl_Avdw2wuFjH6YQwgf28pYmx2M63Tj，READY / production，正式域名已绑定；App 升级通道未更新 |
-| Git 同步批次 | 本批本地提交包含 2.9.2～2.9.5 完整源码、测试和文档；远端 main 仍为 435b4b1（2.9.1），待 GitHub 认证后正常推送；历史条目仅描述当时状态 |
+| 本地版本 | 2.9.6 / Android 205；正式签名与通道发布完成 |
+| 最近已确认生产版本 | 网页版 2.9.5；App 通道 2.9.6 / 205，实际下载哈希/大小核验一致 |
+| 最近已确认部署 | dpl_5yind6cLWeSvvUv2vDB3r8xgoq73，READY / production，正式域名已绑定 |
+| Git 同步批次 | 前批已推送 a71138eb；本批正式签名引用、测试、发布配置和文档按授权提交推送 main；历史条目仅描述当时状态 |
 | 用户使用方式 | Android Chrome PWA；2.6.9 开始提供独立测试 APK |
-| Android 原生 | Capacitor 8；本地 versionName 2.9.5 / versionCode 204（已构建未签名 APK，未发布）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
+| Android 原生 | Capacitor 8；versionName 2.9.6 / versionCode 205（正式签名 APK 已发布，未真机验收）；使用官方 App 插件接管系统返回键，自定义 Updater 插件负责可信下载、SHA-256 校验和系统安装，打开安装器后结束当前 App 任务，NativeTheme 插件保存主题供下一次冷启动选择主题启动样式；运行时依赖不含 Google Play Services / Firebase |
 | 本地 API 包 | server/package.json 的 2.1.10 是开发容器的独立版本 |
 
 ## 业务规则

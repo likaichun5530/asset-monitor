@@ -38,6 +38,12 @@ server/.env
 !server/.env.example
 release/
 public/downloads/*.apk
+# Android release signing secrets (production keys live outside repository)
+*.jks
+*.keystore
+*.p12
+signing.properties
+keystore.properties
 
 # Google Apps Script 本机 clasp 项目绑定
 apps-script/**/.clasp.json
